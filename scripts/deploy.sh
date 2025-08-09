@@ -328,7 +328,6 @@ case "${1:-help}" in
         install_packages
         start_web_dev
         log_success "Web development server started!"
-        log_info "Live output: cat live_output.log"
         wait $WEB_PID
         ;;
     "web:tunnel")
@@ -336,14 +335,12 @@ case "${1:-help}" in
         install_packages
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
-        log_info "Live output: cat live_output.log"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
         clean_logs
         install_packages
         deploy_vercel
-        log_info "Live output: cat live_output.log"
         ;;
     
     # Mobile commands
@@ -352,7 +349,6 @@ case "${1:-help}" in
         install_packages
         start_mobile_dev
         log_success "Mobile development server started!"
-        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
@@ -360,20 +356,17 @@ case "${1:-help}" in
         install_packages
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
-        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     "mobile:build")
         clean_logs
         install_packages
         cd apps/expo && eas build --profile development 2>&1 | tee ../live_output.log && cd ../..
-        log_info "Live output: cat live_output.log"
         ;;
     "mobile:prod")
         clean_logs
         install_packages
         cd apps/expo && eas build --profile production 2>&1 | tee ../live_output.log && cd ../..
-        log_info "Live output: cat live_output.log"
         ;;
     
     # Complete deployments
@@ -382,14 +375,12 @@ case "${1:-help}" in
         install_packages
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
-        log_info "Live output: cat live_output.log"
         ;;
     "all:mobile")
         clean_logs
         install_packages
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
-        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     
@@ -403,7 +394,6 @@ case "${1:-help}" in
     "install")
         clean_logs
         install_packages
-        log_info "Live output: cat live_output.log"
         ;;
     "help"|*)
         show_usage
