@@ -18,8 +18,8 @@ if [ -f .env ]; then
         [[ $line =~ ^[[:space:]]*# ]] && continue
         [[ -z $line ]] && continue
         
-        # Only export NGROK_AUTHTOKEN
-        if [[ $line =~ ^NGROK_AUTHTOKEN= ]]; then
+        # Only export NGROK_TOKEN
+        if [[ $line =~ ^NGROK_TOKEN= ]]; then
             export "$line"
         fi
     done < .env
@@ -43,18 +43,18 @@ check_token() {
 start_mobile_ngrok() {
     echo -e "${BLUE}🚀 Starting ngrok tunnel for mobile app...${NC}"
     
-    if ! check_token "NGROK_AUTHTOKEN" "$NGROK_AUTHTOKEN"; then
+    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
         echo -e "${YELLOW}⚠️ Skipping ngrok - token not configured${NC}"
         echo -e "${BLUE}💡 To set up ngrok:${NC}"
         echo "1. Get free token: https://dashboard.ngrok.com/signup"
-        echo "2. Add to .env: NGROK_AUTHTOKEN=your_token_here"
+        echo "2. Add to .env: NGROK_TOKEN=your_token_here"
         return 1
     fi
     
     # Configure ngrok if not already configured
     if [ ! -f ~/.config/ngrok/ngrok.yml ]; then
         echo -e "${BLUE}⚙️ Configuring ngrok...${NC}"
-        ngrok config add-authtoken "$NGROK_AUTHTOKEN"
+        ngrok config add-authtoken "$NGROK_TOKEN"
     fi
     
     # Start ngrok tunnel on port 8081 (Expo default)
@@ -115,7 +115,7 @@ show_usage() {
     echo "  help     - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
-    echo "  Make sure to set NGROK_AUTHTOKEN in .env file"
+    echo "  Make sure to set NGROK_TOKEN in .env file"
     echo ""
     echo -e "${BLUE}Example:${NC}"
     echo "  ./scripts/mobile-ngrok.sh tunnel"
