@@ -4,17 +4,14 @@ This project includes an automated environment setup system that helps you confi
 
 ## Quick Setup
 
-### Option 1: Using npm/pnpm script
+### Option 1: Automatic (Recommended)
+The environment setup runs automatically when you install dependencies:
 ```bash
-pnpm setup:env
+./scripts/deploy.sh install:web    # Installs web dependencies + sets up env
+./scripts/deploy.sh install:mobile # Installs mobile dependencies + sets up env
 ```
 
-### Option 2: Using the deployment script
-```bash
-./scripts/deploy.sh setup:env
-```
-
-### Option 3: Running the script directly
+### Option 2: Running the script directly
 ```bash
 ./scripts/setup-env.sh
 ```
@@ -35,11 +32,13 @@ The environment setup script performs the following steps:
 
 ## Automatic Integration
 
-The environment setup is automatically run as part of the deployment process. When you run any deployment command (like `./scripts/deploy.sh web:dev`), it will:
+The environment setup is automatically run as part of the dependency installation process. When you run any installation command (like `./scripts/deploy.sh install:web`), it will:
 
-1. Load existing environment variables
+1. Install the required dependencies
 2. Run the environment setup to ensure all required variables are present
-3. Proceed with the deployment
+3. Complete the installation
+
+This ensures that environment variables are properly configured before any deployment or development commands are executed.
 
 ## Manual Configuration
 

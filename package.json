@@ -24,8 +24,7 @@
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add",
     "android": "expo run:android",
-    "ios": "expo run:ios",
-    "setup:env": "./scripts/setup-env.sh"
+    "ios": "expo run:ios"
   },
   "devDependencies": {
     "@acme/prettier-config": "workspace:*",
