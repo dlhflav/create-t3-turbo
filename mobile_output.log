@@ -1,15 +1,11 @@
-Scope: all 13 workspace projects
-../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
-../..                                    | -101 ----------
-../..                                    | Progress: resolved 0, reused 101, downloaded 0, added 0, done
-
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, better-sqlite3,    │
-│   bufferutil, core-js-pure, prisma, sharp, utf-8-validate.                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
-
-../.. postinstall$ pnpm lint:ws
+Starting project at /workspace/apps/expo
+Using src/app as the root directory for Expo Router.
+Starting Metro Bundler
+Tunnel connected.
+Tunnel ready.
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/expo/index.ts ▓▓▓▓▓▓▓▓░░░░░░░░ 51.6% (467/650)
+Android apps/expo/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.7% (1021/1116)
+Android Bundled 10015ms apps/expo/index.ts (1380 modules)
