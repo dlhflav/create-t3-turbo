@@ -43,7 +43,15 @@ log_deploy() {
 load_env() {
     if [ -f .env ]; then
         echo -e "${BLUE}ℹ️ Loading environment variables...${NC}"
-        export $(cat .env | grep -v '^#' | xargs)
+        # Safer way to load environment variables
+        while IFS= read -r line; do
+            # Skip comments and empty lines
+            [[ $line =~ ^[[:space:]]*# ]] && continue
+            [[ -z $line ]] && continue
+            
+            # Export the variable safely
+            export "$line"
+        done < .env
     else
         echo -e "${YELLOW}⚠️ .env file not found, using environment variables${NC}"
     fi
