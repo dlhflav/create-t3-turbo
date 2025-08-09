@@ -36,6 +36,22 @@ The ngrok URL is accessible from anywhere on the internet and will work as long 
 ## 🛠️ Quick Deployment Script
 
 ### Setup Tokens
+
+You have three options for storing your tokens:
+
+#### Option 1: Cursor Secrets (Recommended)
+1. **Add tokens to Cursor Secrets**:
+   - Open Cursor Settings
+   - Go to "Secrets" section
+   - Add these environment variables:
+     ```
+     VERCEL_TOKEN=your-vercel-token-here
+     NGROK_AUTHTOKEN=your-ngrok-authtoken-here
+     ```
+2. **Restart the agent** to access the secrets
+3. **Tokens will be automatically available** in the shell environment
+
+#### Option 2: Environment File
 1. **Copy `.env.example` to `.env`**:
    ```bash
    cp .env.example .env
@@ -46,6 +62,12 @@ The ngrok URL is accessible from anywhere on the internet and will work as long 
    VERCEL_TOKEN="your-vercel-token-here"
    NGROK_AUTHTOKEN="your-ngrok-authtoken-here"
    ```
+
+#### Option 3: Direct in Script
+Pass tokens directly when running the script:
+```bash
+VERCEL_TOKEN="your-token" NGROK_AUTHTOKEN="your-token" ./scripts/deploy.sh deploy
+```
 
 ### Using the Deployment Script
 ```bash
@@ -81,6 +103,7 @@ chmod +x scripts/deploy.sh
 - ✅ **Colored output for better UX**
 - ✅ **Error handling and logging**
 - ✅ **Performance analysis**
+- ✅ **Cursor Secrets integration**
 
 ---
 
