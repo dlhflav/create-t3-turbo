@@ -22,6 +22,56 @@ log_error() { echo -e "${RED}❌ $1${NC}"; }
 log_step() { echo -e "${CYAN}🔧 $1${NC}"; }
 log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 
+# Clean live output logs
+clean_logs() {
+    log_step "Cleaning live output logs..."
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log
+    rm -f web_output.log mobile_output.log deployment-*.log
+    log_success "Live output logs cleaned"
+}
+
+# Install JavaScript packages for specific app
+install_packages() {
+    local app_type=$1
+    log_step "Installing JavaScript packages for $app_type..."
+    
+    case $app_type in
+        "web"|"next")
+            log_info "Installing Next.js dependencies..."
+            cd apps/nextjs
+            pnpm install 2>&1 | tee ../../web_output.log
+            if [ $? -eq 0 ]; then
+                log_success "Next.js dependencies installed"
+            else
+                log_error "Failed to install Next.js dependencies"
+                cd ../..
+                return 1
+            fi
+            cd ../..
+            ;;
+        "mobile"|"expo")
+            log_info "Installing Expo dependencies..."
+            cd apps/expo
+            pnpm install 2>&1 | tee ../../mobile_output.log
+            if [ $? -eq 0 ]; then
+                log_success "Expo dependencies installed"
+            else
+                log_error "Failed to install Expo dependencies"
+                cd ../..
+                return 1
+            fi
+            cd ../..
+            ;;
+        *)
+            log_error "Unknown app type: $app_type"
+            return 1
+            ;;
+    esac
+    
+    log_success "$app_type dependencies are ready"
+    return 0
+}
+
 # Load environment variables safely
 load_env() {
     if [ -f .env ]; then
@@ -66,8 +116,8 @@ start_ngrok() {
         ngrok config add-authtoken "$NGROK_TOKEN"
     fi
     
-    # Start ngrok tunnel
-    ngrok http $port &
+    # Start ngrok tunnel with live output
+    ngrok http $port 2>&1 | tee web_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -93,7 +143,7 @@ start_web_dev() {
     fi
     
     log_success "Starting web server on http://localhost:3000"
-    pnpm dev:next &
+    pnpm dev:next 2>&1 | tee web_output.log &
     WEB_PID=$!
     sleep 10
     
@@ -112,7 +162,7 @@ start_mobile_dev() {
     
     cd apps/expo
     log_success "Starting Expo server on http://localhost:8081"
-    expo start --lan &
+    npx expo start --lan 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 10
@@ -140,7 +190,7 @@ start_mobile_tunnel() {
     
     cd apps/expo
     log_success "Starting Expo server with tunnel"
-    expo start --tunnel &
+    npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 15
@@ -167,7 +217,7 @@ deploy_vercel() {
     log_info "Deployment timeout: ${TIMEOUT} seconds"
     
     start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
+    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "web_output.log"
     
     if [ $? -eq 124 ]; then
         log_error "Deployment timed out"
@@ -208,6 +258,19 @@ show_status() {
     else
         log_error "Ngrok tunnels: Not running"
     fi
+    
+    # Show live output if available
+    if [ -f "web_output.log" ]; then
+        echo ""
+        log_info "Recent web output:"
+        tail -10 web_output.log
+    fi
+    
+    if [ -f "mobile_output.log" ]; then
+        echo ""
+        log_info "Recent mobile output:"
+        tail -10 mobile_output.log
+    fi
 }
 
 # Show usage
@@ -232,6 +295,9 @@ show_usage() {
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
+    echo "  clean      - Clean all live output logs"
+    echo "  install:web    - Install Next.js dependencies"
+    echo "  install:mobile - Install Expo dependencies"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -251,43 +317,61 @@ load_env
 case "${1:-help}" in
     # Web commands
     "web:dev")
+        clean_logs
+        install_packages "web"
         start_web_dev
         log_success "Web development server started!"
         wait $WEB_PID
         ;;
     "web:tunnel")
+        clean_logs
+        install_packages "web"
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
+        clean_logs
+        install_packages "web"
         deploy_vercel
         ;;
     
     # Mobile commands
     "mobile:dev")
+        clean_logs
+        install_packages "mobile"
         start_mobile_dev
         log_success "Mobile development server started!"
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
+        clean_logs
+        install_packages "mobile"
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
     "mobile:build")
-        cd apps/expo && eas build --profile development && cd ../..
+        clean_logs
+        install_packages "mobile"
+        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
-        cd apps/expo && eas build --profile production && cd ../..
+        clean_logs
+        install_packages "mobile"
+        cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     
     # Complete deployments
     "all:web")
+        clean_logs
+        install_packages "web"
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
+        clean_logs
+        install_packages "mobile"
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
         wait $MOBILE_PID
@@ -296,6 +380,21 @@ case "${1:-help}" in
     # Utility commands
     "status")
         show_status
+        ;;
+    "clean")
+        clean_logs
+        ;;
+    "install")
+        clean_logs
+        log_error "Please specify app type: install:web or install:mobile"
+        ;;
+    "install:web")
+        clean_logs
+        install_packages "web"
+        ;;
+    "install:mobile")
+        clean_logs
+        install_packages "mobile"
         ;;
     "help"|*)
         show_usage
