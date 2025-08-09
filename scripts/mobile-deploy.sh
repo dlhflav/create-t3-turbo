@@ -32,7 +32,13 @@ check_eas() {
 # Function to check if logged in to Expo
 check_expo_login() {
     if ! eas whoami &> /dev/null; then
-        echo -e "${YELLOW}⚠️ Not logged in to Expo. Please run: eas login${NC}"
+        echo -e "${YELLOW}⚠️ Not logged in to Expo${NC}"
+        echo -e "${BLUE}📋 Authentication Options:${NC}"
+        echo "1. Interactive login: eas login"
+        echo "2. Use access token: EXPO_TOKEN=your_token"
+        echo "3. Get token from: https://expo.dev/accounts/[username]/settings/access-tokens"
+        echo ""
+        echo -e "${YELLOW}💡 For automated deployments, create an access token and set EXPO_TOKEN${NC}"
         return 1
     fi
     echo -e "${GREEN}✅ Logged in to Expo${NC}"

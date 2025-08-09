@@ -66,7 +66,10 @@ VERCEL_TIMEOUT=60 ./scripts/deploy.sh deploy
 ### Prerequisites
 - **Expo account**: [expo.dev](https://expo.dev)
 - **EAS CLI**: `npm install -g eas-cli`
-- **Login**: `eas login`
+- **Authentication**: Choose one:
+  - **Interactive**: `eas login`
+  - **Access Token**: Create at [expo.dev/accounts/[username]/settings/access-tokens](https://expo.dev/accounts/[username]/settings/access-tokens)
+  - **Environment**: Set `EXPO_TOKEN=your_token` in Cursor Secrets or `.env`
 
 ### Using the Mobile Script
 ```bash
@@ -142,6 +145,7 @@ ngrok http 3000
 - **Slow deployments**: Check build cache
 - **Deployment timeout**: Increase VERCEL_TIMEOUT or check Vercel status
 - **Mobile build fails**: Check Expo login and EAS configuration
+- **Expo authentication fails**: Create access token at expo.dev/accounts/[username]/settings/access-tokens
 
 ### Getting Help
 - [T3 Turbo docs](https://github.com/t3-oss/create-t3-turbo)

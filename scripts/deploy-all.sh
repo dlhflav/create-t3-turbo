@@ -30,6 +30,12 @@ show_usage() {
     echo "  status      - Show all services status"
     echo "  help        - Show this help"
     echo ""
+    echo "Prerequisites:"
+    echo "  - Vercel account & token: https://vercel.com/account/tokens"
+    echo "  - Ngrok account & token: https://ngrok.com/dashboard/your/authtokens"
+    echo "  - Expo account & token: https://expo.dev/accounts/[username]/settings/access-tokens"
+    echo "  - Set tokens in Cursor Secrets or .env file"
+    echo ""
 }
 
 # Function to deploy web
