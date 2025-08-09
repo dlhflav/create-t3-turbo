@@ -30,6 +30,62 @@ clean_logs() {
     log_success "Live output logs cleaned"
 }
 
+# Install JavaScript packages
+install_packages() {
+    log_step "Installing JavaScript packages..."
+    
+    # Check if node_modules exists in root
+    if [ ! -d "node_modules" ]; then
+        log_info "Installing root dependencies..."
+        pnpm install 2>&1 | tee live_output.log
+        if [ $? -eq 0 ]; then
+            log_success "Root dependencies installed"
+        else
+            log_error "Failed to install root dependencies"
+            return 1
+        fi
+    else
+        log_info "Root dependencies already installed"
+    fi
+    
+    # Check if node_modules exists in apps/expo
+    if [ ! -d "apps/expo/node_modules" ]; then
+        log_info "Installing Expo dependencies..."
+        cd apps/expo
+        pnpm install 2>&1 | tee ../live_output.log
+        if [ $? -eq 0 ]; then
+            log_success "Expo dependencies installed"
+        else
+            log_error "Failed to install Expo dependencies"
+            cd ../..
+            return 1
+        fi
+        cd ../..
+    else
+        log_info "Expo dependencies already installed"
+    fi
+    
+    # Check if node_modules exists in apps/nextjs
+    if [ ! -d "apps/nextjs/node_modules" ]; then
+        log_info "Installing Next.js dependencies..."
+        cd apps/nextjs
+        pnpm install 2>&1 | tee ../live_output.log
+        if [ $? -eq 0 ]; then
+            log_success "Next.js dependencies installed"
+        else
+            log_error "Failed to install Next.js dependencies"
+            cd ../..
+            return 1
+        fi
+        cd ../..
+    else
+        log_info "Next.js dependencies already installed"
+    fi
+    
+    log_success "All JavaScript packages are ready"
+    return 0
+}
+
 # Load environment variables safely
 load_env() {
     if [ -f .env ]; then
@@ -248,6 +304,7 @@ show_usage() {
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
     echo "  clean      - Clean all live output logs"
+    echo "  install    - Install all JavaScript packages"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -268,6 +325,7 @@ case "${1:-help}" in
     # Web commands
     "web:dev")
         clean_logs
+        install_packages
         start_web_dev
         log_success "Web development server started!"
         log_info "Live output: cat live_output.log"
@@ -275,6 +333,7 @@ case "${1:-help}" in
         ;;
     "web:tunnel")
         clean_logs
+        install_packages
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
         log_info "Live output: cat live_output.log"
@@ -282,6 +341,7 @@ case "${1:-help}" in
         ;;
     "web:deploy")
         clean_logs
+        install_packages
         deploy_vercel
         log_info "Live output: cat live_output.log"
         ;;
@@ -289,6 +349,7 @@ case "${1:-help}" in
     # Mobile commands
     "mobile:dev")
         clean_logs
+        install_packages
         start_mobile_dev
         log_success "Mobile development server started!"
         log_info "Live output: cat live_output.log"
@@ -296,6 +357,7 @@ case "${1:-help}" in
         ;;
     "mobile:tunnel")
         clean_logs
+        install_packages
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
         log_info "Live output: cat live_output.log"
@@ -303,11 +365,13 @@ case "${1:-help}" in
         ;;
     "mobile:build")
         clean_logs
+        install_packages
         cd apps/expo && eas build --profile development 2>&1 | tee ../live_output.log && cd ../..
         log_info "Live output: cat live_output.log"
         ;;
     "mobile:prod")
         clean_logs
+        install_packages
         cd apps/expo && eas build --profile production 2>&1 | tee ../live_output.log && cd ../..
         log_info "Live output: cat live_output.log"
         ;;
@@ -315,12 +379,14 @@ case "${1:-help}" in
     # Complete deployments
     "all:web")
         clean_logs
+        install_packages
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         log_info "Live output: cat live_output.log"
         ;;
     "all:mobile")
         clean_logs
+        install_packages
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
         log_info "Live output: cat live_output.log"
@@ -333,6 +399,11 @@ case "${1:-help}" in
         ;;
     "clean")
         clean_logs
+        ;;
+    "install")
+        clean_logs
+        install_packages
+        log_info "Live output: cat live_output.log"
         ;;
     "help"|*)
         show_usage
