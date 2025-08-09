@@ -33,6 +33,57 @@ The ngrok URL is accessible from anywhere on the internet and will work as long 
 
 ---
 
+## 🛠️ Quick Deployment Script
+
+### Setup Tokens
+1. **Copy `.env.example` to `.env`**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Add your tokens to `.env`**:
+   ```env
+   VERCEL_TOKEN="your-vercel-token-here"
+   NGROK_AUTHTOKEN="your-ngrok-authtoken-here"
+   ```
+
+### Using the Deployment Script
+```bash
+# Make script executable
+chmod +x scripts/deploy.sh
+
+# Start development server only
+./scripts/deploy.sh dev
+
+# Start ngrok tunnel only
+./scripts/deploy.sh ngrok
+
+# Start dev server + ngrok tunnel
+./scripts/deploy.sh tunnel
+
+# Deploy to Vercel production
+./scripts/deploy.sh deploy
+
+# Start everything (dev + ngrok + deploy)
+./scripts/deploy.sh all
+
+# Check deployment status and metrics
+./scripts/deploy.sh status
+
+# Show help
+./scripts/deploy.sh help
+```
+
+### Script Features
+- ✅ **Automatic token validation**
+- ✅ **Deployment timing metrics**
+- ✅ **Service status monitoring**
+- ✅ **Colored output for better UX**
+- ✅ **Error handling and logging**
+- ✅ **Performance analysis**
+
+---
+
 ## 🚀 Vercel Production Deployment (Recommended)
 
 ### Prerequisites
