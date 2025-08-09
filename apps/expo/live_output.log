@@ -15,3 +15,4 @@ Android apps/expo/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.3
 Android Bundled 9419ms apps/expo/index.ts (1380 modules)
  LOG  getBaseUrl http://rsir410-dlhflav-8081.exp.direct:3000
  LOG  [30;46m >> query [1;30;46m #1 post.all [0m {"input": undefined}
+ ELIFECYCLE  Command failed.
