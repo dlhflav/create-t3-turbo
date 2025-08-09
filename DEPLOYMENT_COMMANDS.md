@@ -50,20 +50,9 @@
 
 ---
 
-## 📚 **Legacy Scripts (Still Available)**
+## 📚 **Legacy Scripts (Removed)**
 
-### **Web Deployment**
-```bash
-./scripts/deploy-legacy.sh [COMMAND]   # Legacy web deploy script
-./scripts/safe-deploy.sh [COMMAND]     # Safe version (no env export)
-./scripts/deploy-all.sh [COMMAND]      # All-in-one script
-```
-
-### **Mobile Deployment**
-```bash
-./scripts/mobile-deploy.sh [COMMAND]   # Mobile-specific script
-./scripts/mobile-ngrok.sh [COMMAND]    # Mobile ngrok script
-```
+All legacy scripts have been removed and their functionality is now consolidated into the main `./scripts/deploy.sh` script.
 
 ---
 
@@ -118,7 +107,7 @@ EXPO_TOKEN=your_expo_token_here  # Optional
 
 ### **Old → New**
 ```bash
-# Old
+# Old (Removed)
 ./scripts/deploy-legacy.sh tunnel
 ./scripts/mobile-ngrok.sh tunnel
 
