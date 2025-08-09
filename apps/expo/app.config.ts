@@ -2,8 +2,8 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: "expo",
-  slug: "expo",
+  name: "t3turbo-mobile",
+  slug: "t3turbo-mobile",
   scheme: "expo",
   version: "0.1.0",
   orientation: "portrait",
@@ -30,11 +30,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     edgeToEdgeEnabled: true,
   },
-  // extra: {
-  //   eas: {
-  //     projectId: process.env.EAS_PROJECT_ID || "your-eas-project-id",
-  //   },
-  // },
+  extra: {
+    eas: {
+      projectId: "b93631cf-0920-4ea5-a237-db1a86e727c9",
+    },
+  },
   experiments: {
     tsconfigPaths: true,
     typedRoutes: true,
