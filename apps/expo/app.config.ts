@@ -2,6 +2,7 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
+  owner: "dlhflav",
   name: "t3turbo-mobile",
   slug: "t3turbo-mobile",
   scheme: "expo",

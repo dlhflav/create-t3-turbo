@@ -57,18 +57,42 @@ build_dev() {
     
     cd apps/expo
     
-    # Build for development
-    eas build --profile development --platform all --non-interactive
+    echo -e "${YELLOW}⚠️ Note: Mobile builds require app store credentials for iOS/Android${NC}"
+    echo -e "${BLUE}📋 Build Options:${NC}"
+    echo "1. Development build (requires credentials)"
+    echo "2. Preview build (requires credentials)"
+    echo "3. Start development server (no credentials needed)"
+    echo ""
+    echo -e "${YELLOW}💡 For testing without credentials, use: ./scripts/mobile-deploy.sh dev${NC}"
+    echo -e "${YELLOW}💡 For builds, configure credentials first: eas credentials:configure-build${NC}"
     
-    end_time=$(date +%s)
-    build_time=$((end_time - start_time))
-    
-    echo -e "${GREEN}📊 Development build completed in ${build_time} seconds${NC}"
-    echo "Date: $(date)" >> ../../mobile-build-metrics.log
-    echo "Type: Development" >> ../../mobile-build-metrics.log
-    echo "Duration: ${build_time} seconds" >> ../../mobile-build-metrics.log
-    echo "Status: SUCCESS" >> ../../mobile-build-metrics.log
-    echo "---" >> ../../mobile-build-metrics.log
+    # Try to build but expect it might fail due to credentials
+    if eas build --profile development --platform all --non-interactive; then
+        end_time=$(date +%s)
+        build_time=$((end_time - start_time))
+        
+        echo -e "${GREEN}📊 Development build completed in ${build_time} seconds${NC}"
+        echo "Date: $(date)" >> ../../mobile-build-metrics.log
+        echo "Type: Development" >> ../../mobile-build-metrics.log
+        echo "Duration: ${build_time} seconds" >> ../../mobile-build-metrics.log
+        echo "Status: SUCCESS" >> ../../mobile-build-metrics.log
+        echo "---" >> ../../mobile-build-metrics.log
+    else
+        end_time=$(date +%s)
+        build_time=$((end_time - start_time))
+        
+        echo -e "${RED}❌ Development build failed in ${build_time} seconds${NC}"
+        echo "Date: $(date)" >> ../../mobile-build-metrics.log
+        echo "Type: Development" >> ../../mobile-build-metrics.log
+        echo "Duration: ${build_time} seconds" >> ../../mobile-build-metrics.log
+        echo "Status: FAILED (credentials required)" >> ../../mobile-build-metrics.log
+        echo "---" >> ../../mobile-build-metrics.log
+        
+        echo -e "${YELLOW}💡 To configure credentials:${NC}"
+        echo "1. Run: eas credentials:configure-build --platform android"
+        echo "2. Run: eas credentials:configure-build --platform ios"
+        echo "3. Or use development server: ./scripts/mobile-deploy.sh dev"
+    fi
     
     cd ../..
 }
