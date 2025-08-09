@@ -2,7 +2,7 @@
 
 ## 🌐 **Your Public URL is Ready!**
 
-**🔗 Live Demo: https://t3turbo-demo.loca.lt**
+**🔗 Live Demo: https://291ba4c4c0b2.ngrok-free.app**
 
 This URL is accessible from anywhere on the internet and will work as long as the development server is running.
 
@@ -15,6 +15,7 @@ This URL is accessible from anywhere on the internet and will work as long as th
 ✅ **Styling**: Tailwind CSS working  
 ✅ **Theme**: Dark/light mode toggle  
 ✅ **Forms**: Post creation form (UI only)  
+✅ **Ngrok Tunnel**: Authenticated and stable  
 ⚠️ **Database**: Not connected (needs real PostgreSQL)  
 ⚠️ **Auth**: Discord OAuth (needs real credentials)  
 
@@ -27,6 +28,37 @@ This URL is accessible from anywhere on the internet and will work as long as th
 3. **Responsive design**: Resize your browser window
 4. **Form interactions**: Try the post creation form
 5. **Authentication UI**: See the Discord sign-in button
+6. **Ngrok monitoring**: Visit http://localhost:4040 for request logs
+
+---
+
+## 🔧 Ngrok Setup (Current Method)
+
+### Prerequisites
+1. **Ngrok Account**: Sign up at [ngrok.com](https://ngrok.com)
+2. **Authtoken**: Get your authtoken from [dashboard.ngrok.com](https://dashboard.ngrok.com/get-started/your-authtoken)
+
+### Installation & Configuration
+
+```bash
+# Install ngrok (if not already installed)
+curl -L https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+sudo apt update && sudo apt install ngrok
+
+# Configure ngrok with your authtoken
+ngrok config add-authtoken YOUR_AUTHTOKEN_HERE
+
+# Start the tunnel
+ngrok http 3000
+```
+
+### Ngrok Features
+- **Public HTTPS URL**: Automatically generated
+- **Web Interface**: Monitor traffic at http://localhost:4040
+- **Request Inspection**: Real-time request/response logs
+- **Stable Connection**: More reliable than other tunnel services
+- **Custom Domains**: Available with paid plans
 
 ---
 
@@ -171,6 +203,8 @@ pnpm lint
 - [ ] Form interactions work
 - [ ] Authentication flow (if configured)
 - [ ] Database operations (if configured)
+- [ ] Ngrok tunnel is stable
+- [ ] Ngrok web interface accessible
 
 ---
 
@@ -182,14 +216,16 @@ pnpm lint
 2. **Database errors**: Ensure PostgreSQL connection string is correct
 3. **Auth errors**: Verify Discord OAuth credentials
 4. **Port conflicts**: Change port in `apps/nextjs/package.json`
+5. **Ngrok auth fails**: Verify authtoken is correct and valid
 
 ### Getting Help:
 - Check the [T3 Turbo documentation](https://github.com/t3-oss/create-t3-turbo)
 - Review the [Next.js docs](https://nextjs.org/docs)
 - Check the [Expo docs](https://docs.expo.dev)
+- Visit [ngrok docs](https://ngrok.com/docs) for tunnel issues
 
 ---
 
 ## 🎉 Success!
 
-Your T3 Turbo webapp is now live and testable! The current URL will work as long as the development server is running. For a permanent deployment, use one of the cloud platforms listed above.
+Your T3 Turbo webapp is now live and testable! The current ngrok URL will work as long as the development server is running. For a permanent deployment, use one of the cloud platforms listed above.
