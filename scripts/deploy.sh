@@ -39,7 +39,7 @@ install_packages() {
         "web"|"next")
             log_info "Installing Next.js dependencies..."
             cd apps/nextjs
-            pnpm install 2>&1 | tee ../web_output.log
+            pnpm install 2>&1 | tee ../../web_output.log
             if [ $? -eq 0 ]; then
                 log_success "Next.js dependencies installed"
             else
@@ -52,7 +52,7 @@ install_packages() {
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
             cd apps/expo
-            pnpm install 2>&1 | tee ../mobile_output.log
+            pnpm install 2>&1 | tee ../../mobile_output.log
             if [ $? -eq 0 ]; then
                 log_success "Expo dependencies installed"
             else
@@ -162,7 +162,7 @@ start_mobile_dev() {
     
     cd apps/expo
     log_success "Starting Expo server on http://localhost:8081"
-    expo start --lan 2>&1 | tee ../mobile_output.log &
+    ../../node_modules/.bin/expo start --lan 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 10
@@ -190,7 +190,7 @@ start_mobile_tunnel() {
     
     cd apps/expo
     log_success "Starting Expo server with tunnel"
-    expo start --tunnel 2>&1 | tee ../mobile_output.log &
+    ../../node_modules/.bin/expo start --tunnel 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 15
@@ -354,12 +354,12 @@ case "${1:-help}" in
     "mobile:build")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && eas build --profile development 2>&1 | tee ../mobile_output.log && cd ../..
+        cd apps/expo && ../../node_modules/.bin/eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && eas build --profile production 2>&1 | tee ../mobile_output.log && cd ../..
+        cd apps/expo && ../../node_modules/.bin/eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     
     # Complete deployments
