@@ -176,13 +176,22 @@ show_status() {
     log_info "Deployment Status"
     echo ""
     
-    show_recent_metrics "deployment-metrics.log" 10
+    if [ -f "deployment-metrics.log" ]; then
+        echo "Recent deployments:"
+        tail -10 deployment-metrics.log
+    else
+        echo "No deployment metrics found"
+    fi
     echo ""
     
     log_info "Current services:"
     
     # Check if development server is running
-    check_port 3000 "Development server"
+    if curl -s http://localhost:3000 > /dev/null 2>&1; then
+        log_success "Development server: http://localhost:3000"
+    else
+        log_warning "Development server: Not running"
+    fi
     
     # Check if ngrok is running
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then

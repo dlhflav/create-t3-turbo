@@ -25,6 +25,7 @@ show_usage() {
     echo "  mobile:dev  - Start mobile development server"
     echo "  mobile:build - Build mobile app (development)"
     echo "  mobile:prod - Build mobile app (production)"
+    echo "  mobile:credentials - Configure mobile build credentials"
     echo "  all:web     - Complete web deployment (dev + tunnel + deploy)"
     echo "  all:mobile  - Complete mobile deployment (dev + build)"
     echo "  status      - Show all services status"
@@ -74,6 +75,12 @@ start_mobile_dev() {
     ./scripts/mobile-deploy.sh dev
 }
 
+# Function to configure mobile credentials
+configure_mobile_credentials() {
+    echo -e "${BLUE}🔐 Configuring Mobile Build Credentials...${NC}"
+    ./scripts/mobile-deploy.sh credentials
+}
+
 # Function to show complete status
 show_status() {
     echo -e "${BLUE}📊 Complete Deployment Status${NC}"
@@ -84,7 +91,7 @@ show_status() {
     echo ""
     
     echo -e "${GREEN}📱 Mobile Status:${NC}"
-    ./scripts/mobile-deploy.sh status
+    ./scripts/mobile-deploy.sh status 2>/dev/null || echo "Mobile status check failed"
     echo ""
     
     echo -e "${BLUE}📈 Combined Metrics:${NC}"
@@ -102,6 +109,34 @@ show_status() {
         tail -5 mobile-build-metrics.log
     else
         echo -e "${YELLOW}No deployment metrics found${NC}"
+    fi
+    
+    echo ""
+    echo -e "${BLUE}🔧 System Health Check:${NC}"
+    
+    # Check if all required tools are installed
+    if command -v vercel &> /dev/null; then
+        echo -e "${GREEN}✅ Vercel CLI: Installed${NC}"
+    else
+        echo -e "${RED}❌ Vercel CLI: Not installed${NC}"
+    fi
+    
+    if command -v ngrok &> /dev/null; then
+        echo -e "${GREEN}✅ Ngrok CLI: Installed${NC}"
+    else
+        echo -e "${RED}❌ Ngrok CLI: Not installed${NC}"
+    fi
+    
+    if command -v eas &> /dev/null; then
+        echo -e "${GREEN}✅ EAS CLI: Installed${NC}"
+    else
+        echo -e "${RED}❌ EAS CLI: Not installed${NC}"
+    fi
+    
+    if command -v pnpm &> /dev/null; then
+        echo -e "${GREEN}✅ pnpm: Installed${NC}"
+    else
+        echo -e "${RED}❌ pnpm: Not installed${NC}"
     fi
 }
 
@@ -163,6 +198,38 @@ deploy_all_mobile() {
     kill $MOBILE_PID 2>/dev/null || true
 }
 
+# Function to install missing tools
+install_tools() {
+    echo -e "${BLUE}🔧 Installing Required Tools${NC}"
+    echo ""
+    
+    # Install Vercel CLI if not present
+    if ! command -v vercel &> /dev/null; then
+        echo -e "${BLUE}📦 Installing Vercel CLI...${NC}"
+        npm install -g vercel
+    fi
+    
+    # Install ngrok if not present
+    if ! command -v ngrok &> /dev/null; then
+        echo -e "${BLUE}📦 Installing ngrok...${NC}"
+        npm install -g ngrok
+    fi
+    
+    # Install EAS CLI if not present
+    if ! command -v eas &> /dev/null; then
+        echo -e "${BLUE}📦 Installing EAS CLI...${NC}"
+        npm install -g eas-cli
+    fi
+    
+    # Install pnpm if not present
+    if ! command -v pnpm &> /dev/null; then
+        echo -e "${BLUE}📦 Installing pnpm...${NC}"
+        npm install -g pnpm
+    fi
+    
+    echo -e "${GREEN}✅ All tools installed${NC}"
+}
+
 # Main script logic
 case "${1:-help}" in
     "web:dev")
@@ -183,11 +250,17 @@ case "${1:-help}" in
     "mobile:prod")
         deploy_mobile_prod
         ;;
+    "mobile:credentials")
+        configure_mobile_credentials
+        ;;
     "all:web")
         deploy_all_web
         ;;
     "all:mobile")
         deploy_all_mobile
+        ;;
+    "install")
+        install_tools
         ;;
     "status")
         show_status
