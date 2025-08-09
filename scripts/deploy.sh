@@ -72,12 +72,8 @@ install_packages() {
     
     # Setup environment variables after dependencies are installed
     log_step "Setting up environment variables for $app_type..."
-    if [ -f "scripts/setup-env.sh" ]; then
-        ./scripts/setup-env.sh > /dev/null 2>&1
-        log_success "Environment variables configured for $app_type"
-    else
-        log_warning "setup-env.sh not found, skipping environment setup"
-    fi
+    setup_environment_variables
+    log_success "Environment variables configured for $app_type"
     
     return 0
 }
@@ -95,6 +91,89 @@ load_env() {
         done < .env
     else
         log_warning ".env file not found, using environment variables"
+    fi
+}
+
+# Setup environment variables from .env.example and shell environment
+setup_environment_variables() {
+    # Check if .env.example exists
+    if [ ! -f ".env.example" ]; then
+        log_warning ".env.example file not found, skipping environment setup"
+        return 0
+    fi
+
+    # Create .env from .env.example if it doesn't exist
+    if [ ! -f ".env" ]; then
+        log_info "Creating .env file from .env.example..."
+        cp .env.example .env
+    fi
+
+    # Function to extract variable names from .env.example (excluding comments and empty lines)
+    get_env_vars_from_example() {
+        grep -E '^[A-Z_][A-Z0-9_]*=' .env.example | cut -d'=' -f1
+    }
+
+    # Function to check if a variable exists in .env file
+    var_exists_in_env() {
+        local var_name="$1"
+        grep -q "^${var_name}=" .env
+    }
+
+    # Function to remove existing variable from .env file
+    remove_var_from_env() {
+        local var_name="$1"
+        sed -i "/^${var_name}=/d" .env
+    }
+
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+
+    # Get all variables from .env.example
+    env_vars=$(get_env_vars_from_example)
+
+    # Check each variable and add missing ones from shell environment
+    added_vars=0
+    for var in $env_vars; do
+        if ! var_exists_in_env "$var"; then
+            shell_value=$(get_shell_var_value "$var")
+            if [ -n "$shell_value" ]; then
+                log_info "Adding missing variable: $var"
+                echo "${var}=${shell_value}" >> .env
+                added_vars=$((added_vars + 1))
+            fi
+        fi
+    done
+
+    # Add a newline before additional variables for better formatting
+    if [ -f ".env" ] && [ -s ".env" ]; then
+        # Ensure the file ends with a newline
+        if [ "$(tail -c1 .env | wc -l)" -eq 0 ]; then
+            echo "" >> .env
+        fi
+        echo "" >> .env
+    fi
+
+    # Also check for additional common environment variables that might be useful
+    additional_vars=("VERCEL_TOKEN" "NGROK_TOKEN" "EXPO_TOKEN" "AUTH_DISCORD_SECRET")
+    for var in "${additional_vars[@]}"; do
+        shell_value=$(get_shell_var_value "$var")
+        if [ -n "$shell_value" ]; then
+            if var_exists_in_env "$var"; then
+                log_info "Updating existing variable: $var"
+                remove_var_from_env "$var"
+            else
+                log_info "Adding additional variable: $var"
+                added_vars=$((added_vars + 1))
+            fi
+            echo "${var}=${shell_value}" >> .env
+        fi
+    done
+
+    if [ $added_vars -gt 0 ]; then
+        log_info "Added/updated $added_vars variables from shell environment"
     fi
 }
 
