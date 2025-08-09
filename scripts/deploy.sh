@@ -126,6 +126,34 @@ start_mobile_dev() {
     fi
 }
 
+# Start mobile development server with tunnel
+start_mobile_tunnel() {
+    log_step "Starting mobile development server with tunnel..."
+    
+    # Check if NGROK_TOKEN is available for Expo tunnel
+    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
+        log_warning "NGROK_TOKEN not configured - Expo tunnel requires ngrok authentication"
+        log_info "Using LAN mode instead. For tunnel access, set NGROK_TOKEN in .env"
+        start_mobile_dev
+        return 0
+    fi
+    
+    cd apps/expo
+    log_success "Starting Expo server with tunnel"
+    expo start --tunnel &
+    MOBILE_PID=$!
+    cd ../..
+    sleep 15
+    
+    # Wait for tunnel to be established
+    log_info "Waiting for tunnel to be established..."
+    sleep 10
+    
+    log_success "Mobile server with tunnel is running"
+    log_info "Check the QR code or terminal output for tunnel URL"
+    return 0
+}
+
 # Deploy to Vercel
 deploy_vercel() {
     log_deploy "Starting Vercel deployment..."
@@ -185,7 +213,7 @@ show_status() {
 # Show usage
 show_usage() {
     echo -e "${PURPLE}🚀 T3 Turbo Deployment Script${NC}"
-    echo "This script handles both web and mobile deployments with ngrok tunneling"
+    echo "This script handles both web and mobile deployments with tunneling"
     echo ""
     echo -e "${GREEN}Web Commands:${NC}"
     echo "  web:dev     - Start web development server"
@@ -194,26 +222,26 @@ show_usage() {
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
-    echo "  mobile:tunnel - Start mobile dev + ngrok tunnel"
+    echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
     echo "  mobile:build  - Build mobile app (development)"
     echo "  mobile:prod   - Build mobile app (production)"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
     echo "  all:web    - Complete web deployment (dev + tunnel + deploy)"
-    echo "  all:mobile - Complete mobile deployment (dev + tunnel + build)"
+    echo "  all:mobile - Complete mobile deployment (dev + Expo tunnel + build)"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
-    echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens"
-    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens"
-    echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens"
+    echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens (for web deployment)"
+    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for web tunnel)"
+    echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
     echo ""
     echo -e "${BLUE}Examples:${NC}"
     echo "  ./scripts/deploy.sh web:tunnel    # Web with tunnel"
-    echo "  ./scripts/deploy.sh mobile:tunnel # Mobile with tunnel"
+    echo "  ./scripts/deploy.sh mobile:tunnel # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:web       # Complete web deployment"
 }
 
@@ -243,9 +271,9 @@ case "${1:-help}" in
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
-        start_mobile_dev && start_ngrok 8081
+        start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
-        wait $MOBILE_PID $NGROK_PID
+        wait $MOBILE_PID
         ;;
     "mobile:build")
         cd apps/expo && eas build --profile development && cd ../..
@@ -260,9 +288,9 @@ case "${1:-help}" in
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
-        start_mobile_dev && start_ngrok 8081
+        start_mobile_tunnel
         log_success "Complete mobile deployment started!"
-        wait $MOBILE_PID $NGROK_PID
+        wait $MOBILE_PID
         ;;
     
     # Utility commands
