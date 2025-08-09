@@ -203,31 +203,40 @@ install_tools() {
     echo -e "${BLUE}🔧 Installing Required Tools${NC}"
     echo ""
     
-    # Install Vercel CLI if not present
-    if ! command -v vercel &> /dev/null; then
-        echo -e "${BLUE}📦 Installing Vercel CLI...${NC}"
-        npm install -g vercel
+    # Use the dedicated install-tools script
+    if [ -f "scripts/install-tools.sh" ]; then
+        chmod +x scripts/install-tools.sh
+        ./scripts/install-tools.sh install
+    else
+        echo -e "${RED}❌ install-tools.sh not found${NC}"
+        echo -e "${YELLOW}⚠️ Installing tools manually...${NC}"
+        
+        # Install Vercel CLI if not present
+        if ! command -v vercel &> /dev/null; then
+            echo -e "${BLUE}📦 Installing Vercel CLI...${NC}"
+            npm install -g vercel
+        fi
+        
+        # Install ngrok if not present
+        if ! command -v ngrok &> /dev/null; then
+            echo -e "${BLUE}📦 Installing ngrok...${NC}"
+            npm install -g ngrok
+        fi
+        
+        # Install EAS CLI if not present
+        if ! command -v eas &> /dev/null; then
+            echo -e "${BLUE}📦 Installing EAS CLI...${NC}"
+            npm install -g eas-cli
+        fi
+        
+        # Install pnpm if not present
+        if ! command -v pnpm &> /dev/null; then
+            echo -e "${BLUE}📦 Installing pnpm...${NC}"
+            npm install -g pnpm
+        fi
+        
+        echo -e "${GREEN}✅ All tools installed${NC}"
     fi
-    
-    # Install ngrok if not present
-    if ! command -v ngrok &> /dev/null; then
-        echo -e "${BLUE}📦 Installing ngrok...${NC}"
-        npm install -g ngrok
-    fi
-    
-    # Install EAS CLI if not present
-    if ! command -v eas &> /dev/null; then
-        echo -e "${BLUE}📦 Installing EAS CLI...${NC}"
-        npm install -g eas-cli
-    fi
-    
-    # Install pnpm if not present
-    if ! command -v pnpm &> /dev/null; then
-        echo -e "${BLUE}📦 Installing pnpm...${NC}"
-        npm install -g pnpm
-    fi
-    
-    echo -e "${GREEN}✅ All tools installed${NC}"
 }
 
 # Main script logic

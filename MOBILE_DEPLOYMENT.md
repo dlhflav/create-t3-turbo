@@ -9,24 +9,48 @@ The mobile deployment system consists of several scripts that handle Expo mobile
 - **`scripts/mobile-deploy.sh`** - Main mobile deployment script
 - **`scripts/deploy-all.sh`** - Orchestrates both web and mobile deployments
 - **`scripts/test-mobile.sh`** - Tests all mobile deployment functionality
+- **`scripts/install-tools.sh`** - Automatic tool installation and management
 
 ## Prerequisites
 
 ### Required Tools
 
+The deployment system will **automatically install** all required tools if they're missing:
+
 1. **Node.js** (>=22.14.0)
 2. **pnpm** (>=9.6.0)
 3. **EAS CLI** - Expo Application Services CLI
-4. **Expo Account** - For builds and deployments
+4. **Vercel CLI** - For web deployments
+5. **ngrok** - For development tunneling
+6. **Python 3** - For ngrok tunnel parsing
+7. **curl** - For health checks
 
-### Installation
+### Automatic Installation
+
+All tools are automatically installed when needed:
 
 ```bash
-# Install EAS CLI globally
-npm install -g eas-cli
+# Tools are automatically installed when running deployment commands
+./scripts/mobile-deploy.sh build:dev  # Installs EAS CLI if missing
+./scripts/deploy.sh deploy            # Installs Vercel CLI if missing
+./scripts/deploy.sh ngrok             # Installs ngrok if missing
+```
 
-# Install other tools if needed
-npm install -g pnpm
+### Manual Installation
+
+You can also install tools manually:
+
+```bash
+# Install all tools at once
+./scripts/install-tools.sh install
+
+# Check current tool versions
+./scripts/install-tools.sh check
+
+# Install specific tools
+./scripts/install-tools.sh eas        # Install EAS CLI only
+./scripts/install-tools.sh vercel     # Install Vercel CLI only
+./scripts/install-tools.sh ngrok      # Install ngrok only
 ```
 
 ### Authentication
@@ -42,16 +66,20 @@ npm install -g pnpm
 ```bash
 # Run the test script to verify everything is working
 ./scripts/test-mobile.sh
+
+# Test tool installation specifically
+./scripts/test-tools.sh
 ```
 
 ### 2. Start Development Server
 
 ```bash
-# Start the Expo development server
+# Start the Expo development server (tools installed automatically)
 ./scripts/mobile-deploy.sh dev
 ```
 
 This will:
+- **Automatically install** any missing tools
 - Install dependencies if needed
 - Start the development server on `http://localhost:8081`
 - Display QR code for mobile testing
@@ -73,7 +101,7 @@ This interactive command will help you set up:
 ### Development Commands
 
 ```bash
-# Start development server
+# Start development server (auto-installs tools)
 ./scripts/mobile-deploy.sh dev
 
 # Check status of all services
@@ -83,13 +111,13 @@ This interactive command will help you set up:
 ### Build Commands
 
 ```bash
-# Build development version
+# Build development version (auto-installs tools)
 ./scripts/mobile-deploy.sh build:dev
 
-# Build preview version
+# Build preview version (auto-installs tools)
 ./scripts/mobile-deploy.sh build:preview
 
-# Build production version
+# Build production version (auto-installs tools)
 ./scripts/mobile-deploy.sh build:prod
 ```
 
@@ -103,27 +131,73 @@ This interactive command will help you set up:
 ./scripts/mobile-deploy.sh credentials
 ```
 
+### Tool Management Commands
+
+```bash
+# Install all required tools
+./scripts/install-tools.sh install
+
+# Check tool versions
+./scripts/install-tools.sh check
+
+# Install specific tools
+./scripts/install-tools.sh eas
+./scripts/install-tools.sh vercel
+./scripts/install-tools.sh ngrok
+./scripts/install-tools.sh pnpm
+```
+
 ### Combined Commands (via deploy-all.sh)
 
 ```bash
-# Start mobile development
+# Start mobile development (auto-installs tools)
 ./scripts/deploy-all.sh mobile:dev
 
-# Build mobile app
+# Build mobile app (auto-installs tools)
 ./scripts/deploy-all.sh mobile:build
 
-# Build mobile app (production)
+# Build mobile app (production) (auto-installs tools)
 ./scripts/deploy-all.sh mobile:prod
 
 # Configure mobile credentials
 ./scripts/deploy-all.sh mobile:credentials
 
-# Complete mobile deployment
+# Complete mobile deployment (auto-installs tools)
 ./scripts/deploy-all.sh all:mobile
 
 # Check all services status
 ./scripts/deploy-all.sh status
+
+# Install all tools manually
+./scripts/deploy-all.sh install
 ```
+
+## Automatic Tool Installation
+
+### How It Works
+
+The deployment scripts automatically check for required tools and install them if missing:
+
+1. **Detection**: Scripts check if tools are available in PATH
+2. **Installation**: Missing tools are automatically installed via npm
+3. **Verification**: Tools are verified to be working
+4. **Proceeding**: Deployment continues with all tools available
+
+### Installation Triggers
+
+Tools are automatically installed when running:
+
+- **Web Deployment**: `./scripts/deploy.sh deploy`
+- **Mobile Build**: `./scripts/mobile-deploy.sh build:dev`
+- **Development Server**: `./scripts/deploy.sh dev`
+- **Ngrok Tunnel**: `./scripts/deploy.sh ngrok`
+- **Any deployment command**: Tools are checked first
+
+### Supported Platforms
+
+- **Linux**: Full automatic installation support
+- **macOS**: Manual installation guidance provided
+- **Windows**: Manual installation guidance provided
 
 ## Project Configuration
 
@@ -188,24 +262,31 @@ The app configuration includes:
 
 ### Common Issues
 
-1. **EAS CLI not found**
+1. **Tools not installing automatically**
    ```bash
-   npm install -g eas-cli
+   # Manual installation
+   ./scripts/install-tools.sh install
    ```
 
-2. **Not logged in to Expo**
+2. **Permission issues**
+   ```bash
+   # Make scripts executable
+   chmod +x scripts/*.sh
+   ```
+
+3. **Not logged in to Expo**
    ```bash
    eas login
    ```
 
-3. **Build fails due to credentials**
+4. **Build fails due to credentials**
    ```bash
    ./scripts/mobile-deploy.sh credentials
    ```
 
-4. **Development server not starting**
+5. **Development server not starting**
    ```bash
-   cd apps/expo && pnpm install
+   # Tools will be auto-installed
    ./scripts/mobile-deploy.sh dev
    ```
 
@@ -222,6 +303,7 @@ The app configuration includes:
 2. **Configure credentials once** for faster builds
 3. **Use preview builds** for testing before production
 4. **Monitor build metrics** with status command
+5. **Let tools auto-install** - no need to pre-install everything
 
 ## Metrics and Monitoring
 
@@ -231,10 +313,12 @@ The deployment scripts automatically track:
 - Success/failure rates
 - Deployment durations
 - Service status
+- Tool installation status
 
 View metrics with:
 ```bash
 ./scripts/mobile-deploy.sh status
+./scripts/deploy-all.sh status
 ```
 
 ## Integration with Web Deployment
@@ -242,7 +326,7 @@ View metrics with:
 The mobile deployment integrates seamlessly with the web deployment system:
 
 ```bash
-# Deploy both web and mobile
+# Deploy both web and mobile (tools auto-installed)
 ./scripts/deploy-all.sh all:web
 ./scripts/deploy-all.sh all:mobile
 
@@ -265,12 +349,13 @@ NGROK_AUTHTOKEN=your_ngrok_token
 
 ## Best Practices
 
-1. **Always test with development server first**
-2. **Use preview builds for testing**
-3. **Configure credentials early in development**
-4. **Monitor build metrics for optimization**
-5. **Keep EAS CLI and dependencies updated**
-6. **Use the test script to verify setup**
+1. **Let tools auto-install** - Don't worry about pre-installing everything
+2. **Always test with development server first**
+3. **Use preview builds for testing**
+4. **Configure credentials early in development**
+5. **Monitor build metrics for optimization**
+6. **Keep tools updated** - Use `./scripts/install-tools.sh check`
+7. **Use the test scripts** to verify setup
 
 ## Support
 
@@ -278,11 +363,13 @@ For issues with:
 - **Expo/EAS**: [docs.expo.dev](https://docs.expo.dev)
 - **Build failures**: Check the build logs in Expo dashboard
 - **Script issues**: Run `./scripts/test-mobile.sh` for diagnostics
+- **Tool installation**: Run `./scripts/test-tools.sh` for tool diagnostics
 
 ## Next Steps
 
 1. ✅ Test the setup with `./scripts/test-mobile.sh`
-2. ✅ Start development server with `./scripts/mobile-deploy.sh dev`
-3. 🔧 Configure credentials for builds
-4. 🚀 Build and deploy your mobile app
-5. 📱 Submit to app stores when ready
+2. ✅ Test tool installation with `./scripts/test-tools.sh`
+3. ✅ Start development server with `./scripts/mobile-deploy.sh dev`
+4. 🔧 Configure credentials for builds
+5. 🚀 Build and deploy your mobile app
+6. 📱 Submit to app stores when ready

@@ -8,6 +8,57 @@ set -e  # Exit on any error
 # Source common utilities
 source "$(dirname "$0")/simple-utils.sh"
 
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check and install required tools
+check_and_install_tools() {
+    echo -e "${BLUE}🔧 Checking required tools...${NC}"
+    
+    # Check and install Vercel CLI
+    if ! command_exists vercel; then
+        echo -e "${BLUE}📦 Installing Vercel CLI...${NC}"
+        npm install -g vercel
+        echo -e "${GREEN}✅ Vercel CLI installed${NC}"
+    else
+        echo -e "${GREEN}✅ Vercel CLI found${NC}"
+    fi
+    
+    # Check and install ngrok
+    if ! command_exists ngrok; then
+        echo -e "${BLUE}📦 Installing ngrok...${NC}"
+        npm install -g ngrok
+        echo -e "${GREEN}✅ ngrok installed${NC}"
+    else
+        echo -e "${GREEN}✅ ngrok found${NC}"
+    fi
+    
+    # Check and install pnpm if needed
+    if ! command_exists pnpm; then
+        echo -e "${BLUE}📦 Installing pnpm...${NC}"
+        npm install -g pnpm
+        echo -e "${GREEN}✅ pnpm installed${NC}"
+    else
+        echo -e "${GREEN}✅ pnpm found${NC}"
+    fi
+    
+    # Check and install Python if needed (for ngrok tunnel parsing)
+    if ! command_exists python3; then
+        echo -e "${BLUE}📦 Installing Python 3...${NC}"
+        if command_exists apt-get; then
+            sudo apt-get update
+            sudo apt-get install -y python3 python3-pip
+        else
+            echo -e "${YELLOW}⚠️ Please install Python 3 manually${NC}"
+        fi
+        echo -e "${GREEN}✅ Python 3 installed${NC}"
+    else
+        echo -e "${GREEN}✅ Python 3 found${NC}"
+    fi
+}
+
 # Load environment variables (safer approach)
 if [ -f .env ]; then
     echo -e "${BLUE}ℹ️ Loading environment variables...${NC}"
@@ -41,6 +92,9 @@ check_token() {
 # Function to deploy to Vercel
 deploy_vercel() {
     log_deploy "Starting Vercel deployment..."
+    
+    # Check and install required tools
+    check_and_install_tools
     
     if ! check_token "VERCEL_TOKEN" "$VERCEL_TOKEN"; then
         log_warning "Skipping Vercel deployment - token not configured"
@@ -96,6 +150,9 @@ deploy_vercel() {
 start_ngrok() {
     log_step "Starting ngrok tunnel..."
     
+    # Check and install required tools
+    check_and_install_tools
+    
     if ! check_token "NGROK_AUTHTOKEN" "$NGROK_AUTHTOKEN"; then
         log_warning "Skipping ngrok - token not configured"
         return 1
@@ -131,6 +188,9 @@ start_ngrok() {
 # Function to start development server
 start_dev() {
     log_step "Starting development server..."
+    
+    # Check and install required tools
+    check_and_install_tools
     
     # Install dependencies if needed
     if [ ! -d "node_modules" ]; then

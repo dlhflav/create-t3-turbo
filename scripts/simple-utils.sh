@@ -62,3 +62,17 @@ check_port() {
         return 1
     fi
 }
+
+# Simple metrics logging
+log_metrics() {
+    local log_file=$1
+    local service=$2
+    local duration=$3
+    local status=$4
+    
+    echo "Date: $(date)" >> "$log_file"
+    echo "Service: $service" >> "$log_file"
+    echo "Duration: $duration seconds" >> "$log_file"
+    echo "Status: $status" >> "$log_file"
+    echo "---" >> "$log_file"
+}

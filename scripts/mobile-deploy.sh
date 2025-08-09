@@ -20,13 +20,51 @@ else
     echo -e "${YELLOW}⚠️ .env file not found, using environment variables${NC}"
 fi
 
-# Function to check if EAS CLI is installed
-check_eas() {
-    if ! command -v eas &> /dev/null; then
-        echo -e "${RED}❌ EAS CLI not installed. Installing...${NC}"
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Function to check and install required tools
+check_and_install_tools() {
+    echo -e "${BLUE}🔧 Checking required tools...${NC}"
+    
+    # Check and install EAS CLI
+    if ! command_exists eas; then
+        echo -e "${BLUE}📦 Installing EAS CLI...${NC}"
         npm install -g eas-cli
+        echo -e "${GREEN}✅ EAS CLI installed${NC}"
+    else
+        echo -e "${GREEN}✅ EAS CLI found${NC}"
     fi
-    echo -e "${GREEN}✅ EAS CLI found${NC}"
+    
+    # Check and install pnpm if needed
+    if ! command_exists pnpm; then
+        echo -e "${BLUE}📦 Installing pnpm...${NC}"
+        npm install -g pnpm
+        echo -e "${GREEN}✅ pnpm installed${NC}"
+    else
+        echo -e "${GREEN}✅ pnpm found${NC}"
+    fi
+    
+    # Check and install Python if needed (for ngrok tunnel parsing)
+    if ! command_exists python3; then
+        echo -e "${BLUE}📦 Installing Python 3...${NC}"
+        if command_exists apt-get; then
+            sudo apt-get update
+            sudo apt-get install -y python3 python3-pip
+        else
+            echo -e "${YELLOW}⚠️ Please install Python 3 manually${NC}"
+        fi
+        echo -e "${GREEN}✅ Python 3 installed${NC}"
+    else
+        echo -e "${GREEN}✅ Python 3 found${NC}"
+    fi
+}
+
+# Function to check if EAS CLI is installed (legacy function for compatibility)
+check_eas() {
+    check_and_install_tools
 }
 
 # Function to check if logged in to Expo
