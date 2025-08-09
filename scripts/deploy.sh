@@ -147,31 +147,6 @@ setup_environment_variables() {
         fi
     done
 
-    # Add a newline before additional variables for better formatting
-    if [ -f ".env" ] && [ -s ".env" ]; then
-        # Ensure the file ends with a newline
-        if [ "$(tail -c1 .env | wc -l)" -eq 0 ]; then
-            echo "" >> .env
-        fi
-        echo "" >> .env
-    fi
-
-    # Also check for additional common environment variables that might be useful
-    additional_vars=("VERCEL_TOKEN" "NGROK_TOKEN" "EXPO_TOKEN" "AUTH_DISCORD_SECRET")
-    for var in "${additional_vars[@]}"; do
-        shell_value=$(get_shell_var_value "$var")
-        if [ -n "$shell_value" ]; then
-            if var_exists_in_env "$var"; then
-                log_info "Updating existing variable: $var"
-                remove_var_from_env "$var"
-            else
-                log_info "Adding additional variable: $var"
-                added_vars=$((added_vars + 1))
-            fi
-            echo "${var}=${shell_value}" >> .env
-        fi
-    done
-
     if [ $added_vars -gt 0 ]; then
         log_info "Added/updated $added_vars variables from shell environment"
     fi
