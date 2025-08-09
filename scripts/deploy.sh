@@ -69,6 +69,16 @@ install_packages() {
     esac
     
     log_success "$app_type dependencies are ready"
+    
+    # Setup environment variables after dependencies are installed
+    log_step "Setting up environment variables for $app_type..."
+    if [ -f "scripts/setup-env.sh" ]; then
+        ./scripts/setup-env.sh > /dev/null 2>&1
+        log_success "Environment variables configured for $app_type"
+    else
+        log_warning "setup-env.sh not found, skipping environment setup"
+    fi
+    
     return 0
 }
 
@@ -315,19 +325,6 @@ show_usage() {
 # Main script logic
 load_env
 
-# Setup environment variables from .env.example and shell environment
-setup_environment() {
-    log_step "Setting up environment variables..."
-    if [ -f "scripts/setup-env.sh" ]; then
-        ./scripts/setup-env.sh > /dev/null 2>&1
-        log_success "Environment variables configured"
-    else
-        log_warning "setup-env.sh not found, skipping environment setup"
-    fi
-}
-
-setup_environment
-
 case "${1:-help}" in
     # Web commands
     "web:dev")
@@ -412,7 +409,13 @@ case "${1:-help}" in
         ;;
     "setup:env")
         clean_logs
-        setup_environment
+        log_step "Setting up environment variables..."
+        if [ -f "scripts/setup-env.sh" ]; then
+            ./scripts/setup-env.sh
+            log_success "Environment variables configured"
+        else
+            log_warning "setup-env.sh not found, skipping environment setup"
+        fi
         ;;
     "help"|*)
         show_usage

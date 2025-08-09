@@ -1,0 +1,50 @@
+
+> create-t3-turbo@ dev:next /workspace
+> turbo watch dev -F @acme/nextjs...
+
+
+Attention:
+Turborepo now collects completely anonymous telemetry regarding usage.
+This information is used to shape the Turborepo roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://turborepo.com/docs/telemetry
+
+turbo 2.5.4
+
+• Packages in scope: @acme/api, @acme/auth, @acme/db, @acme/eslint-config, @acme/nextjs, @acme/prettier-config, @acme/tailwind-config, @acme/tsconfig, @acme/ui, @acme/validators
+• Running dev in 10 packages
+• Remote caching disabled
+@acme/nextjs:dev: cache bypass, force executing 1d64950b12a71f65
+@acme/validators:dev: cache bypass, force executing 67981f3814a268ba
+@acme/db:dev: cache bypass, force executing 20a090fa52794c0b
+@acme/nextjs:dev: 
+@acme/nextjs:dev: > @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+@acme/nextjs:dev: > pnpm with-env next dev --turbopack
+@acme/nextjs:dev: 
+@acme/nextjs:dev: cache bypass, force executing 1d64950b12a71f65
+@acme/validators:dev: cache bypass, force executing 67981f3814a268ba
+@acme/db:dev: cache bypass, force executing 20a090fa52794c0b
+@acme/nextjs:dev: 
+@acme/nextjs:dev: > @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+@acme/nextjs:dev: > pnpm with-env next dev --turbopack
+@acme/nextjs:dev: 
+@acme/nextjs:dev: 
+@acme/nextjs:dev: > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+@acme/nextjs:dev: > dotenv -e ../../.env -- next dev --turbopack
+@acme/nextjs:dev: 
+@acme/nextjs:dev:    ▲ Next.js 15.3.3 (Turbopack)
+@acme/nextjs:dev:    - Local:        http://localhost:3000
+@acme/nextjs:dev:    - Network:      http://172.30.0.2:3000
+@acme/nextjs:dev: 
+@acme/nextjs:dev:  ✓ Starting...
+@acme/nextjs:dev: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+@acme/nextjs:dev: This information is used to shape Next.js' roadmap and prioritize features.
+@acme/nextjs:dev: You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+@acme/nextjs:dev: https://nextjs.org/telemetry
+@acme/nextjs:dev: 
+ WARNING  could not start shutdown, exiting
+ WARNING  could not start shutdown, exiting
+@acme/nextjs:dev: [?25h
+ ELIFECYCLE  Command failed.
+  x Watch interrupted due to signal.
+
