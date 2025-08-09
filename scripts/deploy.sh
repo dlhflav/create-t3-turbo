@@ -17,8 +17,8 @@ if [ -f .env ]; then
         [[ $line =~ ^[[:space:]]*# ]] && continue
         [[ -z $line ]] && continue
         
-        # Only export VERCEL_TOKEN and NGROK_AUTHTOKEN
-        if [[ $line =~ ^(VERCEL_TOKEN|NGROK_AUTHTOKEN)= ]]; then
+        # Only export VERCEL_TOKEN and NGROK_TOKEN
+        if [[ $line =~ ^(VERCEL_TOKEN|NGROK_TOKEN)= ]]; then
             export "$line"
         fi
     done < .env
@@ -96,7 +96,7 @@ deploy_vercel() {
 start_ngrok() {
     log_step "Starting ngrok tunnel..."
     
-    if ! check_token "NGROK_AUTHTOKEN" "$NGROK_AUTHTOKEN"; then
+    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
         log_warning "Skipping ngrok - token not configured"
         return 1
     fi
@@ -104,7 +104,7 @@ start_ngrok() {
     # Configure ngrok if not already configured
     if [ ! -f ~/.config/ngrok/ngrok.yml ]; then
         log_step "Configuring ngrok..."
-        ngrok config add-authtoken "$NGROK_AUTHTOKEN"
+        ngrok config add-authtoken "$NGROK_TOKEN"
     fi
     
     # Start ngrok tunnel
@@ -166,7 +166,7 @@ show_usage() {
   status  - Show deployment metrics
   help    - Show this help"
     
-    local prerequisites="  Make sure to set VERCEL_TOKEN and NGROK_AUTHTOKEN in .env file"
+    local prerequisites="  Make sure to set VERCEL_TOKEN and NGROK_TOKEN in .env file"
     
     show_usage "T3 Turbo Deployment Script" "This script handles both development (ngrok) and production (Vercel) deployments" "$commands" "$prerequisites"
 }
