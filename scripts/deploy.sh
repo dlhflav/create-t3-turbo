@@ -296,8 +296,9 @@ show_usage() {
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
     echo "  clean      - Clean all live output logs"
-    echo "  install:web    - Install Next.js dependencies"
+    echo "  install:web   - Install Next.js dependencies"
     echo "  install:mobile - Install Expo dependencies"
+    echo "  setup:env   - Setup .env file from .env.example and shell environment"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -313,6 +314,19 @@ show_usage() {
 
 # Main script logic
 load_env
+
+# Setup environment variables from .env.example and shell environment
+setup_environment() {
+    log_step "Setting up environment variables..."
+    if [ -f "scripts/setup-env.sh" ]; then
+        ./scripts/setup-env.sh > /dev/null 2>&1
+        log_success "Environment variables configured"
+    else
+        log_warning "setup-env.sh not found, skipping environment setup"
+    fi
+}
+
+setup_environment
 
 case "${1:-help}" in
     # Web commands
@@ -395,6 +409,10 @@ case "${1:-help}" in
     "install:mobile")
         clean_logs
         install_packages "mobile"
+        ;;
+    "setup:env")
+        clean_logs
+        setup_environment
         ;;
     "help"|*)
         show_usage
