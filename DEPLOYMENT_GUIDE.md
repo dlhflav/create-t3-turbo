@@ -16,16 +16,35 @@ cp .env.example .env
 # Add VERCEL_TOKEN and NGROK_AUTHTOKEN to .env
 ```
 
-### Using the Script
-```bash
-chmod +x scripts/deploy.sh
+### Using the Scripts
 
+#### Individual Scripts
+```bash
+chmod +x scripts/deploy.sh scripts/mobile-deploy.sh scripts/deploy-all.sh
+
+# Web only
 ./scripts/deploy.sh dev      # Development server
 ./scripts/deploy.sh ngrok    # Ngrok tunnel
 ./scripts/deploy.sh tunnel   # Dev + ngrok
 ./scripts/deploy.sh deploy   # Deploy to Vercel (3min timeout)
-./scripts/deploy.sh all      # Everything
 ./scripts/deploy.sh status   # Check status
+
+# Mobile only
+./scripts/mobile-deploy.sh dev         # Start Expo dev server
+./scripts/mobile-deploy.sh build:dev   # Build development version
+./scripts/mobile-deploy.sh build:prod  # Build production version
+./scripts/mobile-deploy.sh status      # Check build metrics
+```
+
+#### Combined Script (Recommended)
+```bash
+./scripts/deploy-all.sh web:dev      # Web development
+./scripts/deploy-all.sh web:deploy   # Web production
+./scripts/deploy-all.sh mobile:dev   # Mobile development
+./scripts/deploy-all.sh mobile:build # Mobile build
+./scripts/deploy-all.sh all:web      # Complete web deployment
+./scripts/deploy-all.sh all:mobile   # Complete mobile deployment
+./scripts/deploy-all.sh status       # All services status
 ```
 
 ### Timeout Options
@@ -39,6 +58,37 @@ VERCEL_TIMEOUT=600 ./scripts/deploy.sh deploy
 # Quick timeout for testing (1 minute)
 VERCEL_TIMEOUT=60 ./scripts/deploy.sh deploy
 ```
+
+---
+
+## 📱 Mobile App Deployment
+
+### Prerequisites
+- **Expo account**: [expo.dev](https://expo.dev)
+- **EAS CLI**: `npm install -g eas-cli`
+- **Login**: `eas login`
+
+### Using the Mobile Script
+```bash
+chmod +x scripts/mobile-deploy.sh
+
+./scripts/mobile-deploy.sh dev         # Start Expo dev server
+./scripts/mobile-deploy.sh build:dev   # Build development version
+./scripts/mobile-deploy.sh build:preview # Build preview version
+./scripts/mobile-deploy.sh build:prod  # Build production version
+./scripts/mobile-deploy.sh submit      # Submit to app stores
+./scripts/mobile-deploy.sh status      # Check build metrics
+```
+
+### Build Types
+- **Development**: For testing with Expo Go
+- **Preview**: Internal distribution for testing
+- **Production**: App store ready builds
+
+### Expected Build Times
+- **Development**: 5-10 minutes
+- **Preview**: 10-15 minutes  
+- **Production**: 15-25 minutes
 
 ---
 
@@ -91,11 +141,13 @@ ngrok http 3000
 - **Port conflicts**: Change port in `apps/nextjs/package.json`
 - **Slow deployments**: Check build cache
 - **Deployment timeout**: Increase VERCEL_TIMEOUT or check Vercel status
+- **Mobile build fails**: Check Expo login and EAS configuration
 
 ### Getting Help
 - [T3 Turbo docs](https://github.com/t3-oss/create-t3-turbo)
 - [Vercel docs](https://vercel.com/docs)
 - [Ngrok docs](https://ngrok.com/docs)
+- [Expo docs](https://docs.expo.dev)
 
 ---
 
@@ -103,4 +155,7 @@ ngrok http 3000
 
 - **Development**: Use ngrok tunnel (changes on restart)
 - **Production**: Use Vercel (permanent URL)
-- **Monitoring**: Check deployment status with `./scripts/deploy.sh status`
+- **Mobile**: Use EAS builds (app store ready)
+- **Monitoring**: Check all services with `./scripts/deploy-all.sh status`
+- **Quick Deploy**: Use `./scripts/deploy-all.sh all:web` for complete web deployment
+- **Mobile Deploy**: Use `./scripts/deploy-all.sh all:mobile` for complete mobile deployment
