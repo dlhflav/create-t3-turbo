@@ -42,10 +42,34 @@ deploy_vercel() {
         return 1
     fi
     
+    # Set timeout (default 10 minutes, can be overridden with VERCEL_TIMEOUT env var)
+    TIMEOUT=${VERCEL_TIMEOUT:-600}
+    echo -e "${BLUE}⏱️ Deployment timeout set to ${TIMEOUT} seconds${NC}"
+    
     start_time=$(date +%s)
     
-    # Deploy to Vercel
-    vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
+    # Deploy to Vercel with timeout
+    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
+    
+    # Check if timeout occurred
+    if [ $? -eq 124 ]; then
+        end_time=$(date +%s)
+        deployment_time=$((end_time - start_time))
+        
+        echo -e "${RED}⏰ Deployment timed out after ${deployment_time} seconds (${TIMEOUT}s limit)${NC}"
+        echo "Date: $(date)" >> deployment-metrics.log
+        echo "Duration: ${deployment_time} seconds (TIMEOUT)" >> deployment-metrics.log
+        echo "Status: TIMEOUT" >> deployment-metrics.log
+        echo "---" >> deployment-metrics.log
+        
+        echo -e "${YELLOW}💡 Tips to fix timeout:${NC}"
+        echo -e "  - Check your internet connection"
+        echo -e "  - Try again (first deployments are slower)"
+        echo -e "  - Increase timeout: VERCEL_TIMEOUT=900 ./scripts/deploy.sh deploy"
+        echo -e "  - Check Vercel status: https://vercel-status.com"
+        
+        return 1
+    fi
     
     end_time=$(date +%s)
     deployment_time=$((end_time - start_time))
