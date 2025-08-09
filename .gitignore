@@ -50,3 +50,10 @@ dist/
 
 # turbo
 .turbo
+
+# deployment logs
+deployment-*.log
+deployment-metrics.log
+
+# mobile build logs
+mobile-build-metrics.log
