@@ -26,7 +26,7 @@ log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 clean_logs() {
     log_step "Cleaning live output logs..."
     rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log
-    rm -f deployment-*.log
+    rm -f web_output.log mobile_output.log deployment-*.log
     log_success "Live output logs cleaned"
 }
 
@@ -39,7 +39,7 @@ install_packages() {
         "web"|"next")
             log_info "Installing Next.js dependencies..."
             cd apps/nextjs
-            pnpm install 2>&1 | tee ../live_output.log
+            pnpm install 2>&1 | tee ../web_output.log
             if [ $? -eq 0 ]; then
                 log_success "Next.js dependencies installed"
             else
@@ -52,7 +52,7 @@ install_packages() {
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
             cd apps/expo
-            pnpm install 2>&1 | tee ../live_output.log
+            pnpm install 2>&1 | tee ../mobile_output.log
             if [ $? -eq 0 ]; then
                 log_success "Expo dependencies installed"
             else
@@ -117,7 +117,7 @@ start_ngrok() {
     fi
     
     # Start ngrok tunnel with live output
-    ngrok http $port 2>&1 | tee live_output.log &
+    ngrok http $port 2>&1 | tee web_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -143,7 +143,7 @@ start_web_dev() {
     fi
     
     log_success "Starting web server on http://localhost:3000"
-    pnpm dev:next 2>&1 | tee live_output.log &
+    pnpm dev:next 2>&1 | tee web_output.log &
     WEB_PID=$!
     sleep 10
     
@@ -162,7 +162,7 @@ start_mobile_dev() {
     
     cd apps/expo
     log_success "Starting Expo server on http://localhost:8081"
-    expo start --lan 2>&1 | tee ../live_output.log &
+    expo start --lan 2>&1 | tee ../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 10
@@ -190,7 +190,7 @@ start_mobile_tunnel() {
     
     cd apps/expo
     log_success "Starting Expo server with tunnel"
-    expo start --tunnel 2>&1 | tee ../live_output.log &
+    expo start --tunnel 2>&1 | tee ../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 15
@@ -217,7 +217,7 @@ deploy_vercel() {
     log_info "Deployment timeout: ${TIMEOUT} seconds"
     
     start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "live_output.log"
+    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "web_output.log"
     
     if [ $? -eq 124 ]; then
         log_error "Deployment timed out"
@@ -260,10 +260,16 @@ show_status() {
     fi
     
     # Show live output if available
-    if [ -f "live_output.log" ]; then
+    if [ -f "web_output.log" ]; then
         echo ""
-        log_info "Recent live output:"
-        tail -10 live_output.log
+        log_info "Recent web output:"
+        tail -10 web_output.log
+    fi
+    
+    if [ -f "mobile_output.log" ]; then
+        echo ""
+        log_info "Recent mobile output:"
+        tail -10 mobile_output.log
     fi
 }
 
@@ -348,12 +354,12 @@ case "${1:-help}" in
     "mobile:build")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && eas build --profile development 2>&1 | tee ../live_output.log && cd ../..
+        cd apps/expo && eas build --profile development 2>&1 | tee ../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && eas build --profile production 2>&1 | tee ../live_output.log && cd ../..
+        cd apps/expo && eas build --profile production 2>&1 | tee ../mobile_output.log && cd ../..
         ;;
     
     # Complete deployments
