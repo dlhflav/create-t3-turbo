@@ -34,53 +34,38 @@ clean_logs() {
 install_packages() {
     log_step "Installing JavaScript packages..."
     
-    # Check if node_modules exists in root
-    if [ ! -d "node_modules" ]; then
-        log_info "Installing root dependencies..."
-        pnpm install 2>&1 | tee live_output.log
-        if [ $? -eq 0 ]; then
-            log_success "Root dependencies installed"
-        else
-            log_error "Failed to install root dependencies"
-            return 1
-        fi
+    log_info "Installing root dependencies..."
+    pnpm install 2>&1 | tee live_output.log
+    if [ $? -eq 0 ]; then
+        log_success "Root dependencies installed"
     else
-        log_info "Root dependencies already installed"
+        log_error "Failed to install root dependencies"
+        return 1
     fi
     
-    # Check if node_modules exists in apps/expo
-    if [ ! -d "apps/expo/node_modules" ]; then
-        log_info "Installing Expo dependencies..."
-        cd apps/expo
-        pnpm install 2>&1 | tee ../live_output.log
-        if [ $? -eq 0 ]; then
-            log_success "Expo dependencies installed"
-        else
-            log_error "Failed to install Expo dependencies"
-            cd ../..
-            return 1
-        fi
-        cd ../..
+    log_info "Installing Expo dependencies..."
+    cd apps/expo
+    pnpm install 2>&1 | tee ../live_output.log
+    if [ $? -eq 0 ]; then
+        log_success "Expo dependencies installed"
     else
-        log_info "Expo dependencies already installed"
+        log_error "Failed to install Expo dependencies"
+        cd ../..
+        return 1
     fi
+    cd ../..
     
-    # Check if node_modules exists in apps/nextjs
-    if [ ! -d "apps/nextjs/node_modules" ]; then
-        log_info "Installing Next.js dependencies..."
-        cd apps/nextjs
-        pnpm install 2>&1 | tee ../live_output.log
-        if [ $? -eq 0 ]; then
-            log_success "Next.js dependencies installed"
-        else
-            log_error "Failed to install Next.js dependencies"
-            cd ../..
-            return 1
-        fi
-        cd ../..
+    log_info "Installing Next.js dependencies..."
+    cd apps/nextjs
+    pnpm install 2>&1 | tee ../live_output.log
+    if [ $? -eq 0 ]; then
+        log_success "Next.js dependencies installed"
     else
-        log_info "Next.js dependencies already installed"
+        log_error "Failed to install Next.js dependencies"
+        cd ../..
+        return 1
     fi
+    cd ../..
     
     log_success "All JavaScript packages are ready"
     return 0
