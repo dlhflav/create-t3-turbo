@@ -23,21 +23,21 @@ chmod +x scripts/deploy.sh
 ./scripts/deploy.sh dev      # Development server
 ./scripts/deploy.sh ngrok    # Ngrok tunnel
 ./scripts/deploy.sh tunnel   # Dev + ngrok
-./scripts/deploy.sh deploy   # Deploy to Vercel (10min timeout)
+./scripts/deploy.sh deploy   # Deploy to Vercel (3min timeout)
 ./scripts/deploy.sh all      # Everything
 ./scripts/deploy.sh status   # Check status
 ```
 
 ### Timeout Options
 ```bash
-# Default timeout (10 minutes)
+# Default timeout (3 minutes)
 ./scripts/deploy.sh deploy
 
-# Custom timeout (15 minutes)
-VERCEL_TIMEOUT=900 ./scripts/deploy.sh deploy
+# Custom timeout (10 minutes)
+VERCEL_TIMEOUT=600 ./scripts/deploy.sh deploy
 
-# Quick timeout for testing (2 minutes)
-VERCEL_TIMEOUT=120 ./scripts/deploy.sh deploy
+# Quick timeout for testing (1 minute)
+VERCEL_TIMEOUT=60 ./scripts/deploy.sh deploy
 ```
 
 ---

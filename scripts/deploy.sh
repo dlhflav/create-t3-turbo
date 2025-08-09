@@ -42,8 +42,8 @@ deploy_vercel() {
         return 1
     fi
     
-    # Set timeout (default 10 minutes, can be overridden with VERCEL_TIMEOUT env var)
-    TIMEOUT=${VERCEL_TIMEOUT:-600}
+    # Set timeout (default 3 minutes, can be overridden with VERCEL_TIMEOUT env var)
+    TIMEOUT=${VERCEL_TIMEOUT:-180}
     echo -e "${BLUE}⏱️ Deployment timeout set to ${TIMEOUT} seconds${NC}"
     
     start_time=$(date +%s)
