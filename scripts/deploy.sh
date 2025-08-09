@@ -162,7 +162,7 @@ start_mobile_dev() {
     
     cd apps/expo
     log_success "Starting Expo server on http://localhost:8081"
-    ../../node_modules/.bin/expo start --lan 2>&1 | tee ../../mobile_output.log &
+    npx expo start --lan 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 10
@@ -190,7 +190,7 @@ start_mobile_tunnel() {
     
     cd apps/expo
     log_success "Starting Expo server with tunnel"
-    ../../node_modules/.bin/expo start --tunnel 2>&1 | tee ../../mobile_output.log &
+    npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 15
@@ -354,12 +354,12 @@ case "${1:-help}" in
     "mobile:build")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && ../../node_modules/.bin/eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
+        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
         clean_logs
         install_packages "mobile"
-        cd apps/expo && ../../node_modules/.bin/eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
+        cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     
     # Complete deployments
