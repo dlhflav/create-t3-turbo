@@ -22,6 +22,14 @@ log_error() { echo -e "${RED}❌ $1${NC}"; }
 log_step() { echo -e "${CYAN}🔧 $1${NC}"; }
 log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 
+# Clean live output logs
+clean_logs() {
+    log_step "Cleaning live output logs..."
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log
+    rm -f deployment-*.log
+    log_success "Live output logs cleaned"
+}
+
 # Load environment variables safely
 load_env() {
     if [ -f .env ]; then
@@ -66,8 +74,8 @@ start_ngrok() {
         ngrok config add-authtoken "$NGROK_TOKEN"
     fi
     
-    # Start ngrok tunnel
-    ngrok http $port &
+    # Start ngrok tunnel with live output
+    ngrok http $port 2>&1 | tee live_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -93,7 +101,7 @@ start_web_dev() {
     fi
     
     log_success "Starting web server on http://localhost:3000"
-    pnpm dev:next &
+    pnpm dev:next 2>&1 | tee live_output.log &
     WEB_PID=$!
     sleep 10
     
@@ -112,7 +120,7 @@ start_mobile_dev() {
     
     cd apps/expo
     log_success "Starting Expo server on http://localhost:8081"
-    expo start --lan &
+    expo start --lan 2>&1 | tee ../live_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 10
@@ -140,7 +148,7 @@ start_mobile_tunnel() {
     
     cd apps/expo
     log_success "Starting Expo server with tunnel"
-    expo start --tunnel &
+    expo start --tunnel 2>&1 | tee ../live_output.log &
     MOBILE_PID=$!
     cd ../..
     sleep 15
@@ -167,7 +175,7 @@ deploy_vercel() {
     log_info "Deployment timeout: ${TIMEOUT} seconds"
     
     start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
+    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "live_output.log"
     
     if [ $? -eq 124 ]; then
         log_error "Deployment timed out"
@@ -208,6 +216,13 @@ show_status() {
     else
         log_error "Ngrok tunnels: Not running"
     fi
+    
+    # Show live output if available
+    if [ -f "live_output.log" ]; then
+        echo ""
+        log_info "Recent live output:"
+        tail -10 live_output.log
+    fi
 }
 
 # Show usage
@@ -232,6 +247,7 @@ show_usage() {
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
+    echo "  clean      - Clean all live output logs"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -251,51 +267,72 @@ load_env
 case "${1:-help}" in
     # Web commands
     "web:dev")
+        clean_logs
         start_web_dev
         log_success "Web development server started!"
+        log_info "Live output: cat live_output.log"
         wait $WEB_PID
         ;;
     "web:tunnel")
+        clean_logs
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
+        log_info "Live output: cat live_output.log"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
+        clean_logs
         deploy_vercel
+        log_info "Live output: cat live_output.log"
         ;;
     
     # Mobile commands
     "mobile:dev")
+        clean_logs
         start_mobile_dev
         log_success "Mobile development server started!"
+        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
+        clean_logs
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
+        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     "mobile:build")
-        cd apps/expo && eas build --profile development && cd ../..
+        clean_logs
+        cd apps/expo && eas build --profile development 2>&1 | tee ../live_output.log && cd ../..
+        log_info "Live output: cat live_output.log"
         ;;
     "mobile:prod")
-        cd apps/expo && eas build --profile production && cd ../..
+        clean_logs
+        cd apps/expo && eas build --profile production 2>&1 | tee ../live_output.log && cd ../..
+        log_info "Live output: cat live_output.log"
         ;;
     
     # Complete deployments
     "all:web")
+        clean_logs
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
+        log_info "Live output: cat live_output.log"
         ;;
     "all:mobile")
+        clean_logs
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
+        log_info "Live output: cat live_output.log"
         wait $MOBILE_PID
         ;;
     
     # Utility commands
     "status")
         show_status
+        ;;
+    "clean")
+        clean_logs
         ;;
     "help"|*)
         show_usage
