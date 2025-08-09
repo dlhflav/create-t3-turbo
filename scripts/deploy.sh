@@ -6,10 +6,17 @@
 set -e  # Exit on any error
 
 # Source common utilities
-source "$(dirname "$0")/utils.sh"
+source "$(dirname "$0")/simple-utils.sh"
 
-# Load environment variables
-load_env
+# Load environment variables (simplified)
+if [ -f .env ]; then
+    echo -e "${BLUE}ℹ️ Loading environment variables...${NC}"
+    # Only load specific variables we need
+    export VERCEL_TOKEN=$(grep VERCEL_TOKEN .env | cut -d'=' -f2 | tr -d '"')
+    export NGROK_AUTHTOKEN=$(grep NGROK_AUTHTOKEN .env | cut -d'=' -f2 | tr -d '"')
+else
+    echo -e "${YELLOW}⚠️ .env file not found, using environment variables${NC}"
+fi
 
 # Function to check if token is set
 check_token() {
