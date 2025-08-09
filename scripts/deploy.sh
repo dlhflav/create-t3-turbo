@@ -24,10 +24,30 @@ log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 
 # Clean live output logs
 clean_logs() {
-    log_step "Cleaning live output logs..."
-    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log
-    rm -f web_output.log mobile_output.log deployment-*.log
-    log_success "Live output logs cleaned"
+    local app_type=${1:-"all"}
+    log_step "Cleaning live output logs for $app_type..."
+    
+    # Always clean general logs
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log
+    
+    # Clean app-specific logs based on app type
+    case $app_type in
+        "web"|"next")
+            rm -f web_output.log
+            log_success "Web logs cleaned"
+            ;;
+        "mobile"|"expo")
+            rm -f mobile_output.log
+            log_success "Mobile logs cleaned"
+            ;;
+        "all")
+            rm -f web_output.log mobile_output.log
+            log_success "All logs cleaned"
+            ;;
+        *)
+            log_warning "Unknown app type for log cleaning: $app_type"
+            ;;
+    esac
 }
 
 # Install JavaScript packages for specific app
@@ -381,60 +401,60 @@ load_env
 case "${1:-help}" in
     # Web commands
     "web:dev")
-        clean_logs
+        clean_logs "web"
         install_packages "web"
         start_web_dev
         log_success "Web development server started!"
         wait $WEB_PID
         ;;
     "web:tunnel")
-        clean_logs
+        clean_logs "web"
         install_packages "web"
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
-        clean_logs
+        clean_logs "web"
         install_packages "web"
         deploy_vercel
         ;;
     
     # Mobile commands
     "mobile:dev")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         start_mobile_dev
         log_success "Mobile development server started!"
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
     "mobile:build")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     
     # Complete deployments
     "all:web")
-        clean_logs
+        clean_logs "web"
         install_packages "web"
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
@@ -446,18 +466,18 @@ case "${1:-help}" in
         show_status
         ;;
     "clean")
-        clean_logs
+        clean_logs "all"
         ;;
     "install")
-        clean_logs
+        clean_logs "all"
         log_error "Please specify app type: install:web or install:mobile"
         ;;
     "install:web")
-        clean_logs
+        clean_logs "web"
         install_packages "web"
         ;;
     "install:mobile")
-        clean_logs
+        clean_logs "mobile"
         install_packages "mobile"
         ;;
     "help"|*)
