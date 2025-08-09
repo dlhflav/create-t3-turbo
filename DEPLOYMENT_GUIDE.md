@@ -2,9 +2,9 @@
 
 ## 🌐 **Your Public URL is Ready!**
 
-**🔗 Live Demo: https://291ba4c4c0b2.ngrok-free.app**
+**🔗 Live Demo: [Your ngrok URL will be displayed when you start ngrok]**
 
-This URL is accessible from anywhere on the internet and will work as long as the development server is running.
+The ngrok URL is accessible from anywhere on the internet and will work as long as the development server is running.
 
 ---
 
@@ -53,12 +53,23 @@ ngrok config add-authtoken YOUR_AUTHTOKEN_HERE
 ngrok http 3000
 ```
 
+### Getting Your Public URL
+When you start ngrok, it will display your public URL in the terminal output. The URL will look like:
+```
+https://[random-string].ngrok-free.app
+```
+
 ### Ngrok Features
-- **Public HTTPS URL**: Automatically generated
+- **Public HTTPS URL**: Automatically generated (changes on restart)
 - **Web Interface**: Monitor traffic at http://localhost:4040
 - **Request Inspection**: Real-time request/response logs
 - **Stable Connection**: More reliable than other tunnel services
 - **Custom Domains**: Available with paid plans
+
+### Important Notes
+- **URL Changes**: The ngrok URL changes each time you restart ngrok
+- **Session Timeout**: Free tunnels close after 8 hours of inactivity
+- **Keep Process Running**: Don't close the ngrok terminal to maintain the tunnel
 
 ---
 
@@ -217,6 +228,7 @@ pnpm lint
 3. **Auth errors**: Verify Discord OAuth credentials
 4. **Port conflicts**: Change port in `apps/nextjs/package.json`
 5. **Ngrok auth fails**: Verify authtoken is correct and valid
+6. **Ngrok URL changes**: Restart ngrok to get a new URL
 
 ### Getting Help:
 - Check the [T3 Turbo documentation](https://github.com/t3-oss/create-t3-turbo)
@@ -228,4 +240,4 @@ pnpm lint
 
 ## 🎉 Success!
 
-Your T3 Turbo webapp is now live and testable! The current ngrok URL will work as long as the development server is running. For a permanent deployment, use one of the cloud platforms listed above.
+Your T3 Turbo webapp is now live and testable! The ngrok URL will be displayed when you start the tunnel and will work as long as the development server is running. For a permanent deployment, use one of the cloud platforms listed above.
