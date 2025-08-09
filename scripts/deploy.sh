@@ -1,229 +1,271 @@
 #!/bin/bash
 
 # T3 Turbo Deployment Script
-# This script handles both development (ngrok) and production (Vercel) deployments
+# This script handles both web and mobile deployments with ngrok tunneling
 
 set -e  # Exit on any error
 
-# Source common utilities
-source "$(dirname "$0")/simple-utils.sh"
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
 
-# Load environment variables (safer approach)
-if [ -f .env ]; then
-    echo -e "${BLUE}ℹ️ Loading environment variables...${NC}"
-    # Load only the variables we need, safely
-    while IFS= read -r line; do
-        # Skip comments and empty lines
-        [[ $line =~ ^[[:space:]]*# ]] && continue
-        [[ -z $line ]] && continue
-        
-        # Only export VERCEL_TOKEN and NGROK_TOKEN
-        if [[ $line =~ ^(VERCEL_TOKEN|NGROK_TOKEN)= ]]; then
-            export "$line"
-        fi
-    done < .env
-else
-    echo -e "${YELLOW}⚠️ .env file not found, using environment variables${NC}"
-fi
+# Logging functions
+log_info() { echo -e "${BLUE}ℹ️ $1${NC}"; }
+log_success() { echo -e "${GREEN}✅ $1${NC}"; }
+log_warning() { echo -e "${YELLOW}⚠️ $1${NC}"; }
+log_error() { echo -e "${RED}❌ $1${NC}"; }
+log_step() { echo -e "${CYAN}🔧 $1${NC}"; }
+log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 
-# Function to check if token is set
+# Load environment variables safely
+load_env() {
+    if [ -f .env ]; then
+        log_info "Loading environment variables from .env"
+        while IFS= read -r line; do
+            [[ $line =~ ^[[:space:]]*# ]] && continue
+            [[ -z $line ]] && continue
+            if [[ $line =~ ^(VERCEL_TOKEN|NGROK_TOKEN|EXPO_TOKEN)= ]]; then
+                export "$line"
+            fi
+        done < .env
+    else
+        log_warning ".env file not found, using environment variables"
+    fi
+}
+
+# Check if token is set
 check_token() {
     local token_name=$1
     local token_value=$2
     
     if [ -z "$token_value" ] || [ "$token_value" = "your-$token_name-here" ]; then
-        log_error "$token_name not set in .env file"
+        log_error "$token_name not set"
         return 1
     fi
     return 0
 }
 
-# Function to deploy to Vercel
-deploy_vercel() {
-    log_deploy "Starting Vercel deployment..."
-    
-    if ! check_token "VERCEL_TOKEN" "$VERCEL_TOKEN"; then
-        log_warning "Skipping Vercel deployment - token not configured"
-        return 1
-    fi
-    
-    # Set timeout (default 3 minutes, can be overridden with VERCEL_TIMEOUT env var)
-    TIMEOUT=${VERCEL_TIMEOUT:-180}
-    log_info "Deployment timeout set to ${TIMEOUT} seconds"
-    
-    start_time=$(get_timestamp)
-    
-    # Deploy to Vercel with timeout
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
-    
-    # Check if timeout occurred
-    if [ $? -eq 124 ]; then
-        end_time=$(get_timestamp)
-        deployment_time=$(calculate_duration $start_time $end_time)
-        
-        log_error "Deployment timed out after ${deployment_time} seconds (${TIMEOUT}s limit)"
-        log_metrics "deployment-metrics.log" "Vercel" "$deployment_time" "TIMEOUT"
-        
-        log_warning "Tips to fix timeout:"
-        echo "  - Check your internet connection"
-        echo "  - Try again (first deployments are slower)"
-        echo "  - Increase timeout: VERCEL_TIMEOUT=900 ./scripts/deploy.sh deploy"
-        echo "  - Check Vercel status: https://vercel-status.com"
-        
-        return 1
-    fi
-    
-    end_time=$(get_timestamp)
-    deployment_time=$(calculate_duration $start_time $end_time)
-    
-    # Log metrics
-    log_success "Deployment completed in ${deployment_time} seconds"
-    log_metrics "deployment-metrics.log" "Vercel" "$deployment_time" "SUCCESS"
-    
-    # Performance analysis
-    if [ $deployment_time -lt 60 ]; then
-        log_success "Fast deployment (< 1 minute)"
-    elif [ $deployment_time -lt 180 ]; then
-        log_warning "Normal deployment (1-3 minutes)"
-    else
-        log_error "Slow deployment (> 3 minutes) - check logs"
-    fi
-    
-    return 0
-}
-
-# Function to start ngrok tunnel
+# Start ngrok tunnel
 start_ngrok() {
-    log_step "Starting ngrok tunnel..."
+    local port=$1
+    log_step "Starting ngrok tunnel on port $port..."
     
     if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
-        log_warning "Skipping ngrok - token not configured"
+        log_warning "Skipping ngrok - NGROK_TOKEN not configured"
         return 1
     fi
     
-    # Configure ngrok if not already configured
+    # Configure ngrok if needed
     if [ ! -f ~/.config/ngrok/ngrok.yml ]; then
         log_step "Configuring ngrok..."
         ngrok config add-authtoken "$NGROK_TOKEN"
     fi
     
     # Start ngrok tunnel
-    log_success "Starting ngrok tunnel on port 3000..."
-    ngrok http 3000 &
+    ngrok http $port &
     NGROK_PID=$!
-    
-    # Wait a moment for ngrok to start
     sleep 5
     
-    # Get the tunnel URL
+    # Get tunnel URL
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        TUNNEL_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'])")
-        log_success "Ngrok tunnel started: $TUNNEL_URL"
-        log_info "Monitor at: http://localhost:4040"
+        TUNNEL_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'])" 2>/dev/null || echo "Unknown")
+        log_success "Ngrok tunnel: $TUNNEL_URL"
+        log_info "Monitor: http://localhost:4040"
+        return 0
     else
         log_error "Failed to start ngrok tunnel"
         return 1
     fi
-    
-    return 0
 }
 
-# Function to start development server
-start_dev() {
-    log_step "Starting development server..."
+# Start web development server
+start_web_dev() {
+    log_step "Starting web development server..."
     
-    # Install dependencies if needed
     if [ ! -d "node_modules" ]; then
         log_step "Installing dependencies..."
         pnpm install
     fi
     
-    # Start development server
-    log_success "Starting development server on http://localhost:3000"
+    log_success "Starting web server on http://localhost:3000"
     pnpm dev:next &
-    DEV_PID=$!
-    
-    # Wait for server to start
+    WEB_PID=$!
     sleep 10
     
-    # Check if server is running
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success "Development server is running"
+        log_success "Web server is running"
         return 0
     else
-        log_error "Failed to start development server"
+        log_error "Failed to start web server"
         return 1
     fi
 }
 
-# Function to show usage
-show_usage() {
-    local commands="  dev     - Start development server only
-  ngrok   - Start ngrok tunnel only
-  tunnel  - Start dev server + ngrok tunnel
-  deploy  - Deploy to Vercel production
-  all     - Start dev server + ngrok + deploy to Vercel
-  status  - Show deployment metrics
-  help    - Show this help"
+# Start mobile development server
+start_mobile_dev() {
+    log_step "Starting mobile development server..."
     
-    local prerequisites="  Make sure to set VERCEL_TOKEN and NGROK_TOKEN in .env file"
+    cd apps/expo
+    log_success "Starting Expo server on http://localhost:8081"
+    expo start --lan &
+    MOBILE_PID=$!
+    cd ../..
+    sleep 10
     
-    show_usage "T3 Turbo Deployment Script" "This script handles both development (ngrok) and production (Vercel) deployments" "$commands" "$prerequisites"
-}
-
-# Function to show deployment status
-show_status() {
-    log_info "Deployment Status"
-    echo ""
-    
-    show_recent_metrics "deployment-metrics.log" 10
-    echo ""
-    
-    log_info "Current services:"
-    
-    # Check if development server is running
-    check_port 3000 "Development server"
-    
-    # Check if ngrok is running
-    if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        TUNNEL_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'])" 2>/dev/null || echo "Unknown")
-        log_success "Ngrok tunnel: $TUNNEL_URL"
-        log_info "Ngrok monitor: http://localhost:4040"
+    if curl -s http://localhost:8081 > /dev/null 2>&1; then
+        log_success "Mobile server is running"
+        return 0
     else
-        log_error "Ngrok tunnel: Not running"
+        log_error "Failed to start mobile server"
+        return 1
     fi
 }
 
+# Deploy to Vercel
+deploy_vercel() {
+    log_deploy "Starting Vercel deployment..."
+    
+    if ! check_token "VERCEL_TOKEN" "$VERCEL_TOKEN"; then
+        log_warning "Skipping Vercel deployment - VERCEL_TOKEN not configured"
+        return 1
+    fi
+    
+    TIMEOUT=${VERCEL_TIMEOUT:-180}
+    log_info "Deployment timeout: ${TIMEOUT} seconds"
+    
+    start_time=$(date +%s)
+    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "deployment-$(date +%Y%m%d-%H%M%S).log"
+    
+    if [ $? -eq 124 ]; then
+        log_error "Deployment timed out"
+        return 1
+    fi
+    
+    end_time=$(date +%s)
+    deployment_time=$((end_time - start_time))
+    log_success "Deployment completed in ${deployment_time} seconds"
+    return 0
+}
+
+# Show status
+show_status() {
+    log_info "Current Status"
+    echo ""
+    
+    # Check web server
+    if curl -s http://localhost:3000 > /dev/null 2>&1; then
+        log_success "Web server: Running on http://localhost:3000"
+    else
+        log_error "Web server: Not running"
+    fi
+    
+    # Check mobile server
+    if curl -s http://localhost:8081 > /dev/null 2>&1; then
+        log_success "Mobile server: Running on http://localhost:8081"
+    else
+        log_error "Mobile server: Not running"
+    fi
+    
+    # Check ngrok tunnels
+    if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
+        TUNNELS=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); [print(f'  - {t[\"public_url\"]} -> {t[\"config\"][\"addr\"]}') for t in data['tunnels']]" 2>/dev/null || echo "Unknown")
+        log_success "Ngrok tunnels:"
+        echo "$TUNNELS"
+        log_info "Monitor: http://localhost:4040"
+    else
+        log_error "Ngrok tunnels: Not running"
+    fi
+}
+
+# Show usage
+show_usage() {
+    echo -e "${PURPLE}🚀 T3 Turbo Deployment Script${NC}"
+    echo "This script handles both web and mobile deployments with ngrok tunneling"
+    echo ""
+    echo -e "${GREEN}Web Commands:${NC}"
+    echo "  web:dev     - Start web development server"
+    echo "  web:tunnel  - Start web dev + ngrok tunnel"
+    echo "  web:deploy  - Deploy web to Vercel"
+    echo ""
+    echo -e "${CYAN}Mobile Commands:${NC}"
+    echo "  mobile:dev    - Start mobile development server"
+    echo "  mobile:tunnel - Start mobile dev + ngrok tunnel"
+    echo "  mobile:build  - Build mobile app (development)"
+    echo "  mobile:prod   - Build mobile app (production)"
+    echo ""
+    echo -e "${YELLOW}Complete Deployments:${NC}"
+    echo "  all:web    - Complete web deployment (dev + tunnel + deploy)"
+    echo "  all:mobile - Complete mobile deployment (dev + tunnel + build)"
+    echo ""
+    echo -e "${BLUE}Utility Commands:${NC}"
+    echo "  status     - Show all services status"
+    echo "  help       - Show this help"
+    echo ""
+    echo -e "${YELLOW}Prerequisites:${NC}"
+    echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens"
+    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens"
+    echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens"
+    echo ""
+    echo -e "${BLUE}Examples:${NC}"
+    echo "  ./scripts/deploy.sh web:tunnel    # Web with tunnel"
+    echo "  ./scripts/deploy.sh mobile:tunnel # Mobile with tunnel"
+    echo "  ./scripts/deploy.sh all:web       # Complete web deployment"
+}
+
 # Main script logic
+load_env
+
 case "${1:-help}" in
-    "dev")
-        start_dev
-        echo -e "${GREEN}🎉 Development server started!${NC}"
-        echo -e "${BLUE}Press Ctrl+C to stop${NC}"
-        wait $DEV_PID
+    # Web commands
+    "web:dev")
+        start_web_dev
+        log_success "Web development server started!"
+        wait $WEB_PID
         ;;
-    "ngrok")
-        start_ngrok
-        echo -e "${GREEN}🎉 Ngrok tunnel started!${NC}"
-        echo -e "${BLUE}Press Ctrl+C to stop${NC}"
-        wait $NGROK_PID
+    "web:tunnel")
+        start_web_dev && start_ngrok 3000
+        log_success "Web development with tunnel started!"
+        wait $WEB_PID $NGROK_PID
         ;;
-    "tunnel")
-        start_dev
-        start_ngrok
-        echo -e "${GREEN}🎉 Development server and ngrok tunnel started!${NC}"
-        echo -e "${BLUE}Press Ctrl+C to stop${NC}"
-        wait $DEV_PID $NGROK_PID
-        ;;
-    "deploy")
+    "web:deploy")
         deploy_vercel
         ;;
-    "all")
-        start_dev
-        start_ngrok
-        deploy_vercel
-        echo -e "${GREEN}🎉 All services started and deployed!${NC}"
+    
+    # Mobile commands
+    "mobile:dev")
+        start_mobile_dev
+        log_success "Mobile development server started!"
+        wait $MOBILE_PID
         ;;
+    "mobile:tunnel")
+        start_mobile_dev && start_ngrok 8081
+        log_success "Mobile development with tunnel started!"
+        wait $MOBILE_PID $NGROK_PID
+        ;;
+    "mobile:build")
+        cd apps/expo && eas build --profile development && cd ../..
+        ;;
+    "mobile:prod")
+        cd apps/expo && eas build --profile production && cd ../..
+        ;;
+    
+    # Complete deployments
+    "all:web")
+        start_web_dev && start_ngrok 3000 && deploy_vercel
+        log_success "Complete web deployment finished!"
+        ;;
+    "all:mobile")
+        start_mobile_dev && start_ngrok 8081
+        log_success "Complete mobile deployment started!"
+        wait $MOBILE_PID $NGROK_PID
+        ;;
+    
+    # Utility commands
     "status")
         show_status
         ;;
