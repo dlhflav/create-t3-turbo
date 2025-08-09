@@ -30,44 +30,45 @@ clean_logs() {
     log_success "Live output logs cleaned"
 }
 
-# Install JavaScript packages
+# Install JavaScript packages for specific app
 install_packages() {
-    log_step "Installing JavaScript packages..."
+    local app_type=$1
+    log_step "Installing JavaScript packages for $app_type..."
     
-    log_info "Installing root dependencies..."
-    pnpm install 2>&1 | tee live_output.log
-    if [ $? -eq 0 ]; then
-        log_success "Root dependencies installed"
-    else
-        log_error "Failed to install root dependencies"
-        return 1
-    fi
+    case $app_type in
+        "web"|"next")
+            log_info "Installing Next.js dependencies..."
+            cd apps/nextjs
+            pnpm install 2>&1 | tee ../live_output.log
+            if [ $? -eq 0 ]; then
+                log_success "Next.js dependencies installed"
+            else
+                log_error "Failed to install Next.js dependencies"
+                cd ../..
+                return 1
+            fi
+            cd ../..
+            ;;
+        "mobile"|"expo")
+            log_info "Installing Expo dependencies..."
+            cd apps/expo
+            pnpm install 2>&1 | tee ../live_output.log
+            if [ $? -eq 0 ]; then
+                log_success "Expo dependencies installed"
+            else
+                log_error "Failed to install Expo dependencies"
+                cd ../..
+                return 1
+            fi
+            cd ../..
+            ;;
+        *)
+            log_error "Unknown app type: $app_type"
+            return 1
+            ;;
+    esac
     
-    log_info "Installing Expo dependencies..."
-    cd apps/expo
-    pnpm install 2>&1 | tee ../live_output.log
-    if [ $? -eq 0 ]; then
-        log_success "Expo dependencies installed"
-    else
-        log_error "Failed to install Expo dependencies"
-        cd ../..
-        return 1
-    fi
-    cd ../..
-    
-    log_info "Installing Next.js dependencies..."
-    cd apps/nextjs
-    pnpm install 2>&1 | tee ../live_output.log
-    if [ $? -eq 0 ]; then
-        log_success "Next.js dependencies installed"
-    else
-        log_error "Failed to install Next.js dependencies"
-        cd ../..
-        return 1
-    fi
-    cd ../..
-    
-    log_success "All JavaScript packages are ready"
+    log_success "$app_type dependencies are ready"
     return 0
 }
 
@@ -289,7 +290,8 @@ show_usage() {
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
     echo "  clean      - Clean all live output logs"
-    echo "  install    - Install all JavaScript packages"
+    echo "  install:web    - Install Next.js dependencies"
+    echo "  install:mobile - Install Expo dependencies"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -310,60 +312,60 @@ case "${1:-help}" in
     # Web commands
     "web:dev")
         clean_logs
-        install_packages
+        install_packages "web"
         start_web_dev
         log_success "Web development server started!"
         wait $WEB_PID
         ;;
     "web:tunnel")
         clean_logs
-        install_packages
+        install_packages "web"
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
         clean_logs
-        install_packages
+        install_packages "web"
         deploy_vercel
         ;;
     
     # Mobile commands
     "mobile:dev")
         clean_logs
-        install_packages
+        install_packages "mobile"
         start_mobile_dev
         log_success "Mobile development server started!"
         wait $MOBILE_PID
         ;;
     "mobile:tunnel")
         clean_logs
-        install_packages
+        install_packages "mobile"
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
     "mobile:build")
         clean_logs
-        install_packages
+        install_packages "mobile"
         cd apps/expo && eas build --profile development 2>&1 | tee ../live_output.log && cd ../..
         ;;
     "mobile:prod")
         clean_logs
-        install_packages
+        install_packages "mobile"
         cd apps/expo && eas build --profile production 2>&1 | tee ../live_output.log && cd ../..
         ;;
     
     # Complete deployments
     "all:web")
         clean_logs
-        install_packages
+        install_packages "web"
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
         clean_logs
-        install_packages
+        install_packages "mobile"
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
         wait $MOBILE_PID
@@ -378,7 +380,15 @@ case "${1:-help}" in
         ;;
     "install")
         clean_logs
-        install_packages
+        log_error "Please specify app type: install:web or install:mobile"
+        ;;
+    "install:web")
+        clean_logs
+        install_packages "web"
+        ;;
+    "install:mobile")
+        clean_logs
+        install_packages "mobile"
         ;;
     "help"|*)
         show_usage
