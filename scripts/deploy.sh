@@ -314,6 +314,12 @@ get_current_ip() {
     echo "$ip"
 }
 
+# Get local tunnel password
+get_local_tunnel_password() {
+    local password=$(curl -s https://loca.lt/mytunnelpassword 2>/dev/null || echo "unknown")
+    echo "$password"
+}
+
 # Install and configure Local Tunnel
 install_local_tunnel() {
     log_step "Installing and configuring Local Tunnel..."
@@ -569,7 +575,9 @@ show_status() {
         if [ -n "$LOCAL_TUNNEL_URL" ]; then
             log_success "Local tunnel:"
             log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
-            log_warning "  Note: Local tunnel may require your IP address ($CURRENT_IP) as password"
+            # Get local tunnel password
+            LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+            log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
         else
             log_error "Local tunnel: Not running"
         fi
@@ -625,8 +633,12 @@ show_usage() {
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
     echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens (for web deployment)"
-    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for web tunnel)"
+    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for ngrok tunnel)"
     echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
+    echo ""
+    echo -e "${YELLOW}Local Tunnel:${NC}"
+    echo "  - Password is automatically fetched from https://loca.lt/mytunnelpassword"
+    echo "  - No additional configuration required"
     echo ""
     echo -e "${BLUE}Examples:${NC}"
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
