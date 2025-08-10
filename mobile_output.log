@@ -1,7 +1,6 @@
 Starting project at /workspace/apps/expo
-Using src/app as the root directory for Expo Router.
-Starting Metro Bundler
-Tunnel connected.
-Tunnel ready.
-Waiting on http://localhost:8081
-Logs for your project will appear below.
+› Port 8081 is being used by another process
+Input is required, but 'npx expo' is in non-interactive mode.
+Required input:
+> Use port 8082 instead?
+› Skipping dev server
