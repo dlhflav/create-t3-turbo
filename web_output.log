@@ -1,20 +1,27 @@
-Scope: all 13 workspace projects
-../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
-../..                                    | -101 ----------
-../..                                    | Progress: resolved 0, reused 101, downloaded 0, added 0, done
 
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, better-sqlite3,    │
-│   bufferutil, core-js-pure, prisma, sharp, utf-8-validate.                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
+> create-t3-turbo@ dev:next /workspace
+> turbo watch dev -F @acme/nextjs...
 
-../.. postinstall$ pnpm lint:ws
-../.. postinstall: > create-t3-turbo@ lint:ws /workspace
-../.. postinstall: > pnpm dlx sherif@latest
-../.. postinstall: ✓ No issues found
-../.. postinstall: Done
-Done in 3.1s using pnpm v10.11.1
+turbo 2.5.4
+
+• Packages in scope: @acme/api, @acme/auth, @acme/db, @acme/eslint-config, @acme/nextjs, @acme/prettier-config, @acme/tailwind-config, @acme/tsconfig, @acme/ui, @acme/validators
+• Running dev in 10 packages
+• Remote caching disabled
+@acme/nextjs:dev: cache bypass, force executing 1d64950b12a71f65
+@acme/validators:dev: cache bypass, force executing 67981f3814a268ba
+@acme/db:dev: cache bypass, force executing 20a090fa52794c0b
+@acme/nextjs:dev: 
+@acme/nextjs:dev: > @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+@acme/nextjs:dev: > pnpm with-env next dev --turbopack
+@acme/nextjs:dev: 
+@acme/nextjs:dev: 
+@acme/nextjs:dev: > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+@acme/nextjs:dev: > dotenv -e ../../.env -- next dev --turbopack
+@acme/nextjs:dev: 
+@acme/nextjs:dev:  ⚠ Port 3000 is in use, using available port 3008 instead.
+@acme/nextjs:dev:    ▲ Next.js 15.3.3 (Turbopack)
+@acme/nextjs:dev:    - Local:        http://localhost:3008
+@acme/nextjs:dev:    - Network:      http://172.30.0.2:3008
+@acme/nextjs:dev: 
+@acme/nextjs:dev:  ✓ Starting...
+@acme/nextjs:dev:  ✓ Ready in 1205ms

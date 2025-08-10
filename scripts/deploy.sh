@@ -412,7 +412,7 @@ start_ngrok() {
 # Start web development server
 start_web_dev() {
     local use_tunnel=${1:-false}
-    local tunnel_type=${2:-"ngrok"}
+    local tunnel_type=${2:-"local"}
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
@@ -552,6 +552,19 @@ show_status() {
         log_error "Ngrok tunnels: Not running"
     fi
     
+    # Check local tunnel
+    if [ -f "localtunnel_output.log" ]; then
+        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+        if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            log_success "Local tunnel:"
+            log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+        else
+            log_error "Local tunnel: Not running"
+        fi
+    else
+        log_error "Local tunnel: Not running"
+    fi
+    
     # Show live output if available
     if [ -f "web_output.log" ]; then
         echo ""
@@ -573,8 +586,8 @@ show_usage() {
     echo ""
     echo -e "${GREEN}Web Commands:${NC}"
     echo "  web:dev        - Start web development server"
-    echo "  web:tunnel     - Start web dev + ngrok tunnel"
-    echo "  web:local-tunnel - Start web dev + local tunnel"
+    echo "  web:tunnel     - Start web dev + local tunnel (default)"
+    echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
     echo "  web:deploy     - Deploy web to Vercel"
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
@@ -584,8 +597,8 @@ show_usage() {
     echo "  mobile:prod   - Build mobile app (production)"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:web       - Complete web deployment (dev + ngrok tunnel + deploy)"
-    echo "  all:web:local - Complete web deployment (dev + local tunnel + deploy)"
+    echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
+    echo "  all:web:ngrok - Complete web deployment (dev + ngrok tunnel + deploy)"
     echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
@@ -604,11 +617,11 @@ show_usage() {
     echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
     echo ""
     echo -e "${BLUE}Examples:${NC}"
-    echo "  ./scripts/deploy.sh web:tunnel        # Web with ngrok tunnel"
-    echo "  ./scripts/deploy.sh web:local-tunnel  # Web with local tunnel"
+    echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
+    echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
-    echo "  ./scripts/deploy.sh all:web:local     # Complete web deployment with local tunnel"
+    echo "  ./scripts/deploy.sh all:web:ngrok     # Complete web deployment with ngrok tunnel"
 }
 
 # Main script logic
@@ -628,19 +641,19 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
-        install_ngrok
-        start_web_dev true "ngrok"
-        log_success "Web development with ngrok tunnel started!"
-        wait $WEB_PID $NGROK_PID
-        ;;
-    "web:local-tunnel")
-        clean_logs "web"
-        install_env_file "web"
-        install_packages "web"
         install_local_tunnel
         start_web_dev true "local"
         log_success "Web development with local tunnel started!"
         wait $WEB_PID $LOCAL_TUNNEL_PID
+        ;;
+    "web:ngrok-tunnel")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_ngrok
+        start_web_dev true "ngrok"
+        log_success "Web development with ngrok tunnel started!"
+        wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
         clean_logs "web"
@@ -686,19 +699,19 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
-        install_ngrok
-        install_vercel
-        start_web_dev true "ngrok" && deploy_vercel
-        log_success "Complete web deployment finished!"
-        ;;
-    "all:web:local")
-        clean_logs "web"
-        install_env_file "web"
-        install_packages "web"
         install_local_tunnel
         install_vercel
         start_web_dev true "local" && deploy_vercel
-        log_success "Complete web deployment with local tunnel finished!"
+        log_success "Complete web deployment finished!"
+        ;;
+    "all:web:ngrok")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_ngrok
+        install_vercel
+        start_web_dev true "ngrok" && deploy_vercel
+        log_success "Complete web deployment with ngrok tunnel finished!"
         ;;
     "all:mobile")
         clean_logs "mobile"
