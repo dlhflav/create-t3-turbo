@@ -228,7 +228,7 @@ install_ngrok() {
         fi
         
         # Check if endpoints need updating
-        if ! grep -q "name: web" "$config_file" || ! grep -q "name: mobile" "$config_file"; then
+        if ! grep -q "name: web" "$config_file"; then
             config_needs_update=true
             log_info "Ngrok endpoints missing, updating config"
         fi
@@ -245,17 +245,64 @@ endpoints:
     url: gopher-assuring-seriously.ngrok-free.app
     upstream:
       url: http://localhost:3000
-  - name: mobile
-    url: gopher-assuring-seriously.ngrok-free.app
-    upstream:
-      url: http://localhost:8081
 EOF
         
         log_success "Ngrok configuration updated at $config_file"
         log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
-        log_info "Mobile tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:8081"
     else
         log_info "Ngrok configuration is up to date"
+    fi
+    
+    return 0
+}
+
+# Install and configure Vercel CLI
+install_vercel() {
+    log_step "Installing and configuring Vercel CLI..."
+    
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Check if Vercel CLI is installed
+    if ! command -v vercel &> /dev/null; then
+        log_info "Vercel CLI not found, installing..."
+        
+        # Install Vercel CLI globally
+        npm install -g vercel
+        
+        if [ $? -eq 0 ]; then
+            log_success "Vercel CLI installed successfully"
+        else
+            log_error "Failed to install Vercel CLI"
+            return 1
+        fi
+    else
+        log_info "Vercel CLI already installed: $(vercel --version)"
+    fi
+    
+    # Get VERCEL_TOKEN from environment
+    local vercel_token=$(get_shell_var_value "VERCEL_TOKEN")
+    if [ -z "$vercel_token" ]; then
+        log_warning "VERCEL_TOKEN not found in environment, skipping Vercel configuration"
+        return 0
+    fi
+    
+    # Check if already logged in
+    if vercel whoami &> /dev/null; then
+        log_info "Vercel CLI already authenticated"
+    else
+        log_info "Authenticating Vercel CLI with token..."
+        echo "$vercel_token" | vercel login --token
+        
+        if [ $? -eq 0 ]; then
+            log_success "Vercel CLI authenticated successfully"
+        else
+            log_error "Failed to authenticate Vercel CLI"
+            return 1
+        fi
     fi
     
     return 0
@@ -284,8 +331,8 @@ start_ngrok() {
         return 1
     fi
     
-    # Start ngrok with all configured tunnels
-    ngrok start --all 2>&1 | tee ngrok_output.log &
+    # Start ngrok with web tunnel only
+    ngrok start web 2>&1 | tee ngrok_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -508,6 +555,7 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
+        install_vercel
         deploy_vercel
         ;;
     
@@ -548,6 +596,7 @@ case "${1:-help}" in
         install_env_file "web"
         install_packages "web"
         install_ngrok
+        install_vercel
         start_web_dev true && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
