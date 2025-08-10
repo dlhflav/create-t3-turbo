@@ -1,0 +1,13 @@
+
+> create-t3-turbo@ dev:next /workspace
+> turbo watch dev -F @acme/nextjs...
+
+turbo 2.5.4
+
+• Packages in scope: @acme/api, @acme/auth, @acme/db, @acme/eslint-config, @acme/nextjs, @acme/prettier-config, @acme/tailwind-config, @acme/tsconfig, @acme/ui, @acme/validators
+• Running dev in 10 packages
+• Remote caching disabled
+  x Failed to connect to daemon.
+  `-> unable to connect to daemon after 3 retries
+
+ ELIFECYCLE  Command failed with exit code 1.
