@@ -310,12 +310,8 @@ start_ngrok() {
 
 # Start web development server
 start_web_dev() {
+    local use_tunnel=${1:-false}
     log_step "Starting web development server..."
-    
-    if [ ! -d "node_modules" ]; then
-        log_step "Installing dependencies..."
-        pnpm install
-    fi
     
     log_success "Starting web server on http://localhost:3000"
     pnpm dev:next 2>&1 | tee web_output.log &
@@ -324,6 +320,17 @@ start_web_dev() {
     
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
         log_success "Web server is running"
+        
+        if [ "$use_tunnel" = true ]; then
+            log_step "Starting ngrok tunnel for web server..."
+            start_ngrok 3000
+            if [ $? -eq 0 ]; then
+                log_success "Web server with tunnel is running"
+            else
+                log_warning "Web server running without tunnel"
+            fi
+        fi
+        
         return 0
     else
         log_error "Failed to start web server"
@@ -333,51 +340,52 @@ start_web_dev() {
 
 # Start mobile development server
 start_mobile_dev() {
+    local use_tunnel=${1:-false}
     log_step "Starting mobile development server..."
     
     cd apps/expo
-    log_success "Starting Expo server on http://localhost:8081"
-    npx expo start --lan 2>&1 | tee ../../mobile_output.log &
-    MOBILE_PID=$!
-    cd ../..
-    sleep 10
     
-    if curl -s http://localhost:8081 > /dev/null 2>&1; then
-        log_success "Mobile server is running"
-        return 0
+    if [ "$use_tunnel" = true ]; then
+        # Check if NGROK_TOKEN is available for Expo tunnel
+        if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
+            log_warning "NGROK_TOKEN not configured - Expo tunnel requires ngrok authentication"
+            log_info "Using LAN mode instead. For tunnel access, set NGROK_TOKEN in .env"
+            use_tunnel=false
+        fi
+    fi
+    
+    if [ "$use_tunnel" = true ]; then
+        log_success "Starting Expo server with tunnel"
+        npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
+        MOBILE_PID=$!
+        cd ../..
+        sleep 15
+        
+        # Wait for tunnel to be established
+        log_info "Waiting for tunnel to be established..."
+        sleep 10
+        
+        log_success "Mobile server with tunnel is running"
+        log_info "Check the QR code or terminal output for tunnel URL"
     else
-        log_error "Failed to start mobile server"
-        return 1
-    fi
-}
-
-# Start mobile development server with tunnel
-start_mobile_tunnel() {
-    log_step "Starting mobile development server with tunnel..."
-    
-    # Check if NGROK_TOKEN is available for Expo tunnel
-    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
-        log_warning "NGROK_TOKEN not configured - Expo tunnel requires ngrok authentication"
-        log_info "Using LAN mode instead. For tunnel access, set NGROK_TOKEN in .env"
-        start_mobile_dev
-        return 0
+        log_success "Starting Expo server on http://localhost:8081"
+        npx expo start --lan 2>&1 | tee ../../mobile_output.log &
+        MOBILE_PID=$!
+        cd ../..
+        sleep 10
+        
+        if curl -s http://localhost:8081 > /dev/null 2>&1; then
+            log_success "Mobile server is running"
+        else
+            log_error "Failed to start mobile server"
+            return 1
+        fi
     fi
     
-    cd apps/expo
-    log_success "Starting Expo server with tunnel"
-    npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
-    MOBILE_PID=$!
-    cd ../..
-    sleep 15
-    
-    # Wait for tunnel to be established
-    log_info "Waiting for tunnel to be established..."
-    sleep 10
-    
-    log_success "Mobile server with tunnel is running"
-    log_info "Check the QR code or terminal output for tunnel URL"
     return 0
 }
+
+
 
 # Deploy to Vercel
 deploy_vercel() {
@@ -507,7 +515,7 @@ case "${1:-help}" in
         install_env_file "web"
         install_packages "web"
         install_ngrok
-        start_web_dev && start_ngrok 3000
+        start_web_dev true
         log_success "Web development with tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
@@ -532,7 +540,7 @@ case "${1:-help}" in
         install_env_file "mobile"
         install_packages "mobile"
         install_ngrok
-        start_mobile_tunnel
+        start_mobile_dev true
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
@@ -555,7 +563,7 @@ case "${1:-help}" in
         install_env_file "web"
         install_packages "web"
         install_ngrok
-        start_web_dev && start_ngrok 3000 && deploy_vercel
+        start_web_dev true && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
@@ -563,7 +571,7 @@ case "${1:-help}" in
         install_env_file "mobile"
         install_packages "mobile"
         install_ngrok
-        start_mobile_tunnel
+        start_mobile_dev true
         log_success "Complete mobile deployment started!"
         wait $MOBILE_PID
         ;;
