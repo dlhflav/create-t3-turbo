@@ -28,7 +28,7 @@ clean_logs() {
     log_step "Cleaning live output logs for $app_type..."
     
     # Always clean general logs
-    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log
     
     # Clean app-specific logs based on app type
     case $app_type in
@@ -277,33 +277,27 @@ check_token() {
 
 # Start ngrok tunnel
 start_ngrok() {
-    local port=$1
-    log_step "Starting ngrok tunnel on port $port..."
+    log_step "Starting ngrok tunnels..."
     
     if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
         log_warning "Skipping ngrok - NGROK_TOKEN not configured"
         return 1
     fi
     
-    # Configure ngrok if needed
-    if [ ! -f ~/.config/ngrok/ngrok.yml ]; then
-        log_step "Configuring ngrok..."
-        ngrok config add-authtoken "$NGROK_TOKEN"
-    fi
-    
-    # Start ngrok tunnel with live output
-    ngrok http $port 2>&1 | tee web_output.log &
+    # Start ngrok with all configured tunnels
+    ngrok start --all 2>&1 | tee ngrok_output.log &
     NGROK_PID=$!
     sleep 5
     
-    # Get tunnel URL
+    # Get tunnel URLs
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        TUNNEL_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'])" 2>/dev/null || echo "Unknown")
-        log_success "Ngrok tunnel: $TUNNEL_URL"
+        TUNNELS=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); [print(f'  - {t[\"public_url\"]} -> {t[\"config\"][\"addr\"]}') for t in data['tunnels']]" 2>/dev/null || echo "Unknown")
+        log_success "Ngrok tunnels started:"
+        echo "$TUNNELS"
         log_info "Monitor: http://localhost:4040"
         return 0
     else
-        log_error "Failed to start ngrok tunnel"
+        log_error "Failed to start ngrok tunnels"
         return 1
     fi
 }
@@ -322,8 +316,8 @@ start_web_dev() {
         log_success "Web server is running"
         
         if [ "$use_tunnel" = true ]; then
-            log_step "Starting ngrok tunnel for web server..."
-            start_ngrok 3000
+            log_step "Starting ngrok tunnels..."
+            start_ngrok
             if [ $? -eq 0 ]; then
                 log_success "Web server with tunnel is running"
             else
