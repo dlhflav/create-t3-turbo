@@ -340,15 +340,6 @@ start_mobile_dev() {
     cd apps/expo
     
     if [ "$use_tunnel" = true ]; then
-        # Check if NGROK_TOKEN is available for Expo tunnel
-        if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
-            log_warning "NGROK_TOKEN not configured - Expo tunnel requires ngrok authentication"
-            log_info "Using LAN mode instead. For tunnel access, set NGROK_TOKEN in .env"
-            use_tunnel=false
-        fi
-    fi
-    
-    if [ "$use_tunnel" = true ]; then
         log_success "Starting Expo server with tunnel"
         npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
         MOBILE_PID=$!
