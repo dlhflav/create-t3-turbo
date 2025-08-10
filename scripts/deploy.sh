@@ -308,6 +308,12 @@ install_vercel() {
     return 0
 }
 
+# Get current IP address
+get_current_ip() {
+    local ip=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || echo "unknown")
+    echo "$ip"
+}
+
 # Install and configure Local Tunnel
 install_local_tunnel() {
     log_step "Installing and configuring Local Tunnel..."
@@ -528,6 +534,11 @@ show_status() {
     log_info "Current Status"
     echo ""
     
+    # Get current IP address
+    CURRENT_IP=$(get_current_ip)
+    log_info "Current IP Address: $CURRENT_IP"
+    echo ""
+    
     # Check web server
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
         log_success "Web server: Running on http://localhost:3000"
@@ -558,6 +569,7 @@ show_status() {
         if [ -n "$LOCAL_TUNNEL_URL" ]; then
             log_success "Local tunnel:"
             log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+            log_warning "  Note: Local tunnel may require your IP address ($CURRENT_IP) as password"
         else
             log_error "Local tunnel: Not running"
         fi

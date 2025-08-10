@@ -18,10 +18,10 @@ turbo 2.5.4
 @acme/nextjs:dev: > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
 @acme/nextjs:dev: > dotenv -e ../../.env -- next dev --turbopack
 @acme/nextjs:dev: 
-@acme/nextjs:dev:  ⚠ Port 3000 is in use, using available port 3008 instead.
+@acme/nextjs:dev:  ⚠ Port 3000 is in use, using available port 3009 instead.
 @acme/nextjs:dev:    ▲ Next.js 15.3.3 (Turbopack)
-@acme/nextjs:dev:    - Local:        http://localhost:3008
-@acme/nextjs:dev:    - Network:      http://172.30.0.2:3008
+@acme/nextjs:dev:    - Local:        http://localhost:3009
+@acme/nextjs:dev:    - Network:      http://172.30.0.2:3009
 @acme/nextjs:dev: 
 @acme/nextjs:dev:  ✓ Starting...
-@acme/nextjs:dev:  ✓ Ready in 1205ms
+@acme/nextjs:dev:  ✓ Ready in 1184ms
