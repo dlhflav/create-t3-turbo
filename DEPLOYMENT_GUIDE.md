@@ -95,6 +95,49 @@ chmod +x scripts/mobile-deploy.sh
 
 ---
 
+## ⚠️ **Tunnel Limitations & Workarounds**
+
+### **🚫 Ngrok Tunnel Conflicts**
+**Problem**: Cannot run web ngrok and Expo ngrok simultaneously
+- **Web ngrok**: Uses global ngrok installation
+- **Expo ngrok**: Uses its own ngrok process (`@expo/ngrok-bin`)
+- **Result**: Only one tunnel can be active at a time
+
+### **💳 Ngrok Premium Requirement**
+**Problem**: Multiple tunnels require ngrok premium account
+- **Free ngrok**: Limited to 1 tunnel at a time
+- **Premium ngrok**: Required for multiple simultaneous tunnels
+- **Workaround**: Use different tunnel types (ngrok + local tunnel)
+
+### **🌐 Local Tunnel IP Instability**
+**Problem**: Cursor agent IP changes frequently
+- **Issue**: Password from `https://loca.lt/mytunnelpassword` becomes invalid
+- **Cause**: IP address changes between deployments
+- **Impact**: Cannot access local tunnel from mobile devices
+
+### **📱 Mobile Browser Workaround Needed**
+**Solution**: Find mobile browser with custom user agent
+- **Goal**: Bypass local tunnel password prompt
+- **Method**: Set specific user agent to avoid IP verification
+- **Status**: Research needed for compatible mobile browsers
+
+### **🔄 Current Workarounds**
+```bash
+# Option 1: Web tunnel only
+./scripts/deploy.sh web:tunnel
+
+# Option 2: Mobile tunnel only  
+./scripts/deploy.sh mobile:tunnel
+
+# Option 3: Web with local tunnel (default)
+./scripts/deploy.sh web:tunnel  # Uses local tunnel by default
+
+# Option 4: Web with ngrok tunnel
+./scripts/deploy.sh web:ngrok-tunnel
+```
+
+---
+
 ## 🚀 Vercel Production Deployment
 
 ### Prerequisites

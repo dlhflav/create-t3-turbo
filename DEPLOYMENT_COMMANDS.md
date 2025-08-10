@@ -11,8 +11,9 @@
 
 ### Development
 ```bash
-./scripts/deploy.sh web:dev     # Start web development server
-./scripts/deploy.sh web:tunnel  # Start web dev + ngrok tunnel
+./scripts/deploy.sh web:dev        # Start web development server
+./scripts/deploy.sh web:tunnel     # Start web dev + local tunnel (default)
+./scripts/deploy.sh web:ngrok-tunnel # Start web dev + ngrok tunnel
 ```
 
 ### Production
@@ -78,6 +79,11 @@ EXPO_TOKEN=your_expo_token_here  # Optional
 ### **Web Development with Tunnel**
 ```bash
 ./scripts/deploy.sh web:tunnel
+# Starts web server + local tunnel (default)
+# Access via: https://[random].loca.lt
+# Password: Retrieved from https://loca.lt/mytunnelpassword
+
+./scripts/deploy.sh web:ngrok-tunnel
 # Starts web server + ngrok tunnel
 # Access via: https://[random].ngrok-free.app
 ```
@@ -148,13 +154,90 @@ pkill -f "expo\|ngrok\|next"
 
 ---
 
+## ⚠️ **Important Tunnel Limitations**
+
+### **🚫 Ngrok Tunnel Conflicts**
+**Problem**: Cannot run web ngrok and Expo ngrok simultaneously
+- **Web ngrok**: Uses global ngrok installation
+- **Expo ngrok**: Uses its own ngrok process (`@expo/ngrok-bin`)
+- **Result**: Only one tunnel can be active at a time
+
+### **💳 Ngrok Premium Requirement**
+**Problem**: Multiple tunnels require ngrok premium account
+- **Free ngrok**: Limited to 1 tunnel at a time
+- **Premium ngrok**: Required for multiple simultaneous tunnels
+- **Workaround**: Use different tunnel types (ngrok + local tunnel)
+
+### **🌐 Local Tunnel IP Instability**
+**Problem**: Cursor agent IP changes frequently
+- **Issue**: Password from `https://loca.lt/mytunnelpassword` becomes invalid
+- **Cause**: IP address changes between deployments
+- **Impact**: Cannot access local tunnel from mobile devices
+
+### **📱 Mobile Browser Workaround Needed**
+**Solution**: Find mobile browser with custom user agent
+- **Goal**: Bypass local tunnel password prompt
+- **Method**: Set specific user agent to avoid IP verification
+- **Status**: Research needed for compatible mobile browsers
+
+---
+
+## 🔄 **Current Workarounds**
+
+### **Single Tunnel Strategy**
+```bash
+# Option 1: Web tunnel only
+./scripts/deploy.sh web:tunnel
+
+# Option 2: Mobile tunnel only  
+./scripts/deploy.sh mobile:tunnel
+
+# Option 3: Web with local tunnel (default)
+./scripts/deploy.sh web:tunnel  # Uses local tunnel by default
+```
+
+### **Tunnel Type Selection**
+```bash
+# Web with ngrok tunnel
+./scripts/deploy.sh web:ngrok-tunnel
+
+# Web with local tunnel (default)
+./scripts/deploy.sh web:tunnel
+
+# Mobile with Expo tunnel
+./scripts/deploy.sh mobile:tunnel
+```
+
+### **Status Monitoring**
+```bash
+# Check current tunnel status
+./scripts/deploy.sh status
+
+# Shows:
+# - Current IP address
+# - Active tunnel URLs
+# - Local tunnel password (if applicable)
+# - Ngrok tunnel URLs (if applicable)
+```
+
+---
+
 ## 📊 **Current Status**
 
 - ✅ **Main script**: `./scripts/deploy.sh`
 - ✅ **Consistent variable names**: `NGROK_TOKEN`
 - ✅ **Both web and mobile support**
-- ✅ **Ngrok tunneling for both platforms**
-- ✅ **Status monitoring**
+- ✅ **Multiple tunnel types**: ngrok, local tunnel, Expo tunnel
+- ✅ **Status monitoring with IP and password info**
 - ✅ **Complete deployment workflows**
+- ⚠️ **Tunnel limitation**: Only one tunnel active at a time
+- 🔄 **Workaround**: Use different tunnel types for web/mobile
+
+### **Available Tunnel Types**
+- **Web ngrok**: `./scripts/deploy.sh web:ngrok-tunnel`
+- **Web local tunnel**: `./scripts/deploy.sh web:tunnel` (default)
+- **Mobile Expo tunnel**: `./scripts/deploy.sh mobile:tunnel`
 
 **🎉 Recommendation: Use `./scripts/deploy.sh` for all deployments!**
+
+**⚠️ Note**: Due to ngrok limitations, only one tunnel can be active at a time. Choose the tunnel type based on your current development needs.
