@@ -228,7 +228,7 @@ install_ngrok() {
         fi
         
         # Check if endpoints need updating
-        if ! grep -q "name: web" "$config_file" || ! grep -q "name: mobile" "$config_file"; then
+        if ! grep -q "name: web" "$config_file"; then
             config_needs_update=true
             log_info "Ngrok endpoints missing, updating config"
         fi
@@ -245,20 +245,139 @@ endpoints:
     url: gopher-assuring-seriously.ngrok-free.app
     upstream:
       url: http://localhost:3000
-  - name: mobile
-    url: gopher-assuring-seriously.ngrok-free.app
-    upstream:
-      url: http://localhost:8081
 EOF
         
         log_success "Ngrok configuration updated at $config_file"
         log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
-        log_info "Mobile tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:8081"
     else
         log_info "Ngrok configuration is up to date"
     fi
     
     return 0
+}
+
+# Install and configure Vercel CLI
+install_vercel() {
+    log_step "Installing and configuring Vercel CLI..."
+    
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Check if Vercel CLI is installed
+    if ! command -v vercel &> /dev/null; then
+        log_info "Vercel CLI not found, installing..."
+        
+        # Install Vercel CLI globally
+        npm install -g vercel
+        
+        if [ $? -eq 0 ]; then
+            log_success "Vercel CLI installed successfully"
+        else
+            log_error "Failed to install Vercel CLI"
+            return 1
+        fi
+    else
+        log_info "Vercel CLI already installed: $(vercel --version)"
+    fi
+    
+    # Get VERCEL_TOKEN from environment
+    local vercel_token=$(get_shell_var_value "VERCEL_TOKEN")
+    if [ -z "$vercel_token" ]; then
+        log_warning "VERCEL_TOKEN not found in environment, skipping Vercel configuration"
+        return 0
+    fi
+    
+    # Check if already logged in
+    if vercel whoami &> /dev/null; then
+        log_info "Vercel CLI already authenticated"
+    else
+        log_info "Authenticating Vercel CLI with token..."
+        echo "$vercel_token" | vercel login --token
+        
+        if [ $? -eq 0 ]; then
+            log_success "Vercel CLI authenticated successfully"
+        else
+            log_error "Failed to authenticate Vercel CLI"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
+# Get current IP address
+get_current_ip() {
+    local ip=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || echo "unknown")
+    echo "$ip"
+}
+
+# Get local tunnel password
+get_local_tunnel_password() {
+    local password=$(curl -s https://loca.lt/mytunnelpassword 2>/dev/null || echo "unknown")
+    echo "$password"
+}
+
+# Install and configure Local Tunnel
+install_local_tunnel() {
+    log_step "Installing and configuring Local Tunnel..."
+    
+    # Check if localtunnel is installed globally
+    if ! command -v lt &> /dev/null; then
+        log_info "Local Tunnel not found, installing..."
+        
+        # Install localtunnel globally
+        npm install -g localtunnel
+        
+        if [ $? -eq 0 ]; then
+            log_success "Local Tunnel installed successfully"
+        else
+            log_error "Failed to install Local Tunnel"
+            return 1
+        fi
+    else
+        log_info "Local Tunnel already installed: $(lt --version 2>/dev/null || echo 'version unknown')"
+    fi
+    
+    return 0
+}
+
+# Start local tunnel
+start_local_tunnel() {
+    local port=${1:-3000}
+    local subdomain=${2:-""}
+    
+    log_step "Starting Local Tunnel on port $port..."
+    
+    # Generate a random subdomain if not provided
+    if [ -z "$subdomain" ]; then
+        subdomain="t3-turbo-$(date +%s)"
+    fi
+    
+    # Start local tunnel
+    if [ -n "$subdomain" ]; then
+        lt --port $port --subdomain $subdomain 2>&1 | tee localtunnel_output.log &
+    else
+        lt --port $port 2>&1 | tee localtunnel_output.log &
+    fi
+    
+    LOCAL_TUNNEL_PID=$!
+    sleep 5
+    
+    # Get tunnel URL from log
+    if [ -f localtunnel_output.log ]; then
+        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+        if [ -n "$TUNNEL_URL" ]; then
+            log_success "Local Tunnel started:"
+            log_info "  - $TUNNEL_URL -> http://localhost:$port"
+            return 0
+        fi
+    fi
+    
+    log_error "Failed to start Local Tunnel"
+    return 1
 }
 
 
@@ -284,8 +403,8 @@ start_ngrok() {
         return 1
     fi
     
-    # Start ngrok with all configured tunnels
-    ngrok start --all 2>&1 | tee ngrok_output.log &
+    # Start ngrok with web tunnel only
+    ngrok start web 2>&1 | tee ngrok_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -305,6 +424,7 @@ start_ngrok() {
 # Start web development server
 start_web_dev() {
     local use_tunnel=${1:-false}
+    local tunnel_type=${2:-"local"}
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
@@ -316,13 +436,30 @@ start_web_dev() {
         log_success "Web server is running"
         
         if [ "$use_tunnel" = true ]; then
-            log_step "Starting ngrok tunnels..."
-            start_ngrok
-            if [ $? -eq 0 ]; then
-                log_success "Web server with tunnel is running"
-            else
-                log_warning "Web server running without tunnel"
-            fi
+            case $tunnel_type in
+                "ngrok")
+                    log_step "Starting ngrok tunnels..."
+                    start_ngrok
+                    if [ $? -eq 0 ]; then
+                        log_success "Web server with ngrok tunnel is running"
+                    else
+                        log_warning "Web server running without tunnel"
+                    fi
+                    ;;
+                "local")
+                    log_step "Starting local tunnel..."
+                    start_local_tunnel 3000
+                    if [ $? -eq 0 ]; then
+                        log_success "Web server with local tunnel is running"
+                    else
+                        log_warning "Web server running without tunnel"
+                    fi
+                    ;;
+                *)
+                    log_error "Unknown tunnel type: $tunnel_type"
+                    return 1
+                    ;;
+            esac
         fi
         
         return 0
@@ -403,6 +540,11 @@ show_status() {
     log_info "Current Status"
     echo ""
     
+    # Get current IP address
+    CURRENT_IP=$(get_current_ip)
+    log_info "Current IP Address: $CURRENT_IP"
+    echo ""
+    
     # Check web server
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
         log_success "Web server: Running on http://localhost:3000"
@@ -427,6 +569,22 @@ show_status() {
         log_error "Ngrok tunnels: Not running"
     fi
     
+    # Check local tunnel
+    if [ -f "localtunnel_output.log" ]; then
+        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+        if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            log_success "Local tunnel:"
+            log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+            # Get local tunnel password
+            LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+            log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+        else
+            log_error "Local tunnel: Not running"
+        fi
+    else
+        log_error "Local tunnel: Not running"
+    fi
+    
     # Show live output if available
     if [ -f "web_output.log" ]; then
         echo ""
@@ -447,9 +605,10 @@ show_usage() {
     echo "This script handles both web and mobile deployments with tunneling"
     echo ""
     echo -e "${GREEN}Web Commands:${NC}"
-    echo "  web:dev     - Start web development server"
-    echo "  web:tunnel  - Start web dev + ngrok tunnel"
-    echo "  web:deploy  - Deploy web to Vercel"
+    echo "  web:dev        - Start web development server"
+    echo "  web:tunnel     - Start web dev + local tunnel (default)"
+    echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
+    echo "  web:deploy     - Deploy web to Vercel"
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
@@ -458,8 +617,9 @@ show_usage() {
     echo "  mobile:prod   - Build mobile app (production)"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:web    - Complete web deployment (dev + tunnel + deploy)"
-    echo "  all:mobile - Complete mobile deployment (dev + Expo tunnel + build)"
+    echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
+    echo "  all:web:ngrok - Complete web deployment (dev + ngrok tunnel + deploy)"
+    echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
@@ -473,13 +633,19 @@ show_usage() {
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
     echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens (for web deployment)"
-    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for web tunnel)"
+    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for ngrok tunnel)"
     echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
     echo ""
+    echo -e "${YELLOW}Local Tunnel:${NC}"
+    echo "  - Password is automatically fetched from https://loca.lt/mytunnelpassword"
+    echo "  - No additional configuration required"
+    echo ""
     echo -e "${BLUE}Examples:${NC}"
-    echo "  ./scripts/deploy.sh web:tunnel    # Web with tunnel"
-    echo "  ./scripts/deploy.sh mobile:tunnel # Mobile with Expo tunnel"
-    echo "  ./scripts/deploy.sh all:web       # Complete web deployment"
+    echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
+    echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
+    echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
+    echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
+    echo "  ./scripts/deploy.sh all:web:ngrok     # Complete web deployment with ngrok tunnel"
 }
 
 # Main script logic
@@ -499,15 +665,25 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
+        install_local_tunnel
+        start_web_dev true "local"
+        log_success "Web development with local tunnel started!"
+        wait $WEB_PID $LOCAL_TUNNEL_PID
+        ;;
+    "web:ngrok-tunnel")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
         install_ngrok
-        start_web_dev true
-        log_success "Web development with tunnel started!"
+        start_web_dev true "ngrok"
+        log_success "Web development with ngrok tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
     "web:deploy")
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
+        install_vercel
         deploy_vercel
         ;;
     
@@ -547,9 +723,19 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
-        install_ngrok
-        start_web_dev true && deploy_vercel
+        install_local_tunnel
+        install_vercel
+        start_web_dev true "local" && deploy_vercel
         log_success "Complete web deployment finished!"
+        ;;
+    "all:web:ngrok")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_ngrok
+        install_vercel
+        start_web_dev true "ngrok" && deploy_vercel
+        log_success "Complete web deployment with ngrok tunnel finished!"
         ;;
     "all:mobile")
         clean_logs "mobile"
