@@ -308,6 +308,66 @@ install_vercel() {
     return 0
 }
 
+# Install and configure Local Tunnel
+install_local_tunnel() {
+    log_step "Installing and configuring Local Tunnel..."
+    
+    # Check if localtunnel is installed globally
+    if ! command -v lt &> /dev/null; then
+        log_info "Local Tunnel not found, installing..."
+        
+        # Install localtunnel globally
+        npm install -g localtunnel
+        
+        if [ $? -eq 0 ]; then
+            log_success "Local Tunnel installed successfully"
+        else
+            log_error "Failed to install Local Tunnel"
+            return 1
+        fi
+    else
+        log_info "Local Tunnel already installed: $(lt --version 2>/dev/null || echo 'version unknown')"
+    fi
+    
+    return 0
+}
+
+# Start local tunnel
+start_local_tunnel() {
+    local port=${1:-3000}
+    local subdomain=${2:-""}
+    
+    log_step "Starting Local Tunnel on port $port..."
+    
+    # Generate a random subdomain if not provided
+    if [ -z "$subdomain" ]; then
+        subdomain="t3-turbo-$(date +%s)"
+    fi
+    
+    # Start local tunnel
+    if [ -n "$subdomain" ]; then
+        lt --port $port --subdomain $subdomain 2>&1 | tee localtunnel_output.log &
+    else
+        lt --port $port 2>&1 | tee localtunnel_output.log &
+    fi
+    
+    LOCAL_TUNNEL_PID=$!
+    sleep 5
+    
+    # Get tunnel URL from log
+    if [ -f localtunnel_output.log ]; then
+        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+        if [ -n "$TUNNEL_URL" ]; then
+            log_success "Local Tunnel started:"
+            log_info "  - $TUNNEL_URL -> http://localhost:$port"
+            return 0
+        fi
+    fi
+    
+    log_error "Failed to start Local Tunnel"
+    return 1
+}
+
 
 
 # Check if token is set
@@ -352,6 +412,7 @@ start_ngrok() {
 # Start web development server
 start_web_dev() {
     local use_tunnel=${1:-false}
+    local tunnel_type=${2:-"ngrok"}
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
@@ -363,13 +424,30 @@ start_web_dev() {
         log_success "Web server is running"
         
         if [ "$use_tunnel" = true ]; then
-            log_step "Starting ngrok tunnels..."
-            start_ngrok
-            if [ $? -eq 0 ]; then
-                log_success "Web server with tunnel is running"
-            else
-                log_warning "Web server running without tunnel"
-            fi
+            case $tunnel_type in
+                "ngrok")
+                    log_step "Starting ngrok tunnels..."
+                    start_ngrok
+                    if [ $? -eq 0 ]; then
+                        log_success "Web server with ngrok tunnel is running"
+                    else
+                        log_warning "Web server running without tunnel"
+                    fi
+                    ;;
+                "local")
+                    log_step "Starting local tunnel..."
+                    start_local_tunnel 3000
+                    if [ $? -eq 0 ]; then
+                        log_success "Web server with local tunnel is running"
+                    else
+                        log_warning "Web server running without tunnel"
+                    fi
+                    ;;
+                *)
+                    log_error "Unknown tunnel type: $tunnel_type"
+                    return 1
+                    ;;
+            esac
         fi
         
         return 0
@@ -494,9 +572,10 @@ show_usage() {
     echo "This script handles both web and mobile deployments with tunneling"
     echo ""
     echo -e "${GREEN}Web Commands:${NC}"
-    echo "  web:dev     - Start web development server"
-    echo "  web:tunnel  - Start web dev + ngrok tunnel"
-    echo "  web:deploy  - Deploy web to Vercel"
+    echo "  web:dev        - Start web development server"
+    echo "  web:tunnel     - Start web dev + ngrok tunnel"
+    echo "  web:local-tunnel - Start web dev + local tunnel"
+    echo "  web:deploy     - Deploy web to Vercel"
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
@@ -505,8 +584,9 @@ show_usage() {
     echo "  mobile:prod   - Build mobile app (production)"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:web    - Complete web deployment (dev + tunnel + deploy)"
-    echo "  all:mobile - Complete mobile deployment (dev + Expo tunnel + build)"
+    echo "  all:web       - Complete web deployment (dev + ngrok tunnel + deploy)"
+    echo "  all:web:local - Complete web deployment (dev + local tunnel + deploy)"
+    echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
@@ -524,9 +604,11 @@ show_usage() {
     echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
     echo ""
     echo -e "${BLUE}Examples:${NC}"
-    echo "  ./scripts/deploy.sh web:tunnel    # Web with tunnel"
-    echo "  ./scripts/deploy.sh mobile:tunnel # Mobile with Expo tunnel"
-    echo "  ./scripts/deploy.sh all:web       # Complete web deployment"
+    echo "  ./scripts/deploy.sh web:tunnel        # Web with ngrok tunnel"
+    echo "  ./scripts/deploy.sh web:local-tunnel  # Web with local tunnel"
+    echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
+    echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
+    echo "  ./scripts/deploy.sh all:web:local     # Complete web deployment with local tunnel"
 }
 
 # Main script logic
@@ -547,9 +629,18 @@ case "${1:-help}" in
         install_env_file "web"
         install_packages "web"
         install_ngrok
-        start_web_dev true
-        log_success "Web development with tunnel started!"
+        start_web_dev true "ngrok"
+        log_success "Web development with ngrok tunnel started!"
         wait $WEB_PID $NGROK_PID
+        ;;
+    "web:local-tunnel")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_local_tunnel
+        start_web_dev true "local"
+        log_success "Web development with local tunnel started!"
+        wait $WEB_PID $LOCAL_TUNNEL_PID
         ;;
     "web:deploy")
         clean_logs "web"
@@ -597,8 +688,17 @@ case "${1:-help}" in
         install_packages "web"
         install_ngrok
         install_vercel
-        start_web_dev true && deploy_vercel
+        start_web_dev true "ngrok" && deploy_vercel
         log_success "Complete web deployment finished!"
+        ;;
+    "all:web:local")
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_local_tunnel
+        install_vercel
+        start_web_dev true "local" && deploy_vercel
+        log_success "Complete web deployment with local tunnel finished!"
         ;;
     "all:mobile")
         clean_logs "mobile"
