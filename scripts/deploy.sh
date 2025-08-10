@@ -62,7 +62,7 @@ install_env_file() {
     
     # Configure ngrok tunnels
     log_step "Configuring ngrok tunnels for $app_type..."
-    configure_ngrok
+    install_ngrok
     log_success "Ngrok tunnels configured for $app_type"
     
     log_success "Environment file installation complete for $app_type"
@@ -185,15 +185,34 @@ setup_environment_variables() {
     fi
 }
 
-# Configure ngrok with tunnels
-configure_ngrok() {
-    log_step "Configuring ngrok tunnels..."
+# Install and configure ngrok
+install_ngrok() {
+    log_step "Installing and configuring ngrok..."
     
     # Function to get variable value from shell environment
     get_shell_var_value() {
         local var_name="$1"
         eval "echo \$${var_name}"
     }
+    
+    # Check if ngrok is installed
+    if ! command -v ngrok &> /dev/null; then
+        log_info "Ngrok not found, installing..."
+        
+        # Add ngrok repository and install
+        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list >/dev/null
+        sudo apt update && sudo apt install -y ngrok
+        
+        if [ $? -eq 0 ]; then
+            log_success "Ngrok installed successfully"
+        else
+            log_error "Failed to install ngrok"
+            return 1
+        fi
+    else
+        log_info "Ngrok already installed: $(ngrok version)"
+    fi
     
     # Get NGROK_TOKEN from environment
     local ngrok_token=$(get_shell_var_value "NGROK_TOKEN")
@@ -205,8 +224,31 @@ configure_ngrok() {
     # Create ngrok config directory
     mkdir -p ~/.config/ngrok
     
-    # Create ngrok configuration file
-    cat > ~/.config/ngrok/ngrok.yml << EOF
+    # Check if config file exists and needs updating
+    local config_file=~/.config/ngrok/ngrok.yml
+    local config_needs_update=false
+    
+    if [ ! -f "$config_file" ]; then
+        config_needs_update=true
+        log_info "Ngrok config file not found, creating new one"
+    else
+        # Check if token is different
+        local current_token=$(grep -o 'authtoken: [^[:space:]]*' "$config_file" | cut -d' ' -f2)
+        if [ "$current_token" != "$ngrok_token" ]; then
+            config_needs_update=true
+            log_info "Ngrok token changed, updating config"
+        fi
+        
+        # Check if endpoints need updating
+        if ! grep -q "name: web" "$config_file" || ! grep -q "name: mobile" "$config_file"; then
+            config_needs_update=true
+            log_info "Ngrok endpoints missing, updating config"
+        fi
+    fi
+    
+    if [ "$config_needs_update" = true ]; then
+        # Create/update ngrok configuration file
+        cat > "$config_file" << EOF
 version: 3
 agent:
   authtoken: ${ngrok_token}
@@ -220,10 +262,20 @@ endpoints:
     upstream:
       url: http://localhost:8081
 EOF
+        
+        log_success "Ngrok configuration updated at $config_file"
+        log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
+        log_info "Mobile tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:8081"
+    else
+        log_info "Ngrok configuration is up to date"
+    fi
     
-    log_success "Ngrok configuration created at ~/.config/ngrok/ngrok.yml"
-    log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
-    log_info "Mobile tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:8081"
+    return 0
+}
+
+# Configure ngrok with tunnels (legacy function, now calls install_ngrok)
+configure_ngrok() {
+    install_ngrok
 }
 
 # Check if token is set
@@ -439,6 +491,7 @@ show_usage() {
     echo "  install:env:web   - Install environment file for web"
     echo "  install:env:mobile - Install environment file for mobile"
     echo "  configure:ngrok - Configure ngrok tunnels"
+    echo "  install:ngrok - Install and configure ngrok"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -469,6 +522,7 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
+        install_ngrok
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
         wait $WEB_PID $NGROK_PID
@@ -493,6 +547,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
+        install_ngrok
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
@@ -515,6 +570,7 @@ case "${1:-help}" in
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
+        install_ngrok
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
@@ -522,6 +578,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
+        install_ngrok
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
         wait $MOBILE_PID
@@ -561,6 +618,10 @@ case "${1:-help}" in
     "configure:ngrok")
         clean_logs "all"
         configure_ngrok
+        ;;
+    "install:ngrok")
+        clean_logs "all"
+        install_ngrok
         ;;
     "help"|*)
         show_usage
