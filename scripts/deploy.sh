@@ -50,6 +50,25 @@ clean_logs() {
     esac
 }
 
+# Install environment file and configure setup
+install_env_file() {
+    local app_type=$1
+    log_step "Installing environment file for $app_type..."
+    
+    # Setup environment variables
+    log_step "Setting up environment variables for $app_type..."
+    setup_environment_variables
+    log_success "Environment variables configured for $app_type"
+    
+    # Configure ngrok tunnels
+    log_step "Configuring ngrok tunnels for $app_type..."
+    configure_ngrok
+    log_success "Ngrok tunnels configured for $app_type"
+    
+    log_success "Environment file installation complete for $app_type"
+    return 0
+}
+
 # Install JavaScript packages for specific app
 install_packages() {
     local app_type=$1
@@ -89,17 +108,6 @@ install_packages() {
     esac
     
     log_success "$app_type dependencies are ready"
-    
-    # Setup environment variables after dependencies are installed
-    log_step "Setting up environment variables for $app_type..."
-    setup_environment_variables
-    log_success "Environment variables configured for $app_type"
-    
-    # Configure ngrok tunnels after environment setup
-    log_step "Configuring ngrok tunnels for $app_type..."
-    configure_ngrok
-    log_success "Ngrok tunnels configured for $app_type"
-    
     return 0
 }
 
@@ -428,6 +436,8 @@ show_usage() {
     echo "  clean      - Clean all live output logs"
     echo "  install:web   - Install Next.js dependencies"
     echo "  install:mobile - Install Expo dependencies"
+    echo "  install:env:web   - Install environment file for web"
+    echo "  install:env:mobile - Install environment file for mobile"
     echo "  configure:ngrok - Configure ngrok tunnels"
     echo "  help       - Show this help"
     echo ""
@@ -449,6 +459,7 @@ case "${1:-help}" in
     # Web commands
     "web:dev")
         clean_logs "web"
+        install_env_file "web"
         install_packages "web"
         start_web_dev
         log_success "Web development server started!"
@@ -456,6 +467,7 @@ case "${1:-help}" in
         ;;
     "web:tunnel")
         clean_logs "web"
+        install_env_file "web"
         install_packages "web"
         start_web_dev && start_ngrok 3000
         log_success "Web development with tunnel started!"
@@ -463,6 +475,7 @@ case "${1:-help}" in
         ;;
     "web:deploy")
         clean_logs "web"
+        install_env_file "web"
         install_packages "web"
         deploy_vercel
         ;;
@@ -470,6 +483,7 @@ case "${1:-help}" in
     # Mobile commands
     "mobile:dev")
         clean_logs "mobile"
+        install_env_file "mobile"
         install_packages "mobile"
         start_mobile_dev
         log_success "Mobile development server started!"
@@ -477,6 +491,7 @@ case "${1:-help}" in
         ;;
     "mobile:tunnel")
         clean_logs "mobile"
+        install_env_file "mobile"
         install_packages "mobile"
         start_mobile_tunnel
         log_success "Mobile development with tunnel started!"
@@ -484,11 +499,13 @@ case "${1:-help}" in
         ;;
     "mobile:build")
         clean_logs "mobile"
+        install_env_file "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
     "mobile:prod")
         clean_logs "mobile"
+        install_env_file "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
@@ -496,12 +513,14 @@ case "${1:-help}" in
     # Complete deployments
     "all:web")
         clean_logs "web"
+        install_env_file "web"
         install_packages "web"
         start_web_dev && start_ngrok 3000 && deploy_vercel
         log_success "Complete web deployment finished!"
         ;;
     "all:mobile")
         clean_logs "mobile"
+        install_env_file "mobile"
         install_packages "mobile"
         start_mobile_tunnel
         log_success "Complete mobile deployment started!"
@@ -526,6 +545,18 @@ case "${1:-help}" in
     "install:mobile")
         clean_logs "mobile"
         install_packages "mobile"
+        ;;
+    "install:env")
+        clean_logs "all"
+        log_error "Please specify app type: install:env:web or install:env:mobile"
+        ;;
+    "install:env:web")
+        clean_logs "web"
+        install_env_file "web"
+        ;;
+    "install:env:mobile")
+        clean_logs "mobile"
+        install_env_file "mobile"
         ;;
     "configure:ngrok")
         clean_logs "all"

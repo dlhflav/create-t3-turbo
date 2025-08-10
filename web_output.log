@@ -1,20 +1,13 @@
-Scope: all 13 workspace projects
-../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
-../..                                    | -101 ----------
-../..                                    | Progress: resolved 0, reused 101, downloaded 0, added 0, done
 
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, better-sqlite3,    │
-│   bufferutil, core-js-pure, prisma, sharp, utf-8-validate.                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
+> create-t3-turbo@ dev:next /workspace
+> turbo watch dev -F @acme/nextjs...
 
-../.. postinstall$ pnpm lint:ws
-../.. postinstall: > create-t3-turbo@ lint:ws /workspace
-../.. postinstall: > pnpm dlx sherif@latest
-../.. postinstall: ✓ No issues found
-../.. postinstall: Done
-Done in 2.4s using pnpm v10.11.1
+turbo 2.5.4
+
+• Packages in scope: @acme/api, @acme/auth, @acme/db, @acme/eslint-config, @acme/nextjs, @acme/prettier-config, @acme/tailwind-config, @acme/tsconfig, @acme/ui, @acme/validators
+• Running dev in 10 packages
+• Remote caching disabled
+  x Failed to connect to daemon.
+  `-> unable to connect to daemon after 3 retries
+
+ ELIFECYCLE  Command failed with exit code 1.
