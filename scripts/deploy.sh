@@ -50,24 +50,7 @@ clean_logs() {
     esac
 }
 
-# Install environment file and configure setup
-install_env_file() {
-    local app_type=$1
-    log_step "Installing environment file for $app_type..."
-    
-    # Setup environment variables
-    log_step "Setting up environment variables for $app_type..."
-    setup_environment_variables
-    log_success "Environment variables configured for $app_type"
-    
-    # Configure ngrok tunnels
-    log_step "Configuring ngrok tunnels for $app_type..."
-    install_ngrok
-    log_success "Ngrok tunnels configured for $app_type"
-    
-    log_success "Environment file installation complete for $app_type"
-    return 0
-}
+
 
 # Install JavaScript packages for specific app
 install_packages() {
@@ -127,8 +110,11 @@ load_env() {
     fi
 }
 
-# Setup environment variables from .env.example and shell environment
-setup_environment_variables() {
+# Install environment file from .env.example and shell environment
+install_env_file() {
+    local app_type=${1:-"all"}
+    log_step "Installing environment file for $app_type..."
+    
     # Check if .env.example exists
     if [ ! -f ".env.example" ]; then
         log_warning ".env.example file not found, skipping environment setup"
@@ -183,6 +169,8 @@ setup_environment_variables() {
     if [ $added_vars -gt 0 ]; then
         log_info "Added/updated $added_vars variables from shell environment"
     fi
+    
+    log_success "Environment file installation complete for $app_type"
 }
 
 # Install and configure ngrok
@@ -273,10 +261,7 @@ EOF
     return 0
 }
 
-# Configure ngrok with tunnels (legacy function, now calls install_ngrok)
-configure_ngrok() {
-    install_ngrok
-}
+
 
 # Check if token is set
 check_token() {
@@ -490,7 +475,6 @@ show_usage() {
     echo "  install:mobile - Install Expo dependencies"
     echo "  install:env:web   - Install environment file for web"
     echo "  install:env:mobile - Install environment file for mobile"
-    echo "  configure:ngrok - Configure ngrok tunnels"
     echo "  install:ngrok - Install and configure ngrok"
     echo "  help       - Show this help"
     echo ""
@@ -614,10 +598,6 @@ case "${1:-help}" in
     "install:env:mobile")
         clean_logs "mobile"
         install_env_file "mobile"
-        ;;
-    "configure:ngrok")
-        clean_logs "all"
-        configure_ngrok
         ;;
     "install:ngrok")
         clean_logs "all"
