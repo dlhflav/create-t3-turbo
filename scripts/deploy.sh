@@ -95,6 +95,11 @@ install_packages() {
     setup_environment_variables
     log_success "Environment variables configured for $app_type"
     
+    # Configure ngrok tunnels after environment setup
+    log_step "Configuring ngrok tunnels for $app_type..."
+    configure_ngrok
+    log_success "Ngrok tunnels configured for $app_type"
+    
     return 0
 }
 
@@ -170,6 +175,47 @@ setup_environment_variables() {
     if [ $added_vars -gt 0 ]; then
         log_info "Added/updated $added_vars variables from shell environment"
     fi
+}
+
+# Configure ngrok with tunnels
+configure_ngrok() {
+    log_step "Configuring ngrok tunnels..."
+    
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Get NGROK_TOKEN from environment
+    local ngrok_token=$(get_shell_var_value "NGROK_TOKEN")
+    if [ -z "$ngrok_token" ]; then
+        log_warning "NGROK_TOKEN not found in environment, skipping ngrok configuration"
+        return 0
+    fi
+    
+    # Create ngrok config directory
+    mkdir -p ~/.config/ngrok
+    
+    # Create ngrok configuration file
+    cat > ~/.config/ngrok/ngrok.yml << EOF
+version: 3
+agent:
+  authtoken: ${ngrok_token}
+endpoints:
+  - name: web
+    url: gopher-assuring-seriously.ngrok-free.app
+    upstream:
+      url: http://localhost:3000
+  - name: mobile
+    url: gopher-assuring-seriously.ngrok-free.app
+    upstream:
+      url: http://localhost:8081
+EOF
+    
+    log_success "Ngrok configuration created at ~/.config/ngrok/ngrok.yml"
+    log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
+    log_info "Mobile tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:8081"
 }
 
 # Check if token is set
@@ -382,6 +428,7 @@ show_usage() {
     echo "  clean      - Clean all live output logs"
     echo "  install:web   - Install Next.js dependencies"
     echo "  install:mobile - Install Expo dependencies"
+    echo "  configure:ngrok - Configure ngrok tunnels"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -479,6 +526,10 @@ case "${1:-help}" in
     "install:mobile")
         clean_logs "mobile"
         install_packages "mobile"
+        ;;
+    "configure:ngrok")
+        clean_logs "all"
+        configure_ngrok
         ;;
     "help"|*)
         show_usage
