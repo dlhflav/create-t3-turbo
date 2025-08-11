@@ -42,6 +42,14 @@
 ./scripts/deploy.sh all:mobile # Complete mobile deployment (dev + tunnel + build)
 ```
 
+## 🛑 **Stop Commands**
+
+```bash
+./scripts/deploy.sh stop:web      # Stop web development servers
+./scripts/deploy.sh stop:mobile   # Stop mobile development servers
+./scripts/deploy.sh stop:all      # Stop all development servers
+```
+
 ## 🔧 **Utility Commands**
 
 ```bash
@@ -105,6 +113,12 @@ EXPO_TOKEN=your_expo_token_here  # Optional
 ```bash
 ./scripts/deploy.sh status
 # Shows all running services and tunnel URLs
+```
+
+### **Stop Services**
+```bash
+./scripts/deploy.sh stop:all
+# Stops all development servers and tunnels
 ```
 
 ---

@@ -599,6 +599,81 @@ show_status() {
     fi
 }
 
+# Stop development servers
+stop_servers() {
+    local target=${1:-"all"}
+    
+    case $target in
+        "web")
+            log_step "Stopping web development servers..."
+            
+            # Kill Next.js processes
+            if pkill -f "next dev" 2>/dev/null; then
+                log_success "Next.js development server stopped"
+            else
+                log_warning "No Next.js development server found"
+            fi
+            
+            # Kill Turbo processes for web
+            if pkill -f "turbo.*nextjs" 2>/dev/null; then
+                log_success "Turbo web processes stopped"
+            fi
+            
+            # Kill local tunnel processes
+            if pkill -f "localtunnel\|lt --port" 2>/dev/null; then
+                log_success "Local tunnel stopped"
+            fi
+            
+            # Kill ngrok processes for web
+            if pkill -f "ngrok.*3000\|ngrok.*3001" 2>/dev/null; then
+                log_success "Ngrok tunnel for web stopped"
+            fi
+            
+            log_success "Web development servers stopped"
+            ;;
+            
+        "mobile")
+            log_step "Stopping mobile development servers..."
+            
+            # Kill Expo processes
+            if pkill -f "expo start" 2>/dev/null; then
+                log_success "Expo development server stopped"
+            else
+                log_warning "No Expo development server found"
+            fi
+            
+            # Kill ngrok processes for mobile
+            if pkill -f "ngrok.*8081" 2>/dev/null; then
+                log_success "Ngrok tunnel for mobile stopped"
+            fi
+            
+            log_success "Mobile development servers stopped"
+            ;;
+            
+        "all")
+            log_step "Stopping all development servers..."
+            
+            # Stop web servers
+            stop_servers "web"
+            
+            # Stop mobile servers
+            stop_servers "mobile"
+            
+            # Kill any remaining Turbo processes
+            if pkill -f "turbo.*dev" 2>/dev/null; then
+                log_success "Remaining Turbo processes stopped"
+            fi
+            
+            log_success "All development servers stopped"
+            ;;
+            
+        *)
+            log_error "Invalid target: $target. Use 'web', 'mobile', or 'all'"
+            return 1
+            ;;
+    esac
+}
+
 # Show usage
 show_usage() {
     echo -e "${PURPLE}🚀 T3 Turbo Deployment Script${NC}"
@@ -620,6 +695,11 @@ show_usage() {
     echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
     echo "  all:web:ngrok - Complete web deployment (dev + ngrok tunnel + deploy)"
     echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
+    echo ""
+    echo -e "${RED}Stop Commands:${NC}"
+    echo "  stop:web      - Stop web development servers"
+    echo "  stop:mobile   - Stop mobile development servers"
+    echo "  stop:all      - Stop all development servers"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
@@ -646,6 +726,7 @@ show_usage() {
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
     echo "  ./scripts/deploy.sh all:web:ngrok     # Complete web deployment with ngrok tunnel"
+    echo "  ./scripts/deploy.sh stop:all          # Stop all development servers"
 }
 
 # Main script logic
@@ -745,6 +826,17 @@ case "${1:-help}" in
         start_mobile_dev true
         log_success "Complete mobile deployment started!"
         wait $MOBILE_PID
+        ;;
+    
+    # Stop commands
+    "stop:web")
+        stop_servers "web"
+        ;;
+    "stop:mobile")
+        stop_servers "mobile"
+        ;;
+    "stop:all")
+        stop_servers "all"
         ;;
     
     # Utility commands
