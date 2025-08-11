@@ -13,4 +13,8 @@
 
  ✓ Starting...
  ✓ Ready in 945ms
+/workspace/apps/nextjs:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/nextjs@0.1.0 dev: `pnpm with-env next dev --turbopack`
+Command failed with signal "SIGTERM"
+ ELIFECYCLE  Command failed.
 [?25h
