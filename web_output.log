@@ -12,5 +12,9 @@
    - Network:      http://172.30.0.2:3001
 
  ✓ Starting...
- ✓ Ready in 982ms
+ ✓ Ready in 943ms
+/workspace/apps/nextjs:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/nextjs@0.1.0 dev: `pnpm with-env next dev --turbopack`
+Command failed with signal "SIGTERM"
 [?25h
+ ELIFECYCLE  Command failed.

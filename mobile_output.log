@@ -1,14 +1,29 @@
 
 > @acme/expo@0.1.0 dev:tunnel /workspace/apps/expo
-> expo start --tunnel
+> expo start --tunnel --go
 
 Starting project at /workspace/apps/expo
 Using src/app as the root directory for Expo Router.
 Starting Metro Bundler
 Tunnel connected.
 Tunnel ready.
+The following packages should be updated for best compatibility with the installed expo version:
+  expo@53.0.9 - expected version: 53.0.20
+  expo-constants@17.1.6 - expected version: ~17.1.7
+  expo-dev-client@5.1.8 - expected version: ~5.2.4
+  expo-linking@7.1.5 - expected version: ~7.1.7
+  expo-router@5.0.7 - expected version: ~5.1.4
+  expo-splash-screen@0.30.8 - expected version: ~0.30.10
+  expo-system-ui@5.0.7 - expected version: ~5.0.10
+  expo-web-browser@14.1.6 - expected version: ~14.2.0
+  react-native@0.79.2 - expected version: 0.79.5
+  react-native-gesture-handler@2.25.0 - expected version: ~2.24.0
+  react-native-reanimated@3.18.0 - expected version: ~3.17.4
+  react-native-safe-area-context@5.4.1 - expected version: 5.4.0
+  @types/react@19.1.6 - expected version: ~19.0.10
+Your project may not work correctly until you install the expected versions of the packages.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
 /workspace/apps/expo:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 dev:tunnel: `expo start --tunnel`
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 dev:tunnel: `expo start --tunnel --go`
 Command failed with signal "SIGTERM"
