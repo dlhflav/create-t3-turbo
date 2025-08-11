@@ -30,3 +30,9 @@
 🔍 [POST.ALL] Database query starting...
 [TRPC] post.all took 1007ms to execute
  GET / 200 in 6043ms
+🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Database query starting...
+[TRPC] post.all took 1081ms to execute
+ GET / 200 in 1142ms
+ ✓ Compiled in 7ms
+ ✓ Compiled in 22ms
