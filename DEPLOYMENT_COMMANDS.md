@@ -12,10 +12,10 @@ pnpm -F @acme/nextjs build        # Build for production
 pnpm -F @acme/nextjs start        # Start production server
 
 # Deployment
-pnpm -F @acme/nextjs deploy:vercel # Build and deploy to Vercel
-pnpm -F @acme/nextjs deploy:local # Build and start locally
-pnpm -F @acme/nextjs deploy:tunnel # Start with local tunnel
-pnpm -F @acme/nextjs deploy:ngrok # Start with ngrok tunnel
+pnpm -F @acme/nextjs deploy:vercel # Deploy to Vercel (script)
+pnpm -F @acme/nextjs deploy:local # Deploy locally (script)
+pnpm -F @acme/nextjs deploy:tunnel # Start with local tunnel (script)
+pnpm -F @acme/nextjs deploy:ngrok # Start with ngrok tunnel (script)
 ```
 
 ### Mobile App (@acme/expo)
