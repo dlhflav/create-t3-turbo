@@ -11,18 +11,5 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 963ms
- ○ Compiling /api/trpc/[trpc] ...
- ✓ Compiled /api/trpc/[trpc] in 2.2s
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Database query starting...
+ ✓ Ready in 968ms
  ○ Compiling / ...
- ✓ Compiled / in 4.2s
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Database query starting...
