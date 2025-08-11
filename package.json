@@ -24,7 +24,19 @@
     "typecheck": "turbo run typecheck",
     "ui-add": "turbo run ui-add",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "deploy": "pnpm -F @acme/nextjs deploy",
+    "deploy:web": "pnpm -F @acme/nextjs deploy",
+    "deploy:web:vercel": "pnpm -F @acme/nextjs deploy:vercel",
+    "deploy:web:local": "pnpm -F @acme/nextjs deploy:local",
+    "deploy:mobile": "pnpm -F @acme/expo deploy",
+    "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
+    "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
+    "deploy:mobile:web": "pnpm -F @acme/expo deploy:web",
+    "deploy:mobile:eas": "pnpm -F @acme/expo deploy:eas",
+    "deploy:packages": "pnpm -F @acme/api deploy && pnpm -F @acme/auth deploy && pnpm -F @acme/db deploy && pnpm -F @acme/ui deploy && pnpm -F @acme/validators deploy",
+    "deploy:packages:dry-run": "pnpm -F @acme/api deploy:dry-run && pnpm -F @acme/auth deploy:dry-run && pnpm -F @acme/db deploy:dry-run && pnpm -F @acme/ui deploy:dry-run && pnpm -F @acme/validators deploy:dry-run",
+    "deploy:all": "pnpm deploy:packages && pnpm deploy:web && pnpm deploy:mobile"
   },
   "devDependencies": {
     "@acme/prettier-config": "workspace:*",

@@ -1,284 +1,270 @@
-# 🚀 T3 Turbo Deployment Commands
+# 🚀 Deployment Commands
 
-## 📋 Streamlined Command Overview
+This document describes all available deployment commands for the T3 Turbo monorepo.
 
-### **🎯 Recommended: Use Main Deployment Script**
+## 📦 Package-Level Commands
+
+### Web App (@acme/nextjs)
 ```bash
-./scripts/deploy.sh [COMMAND]
+# Development
+pnpm -F @acme/nextjs dev          # Start development server
+pnpm -F @acme/nextjs build        # Build for production
+pnpm -F @acme/nextjs start        # Start production server
+
+# Deployment
+pnpm -F @acme/nextjs deploy       # Build and start locally
+pnpm -F @acme/nextjs deploy:vercel # Build and deploy to Vercel
+pnpm -F @acme/nextjs deploy:local # Build and start locally
 ```
 
-## 🖥️ **Web Commands**
-
-### Development
+### Mobile App (@acme/expo)
 ```bash
-./scripts/deploy.sh web:dev        # Start web development server
-./scripts/deploy.sh web:tunnel     # Start web dev + local tunnel (default)
-./scripts/deploy.sh web:ngrok-tunnel # Start web dev + ngrok tunnel
+# Development
+pnpm -F @acme/expo dev            # Start development server
+pnpm -F @acme/expo dev:tunnel     # Start with Expo tunnel
+pnpm -F @acme/expo dev:android    # Start for Android
+pnpm -F @acme/expo dev:ios        # Start for iOS
+
+# Deployment
+pnpm -F @acme/expo deploy         # Build for Android and iOS
+pnpm -F @acme/expo deploy:android # Build for Android only
+pnpm -F @acme/expo deploy:ios     # Build for iOS only
+pnpm -F @acme/expo deploy:web     # Build for web
+pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms)
+pnpm -F @acme/expo deploy:eas:android # Build with EAS (Android)
+pnpm -F @acme/expo deploy:eas:ios # Build with EAS (iOS)
 ```
 
-### Production
+### API Package (@acme/api)
 ```bash
-./scripts/deploy.sh web:deploy  # Deploy web to Vercel
+# Development
+pnpm -F @acme/api dev             # Compile TypeScript
+pnpm -F @acme/api build           # Build package
+
+# Deployment
+pnpm -F @acme/api deploy          # Build and publish to npm
+pnpm -F @acme/api deploy:dry-run  # Test publish without publishing
+pnpm -F @acme/api deploy:local    # Build only (local use)
 ```
 
-## 📱 **Mobile Commands**
-
-### Development
+### Database Package (@acme/db)
 ```bash
+# Development
+pnpm -F @acme/db dev              # Compile TypeScript
+pnpm -F @acme/db build            # Build package
+pnpm -F @acme/db push             # Push schema to database
+pnpm -F @acme/db studio           # Open Drizzle Studio
+
+# Deployment
+pnpm -F @acme/db deploy           # Build and publish to npm
+pnpm -F @acme/db deploy:dry-run   # Test publish without publishing
+pnpm -F @acme/db deploy:local     # Build only (local use)
+pnpm -F @acme/db deploy:db        # Push schema to database
+pnpm -F @acme/db deploy:db:studio # Open Drizzle Studio
+```
+
+### UI Package (@acme/ui)
+```bash
+# Development
+pnpm -F @acme/ui build            # Build package
+pnpm -F @acme/ui ui-add           # Add new UI component
+
+# Deployment
+pnpm -F @acme/ui deploy           # Build and publish to npm
+pnpm -F @acme/ui deploy:dry-run   # Test publish without publishing
+pnpm -F @acme/ui deploy:local     # Build only (local use)
+```
+
+### Validators Package (@acme/validators)
+```bash
+# Development
+pnpm -F @acme/validators dev      # Compile TypeScript
+pnpm -F @acme/validators build    # Build package
+
+# Deployment
+pnpm -F @acme/validators deploy   # Build and publish to npm
+pnpm -F @acme/validators deploy:dry-run # Test publish without publishing
+pnpm -F @acme/validators deploy:local # Build only (local use)
+```
+
+### Auth Package (@acme/auth)
+```bash
+# Development
+pnpm -F @acme/auth build          # Build package
+pnpm -F @acme/auth generate       # Generate auth schema
+
+# Deployment
+pnpm -F @acme/auth deploy         # Build and publish to npm
+pnpm -F @acme/auth deploy:dry-run # Test publish without publishing
+pnpm -F @acme/auth deploy:local   # Build only (local use)
+pnpm -F @acme/auth deploy:generate # Generate auth schema
+```
+
+## 🌐 Root-Level Commands
+
+### Web Deployment
+```bash
+pnpm deploy                       # Deploy web app (default)
+pnpm deploy:web                   # Deploy web app
+pnpm deploy:web:vercel            # Deploy web app to Vercel
+pnpm deploy:web:local             # Deploy web app locally
+```
+
+### Mobile Deployment
+```bash
+pnpm deploy:mobile                # Deploy mobile app (all platforms)
+pnpm deploy:mobile:android        # Deploy mobile app (Android)
+pnpm deploy:mobile:ios            # Deploy mobile app (iOS)
+pnpm deploy:mobile:web            # Deploy mobile app (web)
+pnpm deploy:mobile:eas            # Deploy mobile app with EAS
+```
+
+### Package Deployment
+```bash
+pnpm deploy:packages              # Deploy all packages to npm
+pnpm deploy:packages:dry-run      # Test deploy all packages
+```
+
+### Complete Deployment
+```bash
+pnpm deploy:all                   # Deploy everything (packages + web + mobile)
+```
+
+## 🛠️ Script Commands
+
+### Development Scripts
+```bash
+# Using the deploy.sh script
+./scripts/deploy.sh web:dev       # Start web development server
+./scripts/deploy.sh web:tunnel    # Start web with local tunnel
+./scripts/deploy.sh web:ngrok-tunnel # Start web with ngrok tunnel
 ./scripts/deploy.sh mobile:dev    # Start mobile development server
-./scripts/deploy.sh mobile:tunnel # Start mobile dev + ngrok tunnel
+./scripts/deploy.sh mobile:tunnel # Start mobile with Expo tunnel
+./scripts/deploy.sh all:web       # Complete web deployment
+./scripts/deploy.sh all:mobile    # Complete mobile deployment
+
+# Stop commands
+./scripts/deploy.sh stop:web      # Stop web servers
+./scripts/deploy.sh stop:mobile   # Stop mobile servers
+./scripts/deploy.sh stop:all      # Stop all servers
+
+# Status
+./scripts/deploy.sh status        # Show running processes
 ```
 
-### Building
+## 📋 Quick Start Examples
+
+### Development
 ```bash
-./scripts/deploy.sh mobile:build  # Build mobile app (development)
-./scripts/deploy.sh mobile:prod   # Build mobile app (production)
+# Start web development
+pnpm -F @acme/nextjs dev
+
+# Start mobile development
+pnpm -F @acme/expo dev
+
+# Start both with script
+./scripts/deploy.sh web:dev
+./scripts/deploy.sh mobile:dev
 ```
 
-## 🚀 **Complete Deployments**
-
+### Production Deployment
 ```bash
-./scripts/deploy.sh all:web    # Complete web deployment (dev + tunnel + deploy)
-./scripts/deploy.sh all:mobile # Complete mobile deployment (dev + tunnel + build)
+# Deploy web to Vercel
+pnpm deploy:web:vercel
+
+# Deploy mobile with EAS
+pnpm deploy:mobile:eas
+
+# Deploy all packages
+pnpm deploy:packages
+
+# Deploy everything
+pnpm deploy:all
 ```
 
-## 🛑 **Stop Commands**
-
+### Package Publishing
 ```bash
-./scripts/deploy.sh stop:web      # Stop web development servers
-./scripts/deploy.sh stop:mobile   # Stop mobile development servers
-./scripts/deploy.sh stop:all      # Stop all development servers
+# Test publish (dry run)
+pnpm -F @acme/ui deploy:dry-run
+
+# Publish package
+pnpm -F @acme/ui deploy
+
+# Publish all packages
+pnpm deploy:packages
 ```
 
-## 🔧 **Utility Commands**
+## 🔧 Environment Setup
 
+### Required Environment Variables
 ```bash
-./scripts/deploy.sh status     # Show all services status
-./scripts/deploy.sh help       # Show this help
+# Database
+POSTGRES_URL=your_postgres_url
+
+# Auth
+AUTH_SECRET=your_auth_secret
+AUTH_DISCORD_ID=your_discord_id
+AUTH_DISCORD_SECRET=your_discord_secret
+
+# Ngrok (optional)
+NGROK_TOKEN=your_ngrok_token
+
+# Vercel (optional)
+VERCEL_TOKEN=your_vercel_token
 ```
 
----
-
-## 📚 **Legacy Scripts (Removed)**
-
-All legacy scripts have been removed and their functionality is now consolidated into the main `./scripts/deploy.sh` script.
-
----
-
-## 🔑 **Environment Variables**
-
-### **Required Tokens**
+### Prerequisites
 ```bash
-# .env file or environment variables
-VERCEL_TOKEN=your_vercel_token_here
-NGROK_TOKEN=your_ngrok_token_here
-EXPO_TOKEN=your_expo_token_here  # Optional
+# Install dependencies
+pnpm install
+
+# Setup database
+pnpm -F @acme/db deploy:db
+
+# Generate auth schema
+pnpm -F @acme/auth deploy:generate
 ```
 
-### **Token Sources**
-- **Vercel**: https://vercel.com/account/tokens
-- **Ngrok**: https://ngrok.com/dashboard/your/authtokens
-- **Expo**: https://expo.dev/accounts/[username]/settings/access-tokens
+## 📊 Status Monitoring
 
----
+The `status` command shows:
+- ✅ Running processes with PIDs
+- 🌐 Ngrok tunnel URLs
+- 🔗 Local tunnel URLs
+- 📝 Recent log output
+- 🗂️ Process details with full names
 
-## 🎯 **Quick Start Examples**
+## 📁 Log Files
 
-### **Web Development with Tunnel**
+- `web_output.log` - Web server output
+- `web_tunnel_output.log` - Tunnel output (ngrok/localtunnel)
+- `mobile_output.log` - Mobile server output
+
+## 🔍 Process Information
+
+The status command displays:
+- **PIDs** for all running processes
+- **Process names** with full command details
+- **URLs** for all accessible endpoints
+- **Recent output** from log files
+
+## 🚨 Troubleshooting
+
+### Common Issues
+1. **Port conflicts**: Check if ports 3000, 8081, 4040 are available
+2. **Environment variables**: Ensure all required env vars are set
+3. **Database connection**: Verify POSTGRES_URL is correct
+4. **Auth setup**: Run `pnpm -F @acme/auth deploy:generate` if auth fails
+
+### Clean Restart
 ```bash
-./scripts/deploy.sh web:tunnel
-# Starts web server + local tunnel (default)
-# Access via: https://[random].loca.lt
-# Password: Retrieved from https://loca.lt/mytunnelpassword
-
-./scripts/deploy.sh web:ngrok-tunnel
-# Starts web server + ngrok tunnel
-# Access via: https://[random].ngrok-free.app
-```
-
-### **Mobile Development with Tunnel**
-```bash
-./scripts/deploy.sh mobile:tunnel
-# Starts Expo server + ngrok tunnel
-# Access via: https://[random].ngrok-free.app
-```
-
-### **Complete Web Deployment**
-```bash
-./scripts/deploy.sh all:web
-# Starts web server + tunnel + deploys to Vercel
-```
-
-### **Check Status**
-```bash
-./scripts/deploy.sh status
-# Shows all running services and tunnel URLs
-```
-
-### **Stop Services**
-```bash
+# Stop all processes
 ./scripts/deploy.sh stop:all
-# Stops all development servers and tunnels
+
+# Clean logs
+./scripts/deploy.sh clean:logs
+
+# Restart
+./scripts/deploy.sh web:dev
+./scripts/deploy.sh mobile:dev
 ```
-
----
-
-## 🔄 **Migration from Old Scripts**
-
-### **Old → New**
-```bash
-# Old (Removed)
-./scripts/deploy-legacy.sh tunnel
-./scripts/mobile-ngrok.sh tunnel
-
-# New (Streamlined)
-./scripts/deploy.sh web:tunnel
-./scripts/deploy.sh mobile:tunnel
-```
-
-### **Variable Name Changes**
-```bash
-# Old
-NGROK_AUTHTOKEN=your_token
-
-# New (Unified)
-NGROK_TOKEN=your_token
-```
-
----
-
-## 🛠️ **Troubleshooting**
-
-### **Common Issues**
-1. **"Token not configured"**: Set tokens in `.env` file or environment
-2. **"Port already in use"**: Stop other processes on ports 3000/8081
-3. **"Ngrok authentication failed"**: Verify NGROK_TOKEN is correct
-
-### **Quick Fixes**
-```bash
-# Check status
-./scripts/deploy.sh status
-
-# Kill all processes
-pkill -f "expo\|ngrok\|next"
-
-# Restart with tunnel
-./scripts/deploy.sh mobile:tunnel
-```
-
----
-
-## ⚠️ **Important Tunnel Limitations**
-
-### **🚫 Ngrok Tunnel Conflicts**
-**Problem**: Cannot run web ngrok and Expo ngrok simultaneously
-- **Web ngrok**: Uses global ngrok installation
-- **Expo ngrok**: Uses its own ngrok process (`@expo/ngrok-bin`)
-- **Result**: Only one tunnel can be active at a time
-
-### **💳 Ngrok Premium Requirement**
-**Problem**: Multiple tunnels require ngrok premium account
-- **Free ngrok**: Limited to 1 tunnel at a time
-- **Premium ngrok**: Required for multiple simultaneous tunnels
-- **Workaround**: Use different tunnel types (ngrok + local tunnel)
-
-### **🌐 Local Tunnel IP Instability**
-**Problem**: Cursor agent IP changes frequently
-- **Issue**: Password from `https://loca.lt/mytunnelpassword` becomes invalid
-- **Cause**: IP address changes between deployments
-- **Impact**: Cannot access local tunnel from mobile devices
-
-### **📱 Mobile Browser Workaround Needed**
-**Solution**: Find mobile browser with custom user agent
-- **Goal**: Bypass local tunnel password prompt
-- **Method**: Set specific user agent to avoid IP verification
-- **Status**: Research needed for compatible mobile browsers
-
----
-
-## 🔄 **Current Workarounds**
-
-### **Single Tunnel Strategy**
-```bash
-# Option 1: Web tunnel only
-./scripts/deploy.sh web:tunnel
-
-# Option 2: Mobile tunnel only  
-./scripts/deploy.sh mobile:tunnel
-
-# Option 3: Web with local tunnel (default)
-./scripts/deploy.sh web:tunnel  # Uses local tunnel by default
-```
-
-### **Tunnel Type Selection**
-```bash
-# Web with ngrok tunnel
-./scripts/deploy.sh web:ngrok-tunnel
-
-# Web with local tunnel (default)
-./scripts/deploy.sh web:tunnel
-
-# Mobile with Expo tunnel
-./scripts/deploy.sh mobile:tunnel
-```
-
-### **Status Monitoring**
-```bash
-# Check current tunnel status
-./scripts/deploy.sh status
-
-# Shows:
-# - Current IP address
-# - Active tunnel URLs with PIDs
-# - Local tunnel password (if applicable)
-# - Ngrok tunnel URLs (if applicable)
-# - Process PIDs and names for all running services
-# - Recent tunnel output from web_tunnel_output.log
-```
-
----
-
-## 📊 **Current Status**
-
-- ✅ **Main script**: `./scripts/deploy.sh`
-- ✅ **Consistent variable names**: `NGROK_TOKEN`
-- ✅ **Both web and mobile support**
-- ✅ **Multiple tunnel types**: ngrok, local tunnel, Expo tunnel
-- ✅ **Status monitoring with IP and password info**
-- ✅ **Complete deployment workflows**
-- ⚠️ **Tunnel limitation**: Only one tunnel active at a time
-- 🔄 **Workaround**: Use different tunnel types for web/mobile
-
-### **Available Tunnel Types**
-- **Web ngrok**: `./scripts/deploy.sh web:ngrok-tunnel`
-- **Web local tunnel**: `./scripts/deploy.sh web:tunnel` (default)
-- **Mobile Expo tunnel**: `./scripts/deploy.sh mobile:tunnel`
-
-**🎉 Recommendation: Use `./scripts/deploy.sh` for all deployments!**
-
-**⚠️ Note**: Due to ngrok limitations, only one tunnel can be active at a time. Choose the tunnel type based on your current development needs.
-
----
-
-## 📄 **Log Files**
-
-The deployment script creates several log files for monitoring:
-
-- **`web_output.log`** - Next.js development server output
-- **`web_tunnel_output.log`** - Local tunnel and ngrok tunnel output
-- **`mobile_output.log`** - Expo development server output
-
-These logs are automatically cleaned when using the `clean` command or when starting new deployments.
-
-## 🔢 **Process Information**
-
-The status command displays Process IDs (PIDs) and names for all running services:
-
-- **Individual PIDs**: Shown next to each running service (e.g., "Web server: Running on http://localhost:3000 (PID: 12345)")
-- **Ngrok URL**: Prominently displayed in the main status line (e.g., "Ngrok tunnel: https://example.ngrok-free.app (PID: 12345)")
-- **Process Details**: Grouped PIDs with process names for all related processes:
-  - **Web processes**: Next.js and Turbo processes (sh, node, turbo)
-  - **Mobile processes**: Expo development server processes (npm, sh, node)
-  - **Tunnel processes**: Local tunnel and ngrok processes (bash, ngrok, node)
-
-This information is useful for debugging and manually killing specific processes if needed.

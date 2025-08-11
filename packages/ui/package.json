@@ -15,7 +15,11 @@
   },
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "deploy": "pnpm build && pnpm publish --access public",
+    "deploy:dry-run": "pnpm build && pnpm publish --access public --dry-run",
+    "deploy:local": "pnpm build",
     "format": "prettier --check . --ignore-path ../../.gitignore",
     "lint": "eslint",
     "typecheck": "tsc --noEmit --emitDeclarationOnly false",
