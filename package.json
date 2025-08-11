@@ -36,9 +36,10 @@
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
           "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",
-      "deploy:all:local": "./scripts/deploy.sh all:local",
-      "deploy:all:tunnel": "./scripts/deploy.sh all:tunnel",
-      "deploy:all:build": "./scripts/deploy.sh all:build"
+          "deploy:all:local": "./scripts/deploy.sh all:local",
+    "deploy:all:tunnel": "./scripts/deploy.sh all:tunnel",
+    "deploy:all:build": "./scripts/deploy.sh all:build",
+    "dev:discord-auth": "./scripts/discord-auth-tunnel.sh"
     },
     "devDependencies": {
     "@acme/prettier-config": "workspace:*",
