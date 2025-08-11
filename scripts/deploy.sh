@@ -556,7 +556,11 @@ get_process_names() {
         echo "$pids" | while read pid; do
             local args=$(ps -p "$pid" -o args= 2>/dev/null | head -1)
             if [ -n "$args" ]; then
-                local cmd=$(echo "$args" | cut -d' ' -f1 | xargs basename 2>/dev/null || echo "unknown")
+                # Show the first part of the command (truncated if too long)
+                local cmd=$(echo "$args" | cut -d' ' -f1-3 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                if [ ${#cmd} -gt 50 ]; then
+                    cmd=$(echo "$cmd" | cut -c1-47)"..."
+                fi
                 echo "    $pid ($cmd)"
             else
                 echo "    $pid"
