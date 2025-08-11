@@ -35,3 +35,7 @@ Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0
 Android Bundled 817ms apps/expo/index.ts (1 module)
  LOG  getBaseUrl http://m4tpp6i-dlhflav-8081.exp.direct:3000
  LOG  [30;46m >> query [1;30;46m #1 post.all [0m {"input": undefined}
+Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 57ms apps/expo/index.ts (1 module)
+ LOG  getBaseUrl http://m4tpp6i-dlhflav-8081.exp.direct:3000
+ LOG  [30;46m >> query [1;30;46m #1 post.all [0m {"input": undefined}
