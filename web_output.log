@@ -11,28 +11,12 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 979ms
+ ✓ Ready in 987ms
  ○ Compiling /api/trpc/[trpc] ...
- ✓ Compiled /api/trpc/[trpc] in 2.3s
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Database query starting...
+ ✓ Compiled /api/trpc/[trpc] in 2.2s
  ○ Compiling / ...
-[TRPC] post.all took 756ms to execute
- GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 3912ms
- ✓ Compiled / in 4.7s
-🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Database query starting...
-[TRPC] post.all took 1007ms to execute
- GET / 200 in 6043ms
-🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
-🔍 [POST.ALL] Database query starting...
-[TRPC] post.all took 1081ms to execute
- GET / 200 in 1142ms
- ✓ Compiled in 7ms
- ✓ Compiled in 22ms
+[TRPC] post.all took 906ms to execute
+ GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 3971ms
+ ✓ Compiled / in 4.5s
+[TRPC] post.all took 851ms to execute
+ GET / 200 in 5668ms
