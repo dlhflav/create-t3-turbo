@@ -318,6 +318,60 @@ install_vercel() {
     return 0
 }
 
+# Install and configure EAS CLI
+install_eas() {
+    log_step "Installing and configuring EAS CLI..."
+    
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Check if EAS CLI is installed
+    if ! command -v eas &> /dev/null; then
+        log_info "EAS CLI not found, installing..."
+        
+        # Install EAS CLI globally
+        npm install -g eas-cli
+        
+        if [ $? -eq 0 ]; then
+            log_success "EAS CLI installed successfully"
+        else
+            log_error "Failed to install EAS CLI"
+            return 1
+        fi
+    else
+        log_info "EAS CLI already installed: $(eas --version)"
+    fi
+    
+    # Get EXPO_TOKEN from environment
+    local expo_token=$(get_shell_var_value "EXPO_TOKEN")
+    if [ -z "$expo_token" ]; then
+        log_warning "EXPO_TOKEN not found in environment, EAS builds may require manual authentication"
+        log_info "You can set EXPO_TOKEN for automated authentication"
+        return 0
+    fi
+    
+    # Check if already logged in
+    if eas whoami &> /dev/null; then
+        log_info "EAS CLI already authenticated"
+    else
+        log_info "Authenticating EAS CLI with token..."
+        echo "$expo_token" | eas login --non-interactive
+        
+        if [ $? -eq 0 ]; then
+            log_success "EAS CLI authenticated successfully"
+        else
+            log_error "Failed to authenticate EAS CLI"
+            log_info "You may need to authenticate manually with: eas login"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
 # Get current IP address
 get_current_ip() {
     local ip=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || echo "unknown")
@@ -908,6 +962,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
+        install_eas
         log_step "Starting EAS build for all platforms..."
         if [ -d "apps/expo" ]; then
             cd apps/expo && npx eas build --platform all 2>&1 | tee ../../mobile_output.log && cd ../..
@@ -920,6 +975,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
+        install_eas
         log_step "Starting EAS build for Android..."
         if [ -d "apps/expo" ]; then
             cd apps/expo && npx eas build --platform android 2>&1 | tee ../../mobile_output.log && cd ../..
@@ -932,6 +988,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
+        install_eas
         log_step "Starting EAS build for iOS..."
         if [ -d "apps/expo" ]; then
             cd apps/expo && npx eas build --platform ios 2>&1 | tee ../../mobile_output.log && cd ../..
