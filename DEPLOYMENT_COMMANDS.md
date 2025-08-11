@@ -43,20 +43,12 @@ pnpm -F @acme/db dev              # Compile TypeScript
 pnpm -F @acme/db build            # Build package
 pnpm -F @acme/db push             # Push schema to database
 pnpm -F @acme/db studio           # Open Drizzle Studio
-
-# Deployment
-pnpm -F @acme/db deploy:db        # Push schema to database
-pnpm -F @acme/db deploy:db:studio # Open Drizzle Studio
 ```
 
 ### Auth Package (@acme/auth)
 ```bash
 # Development
-pnpm -F @acme/auth build          # Build package
 pnpm -F @acme/auth generate       # Generate auth schema
-
-# Deployment
-pnpm -F @acme/auth deploy:generate # Generate auth schema
 ```
 
 ## 🌐 Root-Level Commands

@@ -35,9 +35,9 @@
     "deploy:mobile:web": "pnpm -F @acme/expo deploy:web",
     "deploy:mobile:eas": "pnpm -F @acme/expo deploy:eas",
     "deploy:mobile:tunnel": "./scripts/deploy.sh mobile:tunnel",
-    "deploy:db": "pnpm -F @acme/db deploy:db",
-    "deploy:db:studio": "pnpm -F @acme/db deploy:db:studio",
-    "deploy:auth:generate": "pnpm -F @acme/auth deploy:generate",
+    "deploy:db": "pnpm -F @acme/db push",
+    "deploy:db:studio": "pnpm -F @acme/db studio",
+    "deploy:auth:generate": "pnpm -F @acme/auth generate",
     "deploy:all": "./scripts/deploy.sh all:web"
   },
   "devDependencies": {
