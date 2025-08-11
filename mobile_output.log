@@ -3,3 +3,8 @@ Using src/app as the root directory for Expo Router.
 Starting Metro Bundler
 Waiting on http://localhost:8081
 Logs for your project will appear below.
+npm notice
+npm notice New major version of npm available! 10.9.2 -> 11.5.2
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.5.2
+npm notice To update run: npm install -g npm@11.5.2
+npm notice
