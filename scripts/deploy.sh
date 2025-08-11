@@ -60,16 +60,29 @@ install_packages() {
     case $app_type in
         "web"|"next")
             log_info "Installing Next.js dependencies..."
-            cd apps/nextjs
-            pnpm install 2>&1 | tee ../../web_output.log
-            if [ $? -eq 0 ]; then
-                log_success "Next.js dependencies installed"
+            # Check if we're already in the nextjs directory
+            if [ "$(basename $(pwd))" = "nextjs" ] && [ -f "package.json" ]; then
+                # We're already in the nextjs directory
+                pnpm install 2>&1 | tee ../../web_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Next.js dependencies installed"
+                else
+                    log_error "Failed to install Next.js dependencies"
+                    return 1
+                fi
             else
-                log_error "Failed to install Next.js dependencies"
+                # Navigate to nextjs directory from root
+                cd apps/nextjs
+                pnpm install 2>&1 | tee ../../web_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Next.js dependencies installed"
+                else
+                    log_error "Failed to install Next.js dependencies"
+                    cd ../..
+                    return 1
+                fi
                 cd ../..
-                return 1
             fi
-            cd ../..
             ;;
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
