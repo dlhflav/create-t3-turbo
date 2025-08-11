@@ -5,8 +5,8 @@
   "main": "index.ts",
   "scripts": {
     "clean": "git clean -xdf .cache .expo .turbo android ios node_modules",
-    "dev": "expo start",
-    "dev:tunnel": "expo start --tunnel",
+    "dev": "expo start --go",
+    "dev:tunnel": "expo start --tunnel --go",
     "dev:localtunnel": "expo start --lan & sleep 10 && npx localtunnel --port 8081",
     "dev:ngrok": "expo start --lan & sleep 10 && NGROK_TOKEN=$NGROK_TOKEN ngrok http 8081",
     "dev:android": "expo start --android",

@@ -20,9 +20,9 @@ pnpm -F @acme/nextjs deploy:ngrok # Start with ngrok tunnel (script)
 
 ### Mobile App (@acme/expo)
 ```bash
-# Development
-pnpm -F @acme/expo dev            # Start development server
-pnpm -F @acme/expo dev:tunnel     # Start with Expo tunnel
+# Development (Expo Go mode)
+pnpm -F @acme/expo dev            # Start development server (Expo Go)
+pnpm -F @acme/expo dev:tunnel     # Start with Expo tunnel (Expo Go)
 pnpm -F @acme/expo dev:android    # Start for Android
 pnpm -F @acme/expo dev:ios        # Start for iOS
 

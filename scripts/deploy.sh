@@ -37,11 +37,11 @@ clean_logs() {
             log_success "Web logs cleaned"
             ;;
         "mobile"|"expo")
-            rm -f mobile_output.log
+            rm -f mobile_output.log eas_build.log
             log_success "Mobile logs cleaned"
             ;;
         "all")
-            rm -f web_output.log web_tunnel_output.log mobile_output.log
+            rm -f web_output.log web_tunnel_output.log mobile_output.log eas_build.log
             log_success "All logs cleaned"
             ;;
         *)
@@ -415,8 +415,9 @@ start_local_tunnel() {
     
     log_step "Starting Local Tunnel on port $port..."
     
-    # Get local tunnel password before starting
+    # Get local tunnel password before starting and log it
     LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+    echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
     # Generate a random subdomain if not provided
@@ -756,6 +757,12 @@ show_status() {
         log_info "Recent mobile output:"
         tail -10 mobile_output.log
     fi
+    
+    if [ -f "eas_build.log" ]; then
+        echo ""
+        log_info "Recent EAS build output:"
+        tail -10 eas_build.log
+    fi
 }
 
 # Stop development servers
@@ -957,7 +964,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
+        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../eas_build.log && cd ../..
         ;;
 
     
@@ -969,9 +976,9 @@ case "${1:-help}" in
         install_eas
         log_step "Starting EAS build for all platforms..."
         if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../mobile_output.log && cd ../..
+            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
         else
-            npx eas build --platform all 2>&1 | tee ../mobile_output.log
+            npx eas build --platform all 2>&1 | tee ../eas_build.log
         fi
         log_success "EAS build for all platforms completed!"
         ;;
@@ -982,9 +989,9 @@ case "${1:-help}" in
         install_eas
         log_step "Starting EAS build for Android..."
         if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform android 2>&1 | tee ../../mobile_output.log && cd ../..
+            cd apps/expo && npx eas build --platform android 2>&1 | tee ../../eas_build.log && cd ../..
         else
-            npx eas build --platform android 2>&1 | tee ../mobile_output.log
+            npx eas build --platform android 2>&1 | tee ../eas_build.log
         fi
         log_success "EAS build for Android completed!"
         ;;
@@ -995,9 +1002,9 @@ case "${1:-help}" in
         install_eas
         log_step "Starting EAS build for iOS..."
         if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform ios 2>&1 | tee ../../mobile_output.log && cd ../..
+            cd apps/expo && npx eas build --platform ios 2>&1 | tee ../../eas_build.log && cd ../..
         else
-            npx eas build --platform ios 2>&1 | tee ../mobile_output.log
+            npx eas build --platform ios 2>&1 | tee ../eas_build.log
         fi
         log_success "EAS build for iOS completed!"
         ;;
