@@ -36,7 +36,7 @@
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
     "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",
-    "deploy:all": "./scripts/deploy.sh all:web"
+    "deploy:all": "./scripts/deploy.sh all:build"
   },
   "devDependencies": {
     "@acme/prettier-config": "workspace:*",

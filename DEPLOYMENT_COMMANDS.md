@@ -72,7 +72,7 @@ pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel (subpackage)
 
 ### Complete Deployment
 ```bash
-pnpm deploy:all                   # Complete web deployment (script: dev + tunnel + deploy to Vercel)
+pnpm deploy:all                   # Complete build (script: Vercel + EAS)
 ```
 
 ## 🛠️ Script Commands
@@ -83,10 +83,16 @@ pnpm deploy:all                   # Complete web deployment (script: dev + tunne
 ./scripts/deploy.sh web:dev       # Start web development server
 ./scripts/deploy.sh web:tunnel    # Start web with local tunnel
 ./scripts/deploy.sh web:ngrok-tunnel # Start web with ngrok tunnel
+./scripts/deploy.sh web:vercel    # Deploy web to Vercel
 ./scripts/deploy.sh mobile:dev    # Start mobile development server
 ./scripts/deploy.sh mobile:tunnel # Start mobile with Expo tunnel
-./scripts/deploy.sh all:web       # Complete web deployment
-./scripts/deploy.sh all:mobile    # Complete mobile deployment
+./scripts/deploy.sh mobile:all    # Build mobile app (development)
+./scripts/deploy.sh mobile:deploy # EAS build for all platforms
+./scripts/deploy.sh mobile:android # EAS build for Android
+./scripts/deploy.sh mobile:ios    # EAS build for iOS
+./scripts/deploy.sh all:local     # Complete local development
+./scripts/deploy.sh all:tunnel    # Complete tunnel development
+./scripts/deploy.sh all:build     # Complete build (Vercel + EAS)
 
 # Stop commands
 ./scripts/deploy.sh stop:web      # Stop web servers
@@ -108,8 +114,8 @@ pnpm -F @acme/nextjs dev
 pnpm -F @acme/expo dev
 
 # Start both with script
-./scripts/deploy.sh web:dev
-./scripts/deploy.sh mobile:dev
+./scripts/deploy.sh all:local
+./scripts/deploy.sh all:tunnel
 ```
 
 ### Production Deployment
@@ -120,7 +126,7 @@ pnpm deploy:web:vercel
 # Deploy mobile with EAS
 pnpm deploy:mobile:eas
 
-# Complete web deployment (dev + tunnel + deploy)
+# Complete build (Vercel + EAS)
 pnpm deploy:all
 ```
 

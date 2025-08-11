@@ -838,21 +838,20 @@ show_usage() {
     echo "  web:dev        - Start web development server"
     echo "  web:tunnel     - Start web dev + local tunnel (default)"
     echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
-    echo "  web:deploy     - Deploy web to Vercel"
+    echo "  web:vercel     - Deploy web to Vercel"
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
     echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
-    echo "  mobile:build  - Build mobile app (development)"
-    echo "  mobile:prod   - Build mobile app (production)"
+    echo "  mobile:all    - Build mobile app (development)"
     echo "  mobile:deploy - EAS build for all platforms"
-    echo "  mobile:deploy:android - EAS build for Android"
-    echo "  mobile:deploy:ios - EAS build for iOS"
+    echo "  mobile:android - EAS build for Android"
+    echo "  mobile:ios    - EAS build for iOS"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
-    echo "  all:web:ngrok - Complete web deployment (dev + ngrok tunnel + deploy)"
-    echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
+    echo "  all:local     - Complete local development (web + mobile)"
+    echo "  all:tunnel    - Complete tunnel development (web + mobile)"
+    echo "  all:build     - Complete build (Vercel + EAS)"
     echo ""
     echo -e "${RED}Stop Commands:${NC}"
     echo "  stop:web      - Stop web development servers"
@@ -882,8 +881,9 @@ show_usage() {
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
     echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
-    echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
-    echo "  ./scripts/deploy.sh all:web:ngrok     # Complete web deployment with ngrok tunnel"
+    echo "  ./scripts/deploy.sh all:local         # Complete local development"
+    echo "  ./scripts/deploy.sh all:tunnel        # Complete tunnel development"
+    echo "  ./scripts/deploy.sh all:build         # Complete build (Vercel + EAS)"
     echo "  ./scripts/deploy.sh stop:all          # Stop all development servers"
 }
 
@@ -918,7 +918,7 @@ case "${1:-help}" in
         log_success "Web development with ngrok tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
-    "web:deploy")
+    "web:vercel")
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
@@ -944,18 +944,13 @@ case "${1:-help}" in
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
-    "mobile:build")
+    "mobile:all")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
         ;;
-    "mobile:prod")
-        clean_logs "mobile"
-        install_env_file "mobile"
-        install_packages "mobile"
-        cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
-        ;;
+
     
     # EAS deployments
     "mobile:deploy")
@@ -971,7 +966,7 @@ case "${1:-help}" in
         fi
         log_success "EAS build for all platforms completed!"
         ;;
-    "mobile:deploy:android")
+    "mobile:android")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
@@ -984,7 +979,7 @@ case "${1:-help}" in
         fi
         log_success "EAS build for Android completed!"
         ;;
-    "mobile:deploy:ios")
+    "mobile:ios")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
@@ -999,32 +994,47 @@ case "${1:-help}" in
         ;;
     
     # Complete deployments
-    "all:web")
-        clean_logs "web"
+    "all:local")
+        clean_logs "all"
         install_env_file "web"
-        install_packages "web"
-        install_local_tunnel
-        install_vercel
-        start_web_dev true "local" && deploy_vercel
-        log_success "Complete web deployment finished!"
-        ;;
-    "all:web:ngrok")
-        clean_logs "web"
-        install_env_file "web"
-        install_packages "web"
-        install_ngrok
-        install_vercel
-        start_web_dev true "ngrok" && deploy_vercel
-        log_success "Complete web deployment with ngrok tunnel finished!"
-        ;;
-    "all:mobile")
-        clean_logs "mobile"
         install_env_file "mobile"
+        install_packages "web"
         install_packages "mobile"
-        install_ngrok
+        start_web_dev true "local"
         start_mobile_dev true
-        log_success "Complete mobile deployment started!"
-        wait $MOBILE_PID
+        log_success "Complete local development started!"
+        wait $WEB_PID $MOBILE_PID
+        ;;
+    "all:tunnel")
+        clean_logs "all"
+        install_env_file "web"
+        install_env_file "mobile"
+        install_packages "web"
+        install_packages "mobile"
+        install_local_tunnel
+        install_ngrok
+        start_web_dev true "local"
+        start_mobile_dev true
+        log_success "Complete tunnel development started!"
+        wait $WEB_PID $MOBILE_PID $LOCAL_TUNNEL_PID
+        ;;
+    "all:build")
+        clean_logs "all"
+        install_env_file "web"
+        install_env_file "mobile"
+        install_packages "web"
+        install_packages "mobile"
+        install_vercel
+        install_eas
+        log_step "Starting complete build (Vercel + EAS)..."
+        deploy_vercel
+        log_step "Starting EAS build for all platforms..."
+        if [ -d "apps/expo" ]; then
+            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../mobile_output.log && cd ../..
+        else
+            npx eas build --platform all 2>&1 | tee ../mobile_output.log
+        fi
+        log_success "Complete build (Vercel + EAS) finished!"
         ;;
     
     # Stop commands

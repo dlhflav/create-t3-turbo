@@ -1,4 +1,5 @@
 Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
 No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
 
-[?25l[2K[1G[36m?[39m [1miOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations[22m [90m›[39m [90m(Y/n)[39m
+[?25l[2K[1G[36m?[39m [1miOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations[22m [90m›[39m [90m(Y/n)[39m[2K[1G[2K[1G[31m✖[39m [1miOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations[22m [90m…[39m yes
+[?25h
