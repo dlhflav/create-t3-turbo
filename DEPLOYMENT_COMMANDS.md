@@ -56,20 +56,20 @@ pnpm -F @acme/auth generate       # Generate auth schema
 
 ### Web Deployment
 ```bash
-pnpm deploy:web:vercel            # Deploy web app to Vercel
-pnpm deploy:web:local             # Deploy web app locally
-pnpm deploy:web:tunnel            # Start web with local tunnel
-pnpm deploy:web:ngrok             # Start web with ngrok tunnel
+pnpm deploy:web:vercel            # Deploy web app to Vercel (subpackage)
+pnpm deploy:web:local             # Deploy web app locally (subpackage)
+pnpm deploy:web:tunnel            # Start web with local tunnel (subpackage)
+pnpm deploy:web:ngrok             # Start web with ngrok tunnel (subpackage)
 ```
 
 ### Mobile Deployment
 ```bash
-pnpm deploy:mobile:local          # Start mobile development
+pnpm deploy:mobile:local          # Start mobile development (subpackage)
 pnpm deploy:mobile:android        # Deploy mobile app (Android)
 pnpm deploy:mobile:ios            # Deploy mobile app (iOS)
 pnpm deploy:mobile:web            # Deploy mobile app (web)
 pnpm deploy:mobile:eas            # Deploy mobile app with EAS
-pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel
+pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel (subpackage)
 ```
 
 ### Database & Auth
@@ -81,7 +81,7 @@ pnpm deploy:auth:generate         # Generate auth schema
 
 ### Complete Deployment
 ```bash
-pnpm deploy:all                   # Complete web deployment (dev + tunnel + deploy to Vercel)
+pnpm deploy:all                   # Complete web deployment (script: dev + tunnel + deploy to Vercel)
 ```
 
 ## 🛠️ Script Commands
