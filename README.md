@@ -135,7 +135,7 @@ For local development, you can use a local tunnel with a stable subdomain. This 
 
 1. **Set your tunnel subdomain** in `.env`:
    ```bash
-   TUNNEL_SUBDOMAIN="my-app-oauth-2024"
+   TUNNEL_SUBDOMAIN="my-app-oauth-dev"
    ```
 
 2. **Start development with tunnel**:
@@ -145,7 +145,7 @@ For local development, you can use a local tunnel with a stable subdomain. This 
 
 3. **Configure Discord OAuth** with the tunnel URL:
    ```
-   https://my-app-oauth-2024.loca.lt/api/auth/callback/discord
+   https://my-app-oauth-dev.loca.lt/api/auth/callback/discord
    ```
 
 > **Note**: The `TUNNEL_SUBDOMAIN` environment variable will be used automatically when starting the tunnel.
