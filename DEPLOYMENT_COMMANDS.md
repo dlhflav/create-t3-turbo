@@ -229,9 +229,10 @@ pkill -f "expo\|ngrok\|next"
 
 # Shows:
 # - Current IP address
-# - Active tunnel URLs
+# - Active tunnel URLs with PIDs
 # - Local tunnel password (if applicable)
 # - Ngrok tunnel URLs (if applicable)
+# - Process PIDs for all running services
 # - Recent tunnel output from web_tunnel_output.log
 ```
 
@@ -268,3 +269,15 @@ The deployment script creates several log files for monitoring:
 - **`mobile_output.log`** - Expo development server output
 
 These logs are automatically cleaned when using the `clean` command or when starting new deployments.
+
+## 🔢 **Process Information**
+
+The status command displays Process IDs (PIDs) for all running services:
+
+- **Individual PIDs**: Shown next to each running service (e.g., "Web server: Running on http://localhost:3000 (PID: 12345)")
+- **Process Details**: Grouped PIDs for all related processes:
+  - **Web processes**: Next.js and Turbo processes
+  - **Mobile processes**: Expo development server processes  
+  - **Tunnel processes**: Local tunnel and ngrok processes
+
+This information is useful for debugging and manually killing specific processes if needed.

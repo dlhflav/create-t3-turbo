@@ -535,6 +535,18 @@ deploy_vercel() {
     return 0
 }
 
+# Get PID of a process by pattern
+get_pid() {
+    local pattern=$1
+    pgrep -f "$pattern" | head -1
+}
+
+# Get multiple PIDs of processes by pattern
+get_pids() {
+    local pattern=$1
+    pgrep -f "$pattern" | tr '\n' ' ' | sed 's/ $//'
+}
+
 # Show status
 show_status() {
     log_info "Current Status"
@@ -547,22 +559,37 @@ show_status() {
     
     # Check web server
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success "Web server: Running on http://localhost:3000"
+        WEB_PID=$(get_pid "next dev")
+        if [ -n "$WEB_PID" ]; then
+            log_success "Web server: Running on http://localhost:3000 (PID: $WEB_PID)"
+        else
+            log_success "Web server: Running on http://localhost:3000"
+        fi
     else
         log_error "Web server: Not running"
     fi
     
     # Check mobile server
     if curl -s http://localhost:8081 > /dev/null 2>&1; then
-        log_success "Mobile server: Running on http://localhost:8081"
+        MOBILE_PID=$(get_pid "expo start")
+        if [ -n "$MOBILE_PID" ]; then
+            log_success "Mobile server: Running on http://localhost:8081 (PID: $MOBILE_PID)"
+        else
+            log_success "Mobile server: Running on http://localhost:8081"
+        fi
     else
         log_error "Mobile server: Not running"
     fi
     
     # Check ngrok tunnels
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
+        NGROK_PID=$(get_pid "ngrok")
         TUNNELS=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); [print(f'  - {t[\"public_url\"]} -> {t[\"config\"][\"addr\"]}') for t in data['tunnels']]" 2>/dev/null || echo "Unknown")
-        log_success "Ngrok tunnels:"
+        if [ -n "$NGROK_PID" ]; then
+            log_success "Ngrok tunnels: (PID: $NGROK_PID)"
+        else
+            log_success "Ngrok tunnels:"
+        fi
         echo "$TUNNELS"
         log_info "Monitor: http://localhost:4040"
     else
@@ -573,8 +600,12 @@ show_status() {
     if [ -f "web_tunnel_output.log" ]; then
         LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
         if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            LOCAL_TUNNEL_PID=$(get_pid "lt --port")
             log_success "Local tunnel:"
             log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+            if [ -n "$LOCAL_TUNNEL_PID" ]; then
+                log_info "  - PID: $LOCAL_TUNNEL_PID"
+            fi
             # Get local tunnel password
             LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
             log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
@@ -583,6 +614,28 @@ show_status() {
         fi
     else
         log_error "Local tunnel: Not running"
+    fi
+    
+    # Show process details
+    echo ""
+    log_info "Process Details:"
+    
+    # Web processes
+    WEB_PIDS=$(get_pids "next dev|turbo.*nextjs")
+    if [ -n "$WEB_PIDS" ]; then
+        log_info "  Web processes: $WEB_PIDS"
+    fi
+    
+    # Mobile processes
+    MOBILE_PIDS=$(get_pids "expo start")
+    if [ -n "$MOBILE_PIDS" ]; then
+        log_info "  Mobile processes: $MOBILE_PIDS"
+    fi
+    
+    # Tunnel processes
+    TUNNEL_PIDS=$(get_pids "lt --port|ngrok")
+    if [ -n "$TUNNEL_PIDS" ]; then
+        log_info "  Tunnel processes: $TUNNEL_PIDS"
     fi
     
     # Show live output if available
