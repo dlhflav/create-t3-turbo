@@ -28,6 +28,7 @@
     "deploy:web:vercel": "pnpm -F @acme/nextjs deploy:vercel",
     "deploy:web:local": "pnpm -F @acme/nextjs deploy:local",
     "deploy:web:tunnel": "pnpm -F @acme/nextjs deploy:tunnel",
+
     "deploy:web:ngrok": "pnpm -F @acme/nextjs deploy:ngrok",
     "deploy:mobile:local": "pnpm -F @acme/expo deploy:local",
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
@@ -36,9 +37,9 @@
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
           "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",
-      "deploy:all:local": "./scripts/deploy.sh all:local",
-      "deploy:all:tunnel": "./scripts/deploy.sh all:tunnel",
-      "deploy:all:build": "./scripts/deploy.sh all:build"
+          "deploy:all:local": "./scripts/deploy.sh all:local",
+    "deploy:all:tunnel": "./scripts/deploy.sh all:tunnel",
+    "deploy:all:build": "./scripts/deploy.sh all:build"
     },
     "devDependencies": {
     "@acme/prettier-config": "workspace:*",

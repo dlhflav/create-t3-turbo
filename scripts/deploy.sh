@@ -60,16 +60,29 @@ install_packages() {
     case $app_type in
         "web"|"next")
             log_info "Installing Next.js dependencies..."
-            cd apps/nextjs
-            pnpm install 2>&1 | tee ../../web_output.log
-            if [ $? -eq 0 ]; then
-                log_success "Next.js dependencies installed"
+            # Check if we're already in the nextjs directory
+            if [ "$(basename $(pwd))" = "nextjs" ] && [ -f "package.json" ]; then
+                # We're already in the nextjs directory
+                pnpm install 2>&1 | tee ../../web_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Next.js dependencies installed"
+                else
+                    log_error "Failed to install Next.js dependencies"
+                    return 1
+                fi
             else
-                log_error "Failed to install Next.js dependencies"
+                # Navigate to nextjs directory from root
+                cd apps/nextjs
+                pnpm install 2>&1 | tee ../../web_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Next.js dependencies installed"
+                else
+                    log_error "Failed to install Next.js dependencies"
+                    cd ../..
+                    return 1
+                fi
                 cd ../..
-                return 1
             fi
-            cd ../..
             ;;
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
@@ -408,6 +421,44 @@ install_local_tunnel() {
     return 0
 }
 
+# Check if subdomain is available
+check_subdomain_availability() {
+    local subdomain=$1
+    local port=${2:-3000}
+    
+    log_step "Checking if subdomain '$subdomain' is available..."
+    
+    # Start a temporary tunnel to test availability
+    lt --port $port --subdomain $subdomain > /tmp/subdomain-test.log 2>&1 &
+    TEMP_PID=$!
+    sleep 3
+    
+    # Check if tunnel started successfully
+    local tunnel_url="https://${subdomain}.loca.lt"
+    if curl -s "$tunnel_url" > /dev/null 2>&1; then
+        # Subdomain is available, kill the test tunnel
+        kill $TEMP_PID 2>/dev/null || true
+        rm -f /tmp/subdomain-test.log
+        log_success "✅ Subdomain '$subdomain' is available"
+        return 0
+    else
+        # Check if it failed due to subdomain already in use
+        if grep -q "subdomain.*already taken" /tmp/subdomain-test.log 2>/dev/null; then
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_error "❌ Subdomain '$subdomain' is already taken"
+            log_info "Try a different subdomain name"
+            return 1
+        else
+            # Other error, but we'll still try to use it
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_warning "⚠️ Could not verify subdomain availability, but will try to use it"
+            return 0
+        fi
+    fi
+}
+
 # Start local tunnel
 start_local_tunnel() {
     local port=${1:-3000}
@@ -420,15 +471,30 @@ start_local_tunnel() {
     echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
+    # Check for TUNNEL_SUBDOMAIN environment variable first
+    if [ -z "$subdomain" ] && [ -n "$TUNNEL_SUBDOMAIN" ]; then
+        subdomain="$TUNNEL_SUBDOMAIN"
+        log_info "Using TUNNEL_SUBDOMAIN from environment: $subdomain"
+    fi
+    
     # Generate a random subdomain if not provided
     if [ -z "$subdomain" ]; then
         subdomain="t3-turbo-$(date +%s)"
+        log_info "Using random subdomain: $subdomain"
+    else
+        # Check if the specified subdomain is available
+        if ! check_subdomain_availability "$subdomain" "$port"; then
+            log_error "Cannot start tunnel - subdomain '$subdomain' is not available"
+            return 1
+        fi
     fi
     
     # Start local tunnel
     if [ -n "$subdomain" ]; then
+        log_step "Starting tunnel with subdomain: $subdomain"
         lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
+        log_step "Starting tunnel with random subdomain"
         lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
@@ -847,6 +913,7 @@ show_usage() {
     echo -e "${GREEN}Web Commands:${NC}"
     echo "  web:dev        - Start web development server"
     echo "  web:tunnel     - Start web dev + local tunnel (default)"
+
     echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
     echo "  web:vercel     - Deploy web to Vercel"
     echo ""
@@ -888,6 +955,7 @@ show_usage() {
     echo ""
     echo -e "${BLUE}Examples:${NC}"
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
+
     echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:local         # Complete local development"
@@ -918,6 +986,7 @@ case "${1:-help}" in
         log_success "Web development with local tunnel started!"
         wait $WEB_PID $LOCAL_TUNNEL_PID
         ;;
+
     "web:ngrok-tunnel")
         clean_logs "web"
         install_env_file "web"
