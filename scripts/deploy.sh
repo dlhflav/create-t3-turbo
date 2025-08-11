@@ -964,7 +964,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        cd apps/expo && pnpm exec eas build --profile development 2>&1 | tee ../../eas_build.log && cd ../..
+        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
         ;;
 
     
@@ -975,7 +975,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for all platforms..."
-        cd apps/expo && pnpm exec eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
+        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
         log_success "EAS build for all platforms completed!"
         ;;
     "mobile:android")
@@ -984,7 +984,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for Android..."
-        cd apps/expo && pnpm exec eas build --platform android 2>&1 | tee ../../eas_build.log && cd ../..
+        pnpm -F @acme/expo build:android 2>&1 | tee eas_build.log
         log_success "EAS build for Android completed!"
         ;;
     "mobile:ios")
@@ -993,7 +993,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for iOS..."
-        cd apps/expo && pnpm exec eas build --platform ios 2>&1 | tee ../../eas_build.log && cd ../..
+        pnpm -F @acme/expo build:ios 2>&1 | tee eas_build.log
         log_success "EAS build for iOS completed!"
         ;;
     
@@ -1033,7 +1033,7 @@ case "${1:-help}" in
         log_step "Starting complete build (Vercel + EAS)..."
         deploy_vercel
         log_step "Starting EAS build for all platforms..."
-        cd apps/expo && pnpm exec eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
+        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
         log_success "Complete build (Vercel + EAS) finished!"
         ;;
     

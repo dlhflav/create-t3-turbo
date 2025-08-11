@@ -26,6 +26,11 @@ pnpm -F @acme/expo dev:tunnel     # Start with Expo tunnel (Expo Go)
 pnpm -F @acme/expo dev:android    # Start for Android
 pnpm -F @acme/expo dev:ios        # Start for iOS
 
+# Build
+pnpm -F @acme/expo build          # EAS build for all platforms
+pnpm -F @acme/expo build:android  # EAS build for Android
+pnpm -F @acme/expo build:ios      # EAS build for iOS
+
 # Deployment
 pnpm -F @acme/expo deploy:local   # Start development with script
 pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms) (script)
@@ -86,10 +91,10 @@ pnpm deploy:all                   # Complete build (script: Vercel + EAS)
 ./scripts/deploy.sh web:vercel    # Deploy web to Vercel
 ./scripts/deploy.sh mobile:dev    # Start mobile development server
 ./scripts/deploy.sh mobile:tunnel # Start mobile with Expo tunnel
-./scripts/deploy.sh mobile:all    # Build mobile app (development) - uses pnpm exec
-./scripts/deploy.sh mobile:deploy # EAS build for all platforms - uses pnpm exec
-./scripts/deploy.sh mobile:android # EAS build for Android - uses pnpm exec
-./scripts/deploy.sh mobile:ios    # EAS build for iOS - uses pnpm exec
+./scripts/deploy.sh mobile:all    # Build mobile app (development) - uses package.json
+./scripts/deploy.sh mobile:deploy # EAS build for all platforms - uses package.json
+./scripts/deploy.sh mobile:android # EAS build for Android - uses package.json
+./scripts/deploy.sh mobile:ios    # EAS build for iOS - uses package.json
 ./scripts/deploy.sh all:local     # Complete local development
 ./scripts/deploy.sh all:tunnel    # Complete tunnel development
 ./scripts/deploy.sh all:build     # Complete build (Vercel + EAS)
