@@ -28,10 +28,9 @@ pnpm -F @acme/expo dev:ios        # Start for iOS
 
 # Deployment
 pnpm -F @acme/expo deploy:local   # Start development with script
-pnpm -F @acme/expo deploy:web     # Build for web
 pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms) (script)
-pnpm -F @acme/expo deploy:eas:android # Build with EAS (Android) (script)
-pnpm -F @acme/expo deploy:eas:ios # Build with EAS (iOS) (script)
+pnpm -F @acme/expo deploy:android # Build with EAS (Android) (script)
+pnpm -F @acme/expo deploy:ios     # Build with EAS (iOS) (script)
 pnpm -F @acme/expo deploy:tunnel  # Start with Expo tunnel
 ```
 
@@ -63,19 +62,13 @@ pnpm deploy:web:ngrok             # Start web with ngrok tunnel (subpackage)
 ### Mobile Deployment
 ```bash
 pnpm deploy:mobile:local          # Start mobile development (subpackage)
-pnpm deploy:mobile:web            # Deploy mobile app (web)
 pnpm deploy:mobile:eas            # Deploy mobile app with EAS (subpackage)
-pnpm deploy:mobile:eas:android    # Deploy mobile app with EAS (Android) (subpackage)
-pnpm deploy:mobile:eas:ios        # Deploy mobile app with EAS (iOS) (subpackage)
+pnpm deploy:mobile:android        # Deploy mobile app with EAS (Android) (subpackage)
+pnpm deploy:mobile:ios            # Deploy mobile app with EAS (iOS) (subpackage)
 pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel (subpackage)
 ```
 
-### Database & Auth
-```bash
-pnpm deploy:db                    # Push database schema
-pnpm deploy:db:studio             # Open Drizzle Studio
-pnpm deploy:auth:generate         # Generate auth schema
-```
+
 
 ### Complete Deployment
 ```bash
@@ -143,17 +136,7 @@ pnpm deploy:web:ngrok
 pnpm deploy:mobile:tunnel
 ```
 
-### Database & Auth Setup
-```bash
-# Push database schema
-pnpm deploy:db
 
-# Generate auth schema
-pnpm deploy:auth:generate
-
-# Open database studio
-pnpm deploy:db:studio
-```
 
 ## 🔧 Environment Setup
 

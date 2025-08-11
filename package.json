@@ -32,14 +32,10 @@
     "deploy:mobile:local": "pnpm -F @acme/expo deploy:local",
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
-    "deploy:mobile:web": "pnpm -F @acme/expo deploy:web",
     "deploy:mobile:eas": "pnpm -F @acme/expo deploy:eas",
-    "deploy:mobile:eas:android": "pnpm -F @acme/expo deploy:eas:android",
-    "deploy:mobile:eas:ios": "pnpm -F @acme/expo deploy:eas:ios",
+    "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
+    "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
     "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",
-    "deploy:db": "pnpm -F @acme/db push",
-    "deploy:db:studio": "pnpm -F @acme/db studio",
-    "deploy:auth:generate": "pnpm -F @acme/auth generate",
     "deploy:all": "./scripts/deploy.sh all:web"
   },
   "devDependencies": {
