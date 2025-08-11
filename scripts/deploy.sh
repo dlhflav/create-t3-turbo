@@ -37,11 +37,11 @@ clean_logs() {
             log_success "Web logs cleaned"
             ;;
         "mobile"|"expo")
-            rm -f mobile_output.log eas_build.log
+            rm -f mobile_output.log
             log_success "Mobile logs cleaned"
             ;;
         "all")
-            rm -f web_output.log web_tunnel_output.log mobile_output.log eas_build.log
+            rm -f web_output.log web_tunnel_output.log mobile_output.log
             log_success "All logs cleaned"
             ;;
         *)
@@ -757,12 +757,6 @@ show_status() {
         log_info "Recent mobile output:"
         tail -10 mobile_output.log
     fi
-    
-    if [ -f "eas_build.log" ]; then
-        echo ""
-        log_info "Recent EAS build output:"
-        tail -10 eas_build.log
-    fi
 }
 
 # Stop development servers
@@ -964,7 +958,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
+        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
         ;;
 
     
@@ -975,7 +969,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for all platforms..."
-        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
+        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
         log_success "EAS build for all platforms completed!"
         ;;
     "mobile:android")
@@ -984,7 +978,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for Android..."
-        pnpm -F @acme/expo build:android 2>&1 | tee eas_build.log
+        pnpm -F @acme/expo build:android 2>&1 | tee mobile_output.log
         log_success "EAS build for Android completed!"
         ;;
     "mobile:ios")
@@ -993,7 +987,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for iOS..."
-        pnpm -F @acme/expo build:ios 2>&1 | tee eas_build.log
+        pnpm -F @acme/expo build:ios 2>&1 | tee mobile_output.log
         log_success "EAS build for iOS completed!"
         ;;
     
@@ -1033,7 +1027,7 @@ case "${1:-help}" in
         log_step "Starting complete build (Vercel + EAS)..."
         deploy_vercel
         log_step "Starting EAS build for all platforms..."
-        pnpm -F @acme/expo build 2>&1 | tee eas_build.log
+        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
         log_success "Complete build (Vercel + EAS) finished!"
         ;;
     

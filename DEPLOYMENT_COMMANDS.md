@@ -99,6 +99,7 @@ pnpm deploy:all                   # Complete build (script: Vercel + EAS)
 ./scripts/deploy.sh all:tunnel    # Complete tunnel development
 ./scripts/deploy.sh all:build     # Complete build (Vercel + EAS)
 ```
+```
 
 # Stop commands
 ./scripts/deploy.sh stop:web      # Stop web servers
@@ -149,6 +150,21 @@ pnpm deploy:mobile:tunnel
 ```
 
 
+
+## 📝 Log Files
+
+The deploy script creates the following log files:
+
+```bash
+web_output.log          # Next.js development + Vercel deployment output
+web_tunnel_output.log   # Local tunnel output + password
+mobile_output.log       # Expo development + EAS build output
+```
+
+### Log File Locations
+- All log files are created in the project root directory
+- Logs are cleaned automatically when starting new deployments
+- Recent log output is displayed in the status command
 
 ## 🔧 Environment Setup
 
