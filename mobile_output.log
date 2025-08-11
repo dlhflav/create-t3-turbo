@@ -24,3 +24,7 @@ The following packages should be updated for best compatibility with the install
 Your project may not work correctly until you install the expected versions of the packages.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
+Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android apps/expo/index.ts ▓▓▓▓▓▓▓░░░░░░░░░ 45.2% (425/632)
+Android apps/expo/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.7% ( 992/1084)
+Android Bundled 10143ms apps/expo/index.ts (1380 modules)
