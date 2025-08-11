@@ -12,9 +12,10 @@ pnpm -F @acme/nextjs build        # Build for production
 pnpm -F @acme/nextjs start        # Start production server
 
 # Deployment
-pnpm -F @acme/nextjs deploy       # Build and start locally
 pnpm -F @acme/nextjs deploy:vercel # Build and deploy to Vercel
 pnpm -F @acme/nextjs deploy:local # Build and start locally
+pnpm -F @acme/nextjs deploy:tunnel # Start with local tunnel
+pnpm -F @acme/nextjs deploy:ngrok # Start with ngrok tunnel
 ```
 
 ### Mobile App (@acme/expo)
@@ -26,25 +27,13 @@ pnpm -F @acme/expo dev:android    # Start for Android
 pnpm -F @acme/expo dev:ios        # Start for iOS
 
 # Deployment
-pnpm -F @acme/expo deploy         # Build for Android and iOS
 pnpm -F @acme/expo deploy:android # Build for Android only
 pnpm -F @acme/expo deploy:ios     # Build for iOS only
 pnpm -F @acme/expo deploy:web     # Build for web
 pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms)
 pnpm -F @acme/expo deploy:eas:android # Build with EAS (Android)
 pnpm -F @acme/expo deploy:eas:ios # Build with EAS (iOS)
-```
-
-### API Package (@acme/api)
-```bash
-# Development
-pnpm -F @acme/api dev             # Compile TypeScript
-pnpm -F @acme/api build           # Build package
-
-# Deployment
-pnpm -F @acme/api deploy          # Build and publish to npm
-pnpm -F @acme/api deploy:dry-run  # Test publish without publishing
-pnpm -F @acme/api deploy:local    # Build only (local use)
+pnpm -F @acme/expo deploy:tunnel  # Start with Expo tunnel
 ```
 
 ### Database Package (@acme/db)
@@ -56,35 +45,8 @@ pnpm -F @acme/db push             # Push schema to database
 pnpm -F @acme/db studio           # Open Drizzle Studio
 
 # Deployment
-pnpm -F @acme/db deploy           # Build and publish to npm
-pnpm -F @acme/db deploy:dry-run   # Test publish without publishing
-pnpm -F @acme/db deploy:local     # Build only (local use)
 pnpm -F @acme/db deploy:db        # Push schema to database
 pnpm -F @acme/db deploy:db:studio # Open Drizzle Studio
-```
-
-### UI Package (@acme/ui)
-```bash
-# Development
-pnpm -F @acme/ui build            # Build package
-pnpm -F @acme/ui ui-add           # Add new UI component
-
-# Deployment
-pnpm -F @acme/ui deploy           # Build and publish to npm
-pnpm -F @acme/ui deploy:dry-run   # Test publish without publishing
-pnpm -F @acme/ui deploy:local     # Build only (local use)
-```
-
-### Validators Package (@acme/validators)
-```bash
-# Development
-pnpm -F @acme/validators dev      # Compile TypeScript
-pnpm -F @acme/validators build    # Build package
-
-# Deployment
-pnpm -F @acme/validators deploy   # Build and publish to npm
-pnpm -F @acme/validators deploy:dry-run # Test publish without publishing
-pnpm -F @acme/validators deploy:local # Build only (local use)
 ```
 
 ### Auth Package (@acme/auth)
@@ -94,9 +56,6 @@ pnpm -F @acme/auth build          # Build package
 pnpm -F @acme/auth generate       # Generate auth schema
 
 # Deployment
-pnpm -F @acme/auth deploy         # Build and publish to npm
-pnpm -F @acme/auth deploy:dry-run # Test publish without publishing
-pnpm -F @acme/auth deploy:local   # Build only (local use)
 pnpm -F @acme/auth deploy:generate # Generate auth schema
 ```
 
@@ -104,30 +63,34 @@ pnpm -F @acme/auth deploy:generate # Generate auth schema
 
 ### Web Deployment
 ```bash
-pnpm deploy                       # Deploy web app (default)
-pnpm deploy:web                   # Deploy web app
+pnpm deploy                       # Start web development (default)
+pnpm deploy:web                   # Start web development
 pnpm deploy:web:vercel            # Deploy web app to Vercel
 pnpm deploy:web:local             # Deploy web app locally
+pnpm deploy:web:tunnel            # Start web with local tunnel
+pnpm deploy:web:ngrok             # Start web with ngrok tunnel
 ```
 
 ### Mobile Deployment
 ```bash
-pnpm deploy:mobile                # Deploy mobile app (all platforms)
+pnpm deploy:mobile                # Start mobile development
 pnpm deploy:mobile:android        # Deploy mobile app (Android)
 pnpm deploy:mobile:ios            # Deploy mobile app (iOS)
 pnpm deploy:mobile:web            # Deploy mobile app (web)
 pnpm deploy:mobile:eas            # Deploy mobile app with EAS
+pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel
 ```
 
-### Package Deployment
+### Database & Auth
 ```bash
-pnpm deploy:packages              # Deploy all packages to npm
-pnpm deploy:packages:dry-run      # Test deploy all packages
+pnpm deploy:db                    # Push database schema
+pnpm deploy:db:studio             # Open Drizzle Studio
+pnpm deploy:auth:generate         # Generate auth schema
 ```
 
 ### Complete Deployment
 ```bash
-pnpm deploy:all                   # Deploy everything (packages + web + mobile)
+pnpm deploy:all                   # Complete web deployment (dev + tunnel + deploy)
 ```
 
 ## 🛠️ Script Commands
@@ -175,23 +138,32 @@ pnpm deploy:web:vercel
 # Deploy mobile with EAS
 pnpm deploy:mobile:eas
 
-# Deploy all packages
-pnpm deploy:packages
-
 # Deploy everything
 pnpm deploy:all
 ```
 
-### Package Publishing
+### Development with Tunnels
 ```bash
-# Test publish (dry run)
-pnpm -F @acme/ui deploy:dry-run
+# Start web with local tunnel
+pnpm deploy:web:tunnel
 
-# Publish package
-pnpm -F @acme/ui deploy
+# Start web with ngrok tunnel
+pnpm deploy:web:ngrok
 
-# Publish all packages
-pnpm deploy:packages
+# Start mobile with Expo tunnel
+pnpm deploy:mobile:tunnel
+```
+
+### Database & Auth Setup
+```bash
+# Push database schema
+pnpm deploy:db
+
+# Generate auth schema
+pnpm deploy:auth:generate
+
+# Open database studio
+pnpm deploy:db:studio
 ```
 
 ## 🔧 Environment Setup
