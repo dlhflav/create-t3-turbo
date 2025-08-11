@@ -27,3 +27,7 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  GET / 200 in 60243ms
  GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 62827ms
  GET / 200 in 60119ms
+ GET / 200 in 185091ms
+ GET / 200 in 60124ms
+ GET / 200 in 60114ms
+ ✓ Compiled in 71ms
