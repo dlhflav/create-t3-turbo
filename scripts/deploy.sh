@@ -575,38 +575,7 @@ get_process_names() {
     fi
 }
 
-# Clean zombie processes
-clean_zombies() {
-    local zombie_count=$(ps aux | grep -E "\[.*\] <defunct>" | grep -v grep | wc -l)
-    if [ "$zombie_count" -gt 0 ]; then
-        log_step "Found $zombie_count zombie processes, cleaning up..."
-        
-        # Get all zombie PIDs
-        local zombie_pids=$(ps aux | grep -E "\[.*\] <defunct>" | grep -v grep | awk '{print $2}' | tr '\n' ' ')
-        
-        if [ -n "$zombie_pids" ]; then
-            log_info "Attempting to kill zombie processes: $zombie_pids"
-            
-            # Try to kill the zombie processes directly
-            for pid in $zombie_pids; do
-                kill -9 "$pid" 2>/dev/null || true
-            done
-            
-            # Wait a moment and check if zombies are gone
-            sleep 2
-            local remaining_zombies=$(ps aux | grep -E "\[.*\] <defunct>" | grep -v grep | wc -l)
-            
-            if [ "$remaining_zombies" -eq 0 ]; then
-                log_success "All zombie processes cleaned up"
-            else
-                log_warning "Some zombie processes remain ($remaining_zombies)"
-                log_info "Note: Orphaned zombies with PID 1 as parent may persist until system restart"
-            fi
-        fi
-    else
-        log_info "No zombie processes found"
-    fi
-}
+
 
 # Show status
 show_status() {
@@ -844,7 +813,6 @@ show_usage() {
     echo "  install:env:web   - Install environment file for web"
     echo "  install:env:mobile - Install environment file for mobile"
     echo "  install:ngrok - Install and configure ngrok"
-    echo "  clean:zombies - Clean up zombie processes"
     echo "  help       - Show this help"
     echo ""
     echo -e "${YELLOW}Prerequisites:${NC}"
@@ -1047,9 +1015,6 @@ case "${1:-help}" in
     "install:ngrok")
         clean_logs "all"
         install_ngrok
-        ;;
-    "clean:zombies")
-        clean_zombies
         ;;
     "help"|*)
         show_usage
