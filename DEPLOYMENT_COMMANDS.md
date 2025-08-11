@@ -33,7 +33,7 @@ pnpm -F @acme/expo build:ios      # EAS build for iOS
 
 # Deployment
 pnpm -F @acme/expo deploy:local   # Start development with script
-pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms) (script)
+pnpm -F @acme/expo deploy:all     # Build with EAS (all platforms) (script)
 pnpm -F @acme/expo deploy:android # Build with EAS (Android) (script)
 pnpm -F @acme/expo deploy:ios     # Build with EAS (iOS) (script)
 pnpm -F @acme/expo deploy:tunnel  # Start with Expo tunnel
@@ -67,7 +67,7 @@ pnpm deploy:web:ngrok             # Start web with ngrok tunnel (subpackage)
 ### Mobile Deployment
 ```bash
 pnpm deploy:mobile:local          # Start mobile development (subpackage)
-pnpm deploy:mobile:eas            # Deploy mobile app with EAS (subpackage)
+pnpm deploy:mobile:all            # Deploy mobile app with EAS (subpackage)
 pnpm deploy:mobile:android        # Deploy mobile app with EAS (Android) (subpackage)
 pnpm deploy:mobile:ios            # Deploy mobile app with EAS (iOS) (subpackage)
 pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel (subpackage)

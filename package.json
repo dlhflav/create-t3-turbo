@@ -32,7 +32,7 @@
     "deploy:mobile:local": "pnpm -F @acme/expo deploy:local",
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
-    "deploy:mobile:eas": "pnpm -F @acme/expo deploy:eas",
+    "deploy:mobile:all": "pnpm -F @acme/expo deploy:all",
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",
     "deploy:mobile:ios": "pnpm -F @acme/expo deploy:ios",
           "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",

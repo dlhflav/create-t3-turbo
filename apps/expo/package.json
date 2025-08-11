@@ -14,7 +14,7 @@
     "build:ios": "eas build --platform ios",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "deploy:eas": "../../scripts/deploy.sh mobile:all",
+    "deploy:all": "../../scripts/deploy.sh mobile:all",
     "deploy:android": "../../scripts/deploy.sh mobile:android",
     "deploy:ios": "../../scripts/deploy.sh mobile:ios",
     "deploy:local": "../../scripts/deploy.sh mobile:dev",

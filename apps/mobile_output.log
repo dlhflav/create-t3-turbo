@@ -1,5 +1,20 @@
-Resolved "production" environment for the build. Learn more: https://docs.expo.dev/eas/environment-variables/#setting-the-environment-for-your-builds
-No environment variables with visibility "Plain text" and "Sensitive" found for the "production" environment on EAS.
+Scope: all 13 workspace projects
+../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
+../..                                    | -101 ----------
+../..                                    | Progress: resolved 0, reused 101, downloaded 0, added 0, done
 
-[?25l[2K[1G[36m?[39m [1miOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations[22m [90m›[39m [90m(Y/n)[39m[2K[1G[2K[1G[31m✖[39m [1miOS app only uses standard/exempt encryption? Learn more: https://developer.apple.com/documentation/Security/complying-with-encryption-export-regulations[22m [90m…[39m yes
-[?25h
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @prisma/client, @prisma/engines, better-sqlite3,    │
+│   bufferutil, core-js-pure, prisma, sharp, utf-8-validate.                   │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+../.. postinstall$ pnpm lint:ws
+../.. postinstall: > create-t3-turbo@ lint:ws /workspace
+../.. postinstall: > pnpm dlx sherif@latest
+../.. postinstall: ✓ No issues found
+../.. postinstall: Done
+Done in 2.1s using pnpm v10.11.1
