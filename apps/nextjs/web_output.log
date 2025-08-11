@@ -11,15 +11,10 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
- ✓ Ready in 1003ms
+ ✓ Ready in 965ms
  ○ Compiling / ...
  ✓ Compiled / in 4s
-[TRPC] post.all took 539ms to execute
+[TRPC] post.all took 797ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -73,5 +68,4 @@ params: 10
     }
   }
 }
- GET / 200 in 5055ms
-[?25h
+ GET / 200 in 5313ms

@@ -1,5 +1,8 @@
 Scope: all 13 workspace projects
-../..                                    |    +1469 ++++++++++++++++++++++++++++
+../..                                    | Progress: resolved 0, reused 0, downloaded 1, added 0
+../..                                    | -101 ----------
+../..                                    | Progress: resolved 0, reused 0, downloaded 19, added 0
+../..                                    | Progress: resolved 0, reused 0, downloaded 21, added 0, done
 
    ╭──────────────────────────────────────────╮
    │                                          │
@@ -9,50 +12,10 @@ Scope: all 13 workspace projects
    │                                          │
    ╰──────────────────────────────────────────╯
 
-../..                                    | Progress: resolved 0, reused 0, downloaded 1, added 0
-../..                                    | Progress: resolved 0, reused 0, downloaded 100, added 46
-../..                                    | Progress: resolved 0, reused 0, downloaded 191, added 87
-../..                                    | Progress: resolved 0, reused 0, downloaded 285, added 135
-../..                                    | Progress: resolved 0, reused 0, downloaded 526, added 564
-../..                                    | Progress: resolved 0, reused 0, downloaded 715, added 718
-../..                                    | Progress: resolved 0, reused 0, downloaded 937, added 975
-../..                                    | Progress: resolved 0, reused 0, downloaded 1322, added 1407
-../..                                    | Progress: resolved 0, reused 0, downloaded 1371, added 1468
-../..                                    | Progress: resolved 0, reused 0, downloaded 1372, added 1469, done
-.../core-utils/node_modules/esbuild postinstall$ node install.js
-../../node_modules/esbuild postinstall$ node install.js
-.../core-utils/node_modules/esbuild postinstall: Done
-../../node_modules/esbuild postinstall: Done
-
-dependencies:
-+ @acme/api 0.1.0 <- ../../packages/api
-+ @acme/auth 0.1.0 <- ../../packages/auth
-+ @acme/db 0.1.0 <- ../../packages/db
-+ @acme/ui 0.1.0 <- ../../packages/ui
-+ @acme/validators 0.1.0 <- ../../packages/validators
-
-devDependencies:
-+ @acme/eslint-config 0.3.0 <- ../../tooling/eslint
-+ @acme/prettier-config 0.1.0 <- ../../tooling/prettier
-+ @acme/tailwind-config 0.1.0 <- ../../tooling/tailwind
-+ @acme/tsconfig 0.1.0 <- ../../tooling/typescript
-
-╭ Warning ─────────────────────────────────────────────────────────────────────╮
-│                                                                              │
-│   Ignored build scripts: @prisma/client, @prisma/engines, better-sqlite3,    │
-│   bufferutil, core-js-pure, prisma, sharp, utf-8-validate.                   │
-│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
-│   to run scripts.                                                            │
-│                                                                              │
-╰──────────────────────────────────────────────────────────────────────────────╯
 
 ../.. postinstall$ pnpm lint:ws
 ../.. postinstall: > create-t3-turbo@ lint:ws /workspace
 ../.. postinstall: > pnpm dlx sherif@latest
-../.. postinstall: Progress: resolved 1, reused 0, downloaded 0, added 0
-../.. postinstall: Packages: +2
-../.. postinstall: ++
-../.. postinstall: Progress: resolved 7, reused 0, downloaded 2, added 2, done
 ../.. postinstall: ✓ No issues found
 ../.. postinstall: Done
-Done in 4d 5h 8m 29.8s using pnpm v10.11.1
+Done in 6.2s using pnpm v10.11.1
