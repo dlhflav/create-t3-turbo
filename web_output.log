@@ -13,3 +13,147 @@
  ✓ Starting...
  ✓ Ready in 968ms
  ○ Compiling / ...
+ ✓ Compiled / in 4.6s
+🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Database query starting...
+[TRPC] post.all took 291ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '3684424616',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Database query starting...
+[TRPC] post.all took 470ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '3684424616',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+ GET / 200 in 545ms
+ ○ Compiling /api/trpc/[trpc] ...
+ ✓ Compiled /api/trpc/[trpc] in 2s
+🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Database query starting...
+[TRPC] post.all took 472ms to execute
+>>> tRPC Error on 'post.all' Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+    at async handler (src/app/api/trpc/[trpc]/route.ts:28:19)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+      at async handler (src/app/api/trpc/[trpc]/route.ts:28:19)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+ GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 500 in 3433ms
+🔍 [POST.ALL] Current POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 [POST.ALL] Database query starting...
+[TRPC] post.all took 226ms to execute
+>>> tRPC Error on 'post.all' Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+    at async handler (src/app/api/trpc/[trpc]/route.ts:28:19)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+      at async handler (src/app/api/trpc/[trpc]/route.ts:28:19)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+ GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 500 in 428ms
+🔍 Database connection - POSTGRES_URL: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
+🔍 Database connection - POSTGRES_URL_NON_POOLED: postgresql://postgres.usqbxjcwlwgswsserqvg:x7@Ycw6&MFnnwV!@aws-1-eu-west-2.pooler.supabase.com:5432/postgres
