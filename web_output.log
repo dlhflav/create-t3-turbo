@@ -412,3 +412,4 @@ turbo 2.5.4
 @acme/nextjs:dev: }
 @acme/nextjs:dev:  GET / 200 in 724ms
 @acme/nextjs:dev: [?25h
+ ELIFECYCLE  Command failed.
