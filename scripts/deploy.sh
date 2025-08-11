@@ -73,16 +73,26 @@ install_packages() {
             ;;
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
-            cd apps/expo
-            pnpm install 2>&1 | tee ../../mobile_output.log
-            if [ $? -eq 0 ]; then
-                log_success "Expo dependencies installed"
-            else
-                log_error "Failed to install Expo dependencies"
+            if [ -d "apps/expo" ]; then
+                cd apps/expo
+                pnpm install 2>&1 | tee ../../mobile_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Expo dependencies installed"
+                else
+                    log_error "Failed to install Expo dependencies"
+                    cd ../..
+                    return 1
+                fi
                 cd ../..
-                return 1
+            else
+                pnpm install 2>&1 | tee ../mobile_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Expo dependencies installed"
+                else
+                    log_error "Failed to install Expo dependencies"
+                    return 1
+                fi
             fi
-            cd ../..
             ;;
         *)
             log_error "Unknown app type: $app_type"
@@ -812,6 +822,9 @@ show_usage() {
     echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
     echo "  mobile:build  - Build mobile app (development)"
     echo "  mobile:prod   - Build mobile app (production)"
+    echo "  mobile:deploy - EAS build for all platforms"
+    echo "  mobile:deploy:android - EAS build for Android"
+    echo "  mobile:deploy:ios - EAS build for iOS"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
     echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
@@ -920,6 +933,44 @@ case "${1:-help}" in
         install_env_file "mobile"
         install_packages "mobile"
         cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
+        ;;
+    
+    # EAS deployments
+    "mobile:deploy")
+        clean_logs "mobile"
+        install_env_file "mobile"
+        install_packages "mobile"
+        log_step "Starting EAS build for all platforms..."
+        if [ -d "apps/expo" ]; then
+            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../mobile_output.log && cd ../..
+        else
+            npx eas build --platform all 2>&1 | tee ../mobile_output.log
+        fi
+        log_success "EAS build for all platforms completed!"
+        ;;
+    "mobile:deploy:android")
+        clean_logs "mobile"
+        install_env_file "mobile"
+        install_packages "mobile"
+        log_step "Starting EAS build for Android..."
+        if [ -d "apps/expo" ]; then
+            cd apps/expo && npx eas build --platform android 2>&1 | tee ../../mobile_output.log && cd ../..
+        else
+            npx eas build --platform android 2>&1 | tee ../mobile_output.log
+        fi
+        log_success "EAS build for Android completed!"
+        ;;
+    "mobile:deploy:ios")
+        clean_logs "mobile"
+        install_env_file "mobile"
+        install_packages "mobile"
+        log_step "Starting EAS build for iOS..."
+        if [ -d "apps/expo" ]; then
+            cd apps/expo && npx eas build --platform ios 2>&1 | tee ../../mobile_output.log && cd ../..
+        else
+            npx eas build --platform ios 2>&1 | tee ../mobile_output.log
+        fi
+        log_success "EAS build for iOS completed!"
         ;;
     
     # Complete deployments

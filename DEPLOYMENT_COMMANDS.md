@@ -28,12 +28,10 @@ pnpm -F @acme/expo dev:ios        # Start for iOS
 
 # Deployment
 pnpm -F @acme/expo deploy:local   # Start development with script
-pnpm -F @acme/expo deploy:android # Build for Android only
-pnpm -F @acme/expo deploy:ios     # Build for iOS only
 pnpm -F @acme/expo deploy:web     # Build for web
-pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms)
-pnpm -F @acme/expo deploy:eas:android # Build with EAS (Android)
-pnpm -F @acme/expo deploy:eas:ios # Build with EAS (iOS)
+pnpm -F @acme/expo deploy:eas     # Build with EAS (all platforms) (script)
+pnpm -F @acme/expo deploy:eas:android # Build with EAS (Android) (script)
+pnpm -F @acme/expo deploy:eas:ios # Build with EAS (iOS) (script)
 pnpm -F @acme/expo deploy:tunnel  # Start with Expo tunnel
 ```
 
@@ -65,10 +63,10 @@ pnpm deploy:web:ngrok             # Start web with ngrok tunnel (subpackage)
 ### Mobile Deployment
 ```bash
 pnpm deploy:mobile:local          # Start mobile development (subpackage)
-pnpm deploy:mobile:android        # Deploy mobile app (Android)
-pnpm deploy:mobile:ios            # Deploy mobile app (iOS)
 pnpm deploy:mobile:web            # Deploy mobile app (web)
-pnpm deploy:mobile:eas            # Deploy mobile app with EAS
+pnpm deploy:mobile:eas            # Deploy mobile app with EAS (subpackage)
+pnpm deploy:mobile:eas:android    # Deploy mobile app with EAS (Android) (subpackage)
+pnpm deploy:mobile:eas:ios        # Deploy mobile app with EAS (iOS) (subpackage)
 pnpm deploy:mobile:tunnel         # Start mobile with Expo tunnel (subpackage)
 ```
 
