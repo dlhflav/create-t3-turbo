@@ -1,0 +1,240 @@
+
+> @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+> pnpm with-env next dev --turbopack
+
+
+> @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+> dotenv -e ../../.env -- next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.30.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 917ms
+ ○ Compiling / ...
+ ⚠ Cross origin request detected from dlhflav-t3-create-dev.loca.lt to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ✓ Compiled / in 5.8s
+[TRPC] post.all took 470ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '2648750913',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET / 200 in 6743ms
+[TRPC] post.all took 821ms to execute
+>>> tRPC Error on 'post.all' Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 5857ms
+[TRPC] post.all took 977ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '2648750913',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET / 200 in 4731ms
+[TRPC] post.all took 485ms to execute
+>>> tRPC Error on 'post.all' Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 590ms
+ ○ Compiling /api/auth/[...all] ...
+ ✓ Compiled /api/auth/[...all] in 1437ms
+[2m2025-08-11T23:40:50.750Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
+ GET /api/auth/callback/discord?code=GBHncDNvXNmZns2qUt5dTTYfPnDHnj 302 in 2009ms
