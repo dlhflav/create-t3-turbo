@@ -1,10 +1,12 @@
+
+> @acme/expo@0.1.0 dev /workspace/apps/expo
+> expo start
+
 Starting project at /workspace/apps/expo
 Using src/app as the root directory for Expo Router.
 Starting Metro Bundler
-Tunnel connected.
-Tunnel ready.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
-Tunnel connection has been closed. This is often related to intermittent connection problems with the Ngrok servers. Restart the dev server to try connecting to Ngrok again.
-Check the Ngrok status page for outages: https://status.ngrok.com/
-Tunnel connected.
+/workspace/apps/expo:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 dev: `expo start`
+Command failed with signal "SIGTERM"

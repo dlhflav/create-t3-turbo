@@ -27,6 +27,7 @@ pnpm -F @acme/expo dev:android    # Start for Android
 pnpm -F @acme/expo dev:ios        # Start for iOS
 
 # Deployment
+pnpm -F @acme/expo deploy:local   # Start development with script
 pnpm -F @acme/expo deploy:android # Build for Android only
 pnpm -F @acme/expo deploy:ios     # Build for iOS only
 pnpm -F @acme/expo deploy:web     # Build for web
