@@ -28,3 +28,6 @@ Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0
 Android apps/expo/index.ts ▓▓▓▓▓▓▓░░░░░░░░░ 45.2% (425/632)
 Android apps/expo/index.ts ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░ 83.7% ( 992/1084)
 Android Bundled 10143ms apps/expo/index.ts (1380 modules)
+Tunnel connection has been closed. This is often related to intermittent connection problems with the Ngrok servers. Restart the dev server to try connecting to Ngrok again.
+Check the Ngrok status page for outages: https://status.ngrok.com/
+Tunnel connected.
