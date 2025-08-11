@@ -1,146 +1,71 @@
 
-> create-t3-turbo@ dev:next /workspace
-> turbo watch dev -F @acme/nextjs...
+> @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+> pnpm with-env next dev --turbopack
 
-turbo 2.5.4
 
-• Packages in scope: @acme/api, @acme/auth, @acme/db, @acme/eslint-config, @acme/nextjs, @acme/prettier-config, @acme/tailwind-config, @acme/tsconfig, @acme/ui, @acme/validators
-• Running dev in 10 packages
-• Remote caching disabled
-@acme/nextjs:dev: cache bypass, force executing 1d64950b12a71f65
-@acme/validators:dev: cache bypass, force executing 67981f3814a268ba
-@acme/db:dev: cache bypass, force executing 20a090fa52794c0b
-@acme/nextjs:dev: 
-@acme/nextjs:dev: > @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
-@acme/nextjs:dev: > pnpm with-env next dev --turbopack
-@acme/nextjs:dev: 
-@acme/nextjs:dev: 
-@acme/nextjs:dev: > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
-@acme/nextjs:dev: > dotenv -e ../../.env -- next dev --turbopack
-@acme/nextjs:dev: 
-@acme/nextjs:dev:    ▲ Next.js 15.3.3 (Turbopack)
-@acme/nextjs:dev:    - Local:        http://localhost:3000
-@acme/nextjs:dev:    - Network:      http://172.30.0.2:3000
-@acme/nextjs:dev: 
-@acme/nextjs:dev:  ✓ Starting...
-@acme/nextjs:dev:  ✓ Ready in 1095ms
-@acme/nextjs:dev:  ○ Compiling / ...
-@acme/nextjs:dev:  ✓ Compiled / in 4.8s
-@acme/nextjs:dev: [TRPC] post.all took 859ms to execute
-@acme/nextjs:dev:  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
-@acme/nextjs:dev: params: 10
-@acme/nextjs:dev:     at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:   89 |   }
-@acme/nextjs:dev:   90 |
-@acme/nextjs:dev: > 91 |   const result = await next();
-@acme/nextjs:dev:      |                 ^
-@acme/nextjs:dev:   92 |
-@acme/nextjs:dev:   93 |   const end = Date.now();
-@acme/nextjs:dev:   94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:   code: 'INTERNAL_SERVER_ERROR',
-@acme/nextjs:dev:   digest: '2343717955',
-@acme/nextjs:dev:   [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
-@acme/nextjs:dev:   params: 10
-@acme/nextjs:dev:       at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:     89 |   }
-@acme/nextjs:dev:     90 |
-@acme/nextjs:dev:   > 91 |   const result = await next();
-@acme/nextjs:dev:        |                 ^
-@acme/nextjs:dev:     92 |
-@acme/nextjs:dev:     93 |   const end = Date.now();
-@acme/nextjs:dev:     94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:     query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
-@acme/nextjs:dev:     params: [ 10 ],
-@acme/nextjs:dev:     [cause]: error: Tenant or user not found
-@acme/nextjs:dev:         at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:       89 |   }
-@acme/nextjs:dev:       90 |
-@acme/nextjs:dev:     > 91 |   const result = await next();
-@acme/nextjs:dev:          |                 ^
-@acme/nextjs:dev:       92 |
-@acme/nextjs:dev:       93 |   const end = Date.now();
-@acme/nextjs:dev:       94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:       length: 52,
-@acme/nextjs:dev:       severity: 'FATAL',
-@acme/nextjs:dev:       code: 'XX000',
-@acme/nextjs:dev:       detail: undefined,
-@acme/nextjs:dev:       hint: undefined,
-@acme/nextjs:dev:       position: undefined,
-@acme/nextjs:dev:       internalPosition: undefined,
-@acme/nextjs:dev:       internalQuery: undefined,
-@acme/nextjs:dev:       where: undefined,
-@acme/nextjs:dev:       schema: undefined,
-@acme/nextjs:dev:       table: undefined,
-@acme/nextjs:dev:       column: undefined,
-@acme/nextjs:dev:       dataType: undefined,
-@acme/nextjs:dev:       constraint: undefined,
-@acme/nextjs:dev:       file: undefined,
-@acme/nextjs:dev:       line: undefined,
-@acme/nextjs:dev:       routine: undefined
-@acme/nextjs:dev:     }
-@acme/nextjs:dev:   }
-@acme/nextjs:dev: }
-@acme/nextjs:dev:  GET / 200 in 6255ms
-@acme/nextjs:dev: [TRPC] post.all took 698ms to execute
-@acme/nextjs:dev:  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
-@acme/nextjs:dev: params: 10
-@acme/nextjs:dev:     at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:   89 |   }
-@acme/nextjs:dev:   90 |
-@acme/nextjs:dev: > 91 |   const result = await next();
-@acme/nextjs:dev:      |                 ^
-@acme/nextjs:dev:   92 |
-@acme/nextjs:dev:   93 |   const end = Date.now();
-@acme/nextjs:dev:   94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:   code: 'INTERNAL_SERVER_ERROR',
-@acme/nextjs:dev:   digest: '2343717955',
-@acme/nextjs:dev:   [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
-@acme/nextjs:dev:   params: 10
-@acme/nextjs:dev:       at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:     89 |   }
-@acme/nextjs:dev:     90 |
-@acme/nextjs:dev:   > 91 |   const result = await next();
-@acme/nextjs:dev:        |                 ^
-@acme/nextjs:dev:     92 |
-@acme/nextjs:dev:     93 |   const end = Date.now();
-@acme/nextjs:dev:     94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:     query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
-@acme/nextjs:dev:     params: [ 10 ],
-@acme/nextjs:dev:     [cause]: error: Tenant or user not found
-@acme/nextjs:dev:         at async (../../packages/api/src/trpc.ts:91:17)
-@acme/nextjs:dev:       89 |   }
-@acme/nextjs:dev:       90 |
-@acme/nextjs:dev:     > 91 |   const result = await next();
-@acme/nextjs:dev:          |                 ^
-@acme/nextjs:dev:       92 |
-@acme/nextjs:dev:       93 |   const end = Date.now();
-@acme/nextjs:dev:       94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
-@acme/nextjs:dev:       length: 52,
-@acme/nextjs:dev:       severity: 'FATAL',
-@acme/nextjs:dev:       code: 'XX000',
-@acme/nextjs:dev:       detail: undefined,
-@acme/nextjs:dev:       hint: undefined,
-@acme/nextjs:dev:       position: undefined,
-@acme/nextjs:dev:       internalPosition: undefined,
-@acme/nextjs:dev:       internalQuery: undefined,
-@acme/nextjs:dev:       where: undefined,
-@acme/nextjs:dev:       schema: undefined,
-@acme/nextjs:dev:       table: undefined,
-@acme/nextjs:dev:       column: undefined,
-@acme/nextjs:dev:       dataType: undefined,
-@acme/nextjs:dev:       constraint: undefined,
-@acme/nextjs:dev:       file: undefined,
-@acme/nextjs:dev:       line: undefined,
-@acme/nextjs:dev:       routine: undefined
-@acme/nextjs:dev:     }
-@acme/nextjs:dev:   }
-@acme/nextjs:dev: }
-@acme/nextjs:dev:  GET / 200 in 796ms
-@acme/validators:dev: cache bypass, force executing 0b1795ae51ef655d
-@acme/db:dev: cache bypass, force executing 8ccb01ab53fb7149
- WARNING  could not start shutdown, exiting
-@acme/nextjs:dev:  ELIFECYCLE  Command failed.
-@acme/nextjs:dev:  ELIFECYCLE  Command failed.
- ELIFECYCLE  Command failed.
-  x Watch interrupted due to signal.
+> @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+> dotenv -e ../../.env -- next dev --turbopack
 
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.30.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 948ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.1s
+[TRPC] post.all took 616ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '2343717955',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET / 200 in 5149ms

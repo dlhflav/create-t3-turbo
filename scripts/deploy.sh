@@ -428,7 +428,7 @@ start_web_dev() {
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
-    pnpm dev:next 2>&1 | tee web_output.log &
+    pnpm -F @acme/nextjs dev 2>&1 | tee web_output.log &
     WEB_PID=$!
     sleep 10
     
@@ -474,13 +474,10 @@ start_mobile_dev() {
     local use_tunnel=${1:-false}
     log_step "Starting mobile development server..."
     
-    cd apps/expo
-    
     if [ "$use_tunnel" = true ]; then
         log_success "Starting Expo server with tunnel"
-        npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
+        pnpm -F @acme/expo dev:tunnel 2>&1 | tee mobile_output.log &
         MOBILE_PID=$!
-        cd ../..
         sleep 15
         
         # Wait for tunnel to be established
@@ -491,9 +488,8 @@ start_mobile_dev() {
         log_info "Check the QR code or terminal output for tunnel URL"
     else
         log_success "Starting Expo server on http://localhost:8081"
-        npx expo start --lan 2>&1 | tee ../../mobile_output.log &
+        pnpm -F @acme/expo dev 2>&1 | tee mobile_output.log &
         MOBILE_PID=$!
-        cd ../..
         sleep 10
         
         if curl -s http://localhost:8081 > /dev/null 2>&1; then
@@ -680,17 +676,17 @@ show_status() {
     log_info "Process Details:"
     
     # Web processes
-    WEB_PIDS=$(get_pids "next dev|turbo.*nextjs")
+    WEB_PIDS=$(get_pids "next dev|pnpm -F @acme/nextjs")
     if [ -n "$WEB_PIDS" ]; then
         log_info "  Web processes:"
-        get_process_names "next dev|turbo.*nextjs"
+        get_process_names "next dev|pnpm -F @acme/nextjs"
     fi
     
     # Mobile processes
-    MOBILE_PIDS=$(get_pids "expo start")
+    MOBILE_PIDS=$(get_pids "expo start|pnpm -F @acme/expo")
     if [ -n "$MOBILE_PIDS" ]; then
         log_info "  Mobile processes:"
-        get_process_names "expo start"
+        get_process_names "expo start|pnpm -F @acme/expo"
     fi
     
     # Tunnel processes
@@ -735,9 +731,9 @@ stop_servers() {
                 log_warning "No Next.js development server found"
             fi
             
-            # Kill Turbo processes for web
-            if pkill -f "turbo.*nextjs" 2>/dev/null; then
-                log_success "Turbo web processes stopped"
+            # Kill pnpm processes for web
+            if pkill -f "pnpm -F @acme/nextjs" 2>/dev/null; then
+                log_success "pnpm web processes stopped"
             fi
             
             # Kill local tunnel processes
@@ -763,6 +759,11 @@ stop_servers() {
                 log_warning "No Expo development server found"
             fi
             
+            # Kill pnpm processes for mobile
+            if pkill -f "pnpm -F @acme/expo" 2>/dev/null; then
+                log_success "pnpm mobile processes stopped"
+            fi
+            
             # Kill ngrok processes for mobile
             if pkill -f "ngrok.*8081" 2>/dev/null; then
                 log_success "Ngrok tunnel for mobile stopped"
@@ -780,9 +781,9 @@ stop_servers() {
             # Stop mobile servers
             stop_servers "mobile"
             
-            # Kill any remaining Turbo processes
-            if pkill -f "turbo.*dev" 2>/dev/null; then
-                log_success "Remaining Turbo processes stopped"
+            # Kill any remaining pnpm processes
+            if pkill -f "pnpm -F" 2>/dev/null; then
+                log_success "Remaining pnpm processes stopped"
             fi
             
             log_success "All development servers stopped"
