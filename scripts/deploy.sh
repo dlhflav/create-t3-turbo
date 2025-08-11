@@ -415,6 +415,10 @@ start_local_tunnel() {
     
     log_step "Starting Local Tunnel on port $port..."
     
+    # Get local tunnel password before starting
+    LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+    log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
+    
     # Generate a random subdomain if not provided
     if [ -z "$subdomain" ]; then
         subdomain="t3-turbo-$(date +%s)"
@@ -694,9 +698,14 @@ show_status() {
             if [ -n "$LOCAL_TUNNEL_PID" ]; then
                 log_info "  - PID: $LOCAL_TUNNEL_PID"
             fi
-            # Get local tunnel password
-            LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
-            log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            # Display stored local tunnel password
+            if [ -n "$LOCAL_TUNNEL_PASSWORD" ]; then
+                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            else
+                # Fallback to fetching password if not stored
+                LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            fi
         else
             log_error "Local tunnel: Not running"
         fi

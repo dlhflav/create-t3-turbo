@@ -9,3 +9,6 @@ Tunnel connected.
 Tunnel ready.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
+/workspace/apps/expo:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 dev:tunnel: `expo start --tunnel`
+Command failed with signal "SIGTERM"
