@@ -6,6 +6,9 @@
 # Stable subdomain for Discord OAuth callback
 # This should be unique and not conflict with other users
 # Example: "my-app-discord-auth-2024"
+# 
+# Note: You can also set TUNNEL_SUBDOMAIN in your .env file
+# which will take precedence over this setting
 export DISCORD_AUTH_SUBDOMAIN="your-app-discord-auth"
 
 # Local port for the Next.js development server

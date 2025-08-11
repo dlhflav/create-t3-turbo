@@ -10,7 +10,27 @@ This setup allows you to develop Discord OAuth authentication locally while main
 
 ## 🚀 Quick Start
 
-### Option 1: Using Discord Auth Script (Recommended)
+### Option 1: Using Environment Variable (Recommended)
+
+#### 1. Set Your Tunnel Subdomain
+
+Add to your `.env` file:
+
+```bash
+# Set your custom subdomain for tunnels
+TUNNEL_SUBDOMAIN="my-app-oauth-2024"
+```
+
+#### 2. Start Development Tunnel
+
+```bash
+# This will automatically use your TUNNEL_SUBDOMAIN
+pnpm dev:discord-auth
+# or
+pnpm deploy:web:tunnel
+```
+
+### Option 2: Using Discord Auth Config File
 
 #### 1. Configure Your Tunnel
 
@@ -27,7 +47,7 @@ export DISCORD_AUTH_SUBDOMAIN="my-app-discord-auth-2024"
 pnpm dev:discord-auth
 ```
 
-### Option 2: Using Main Deploy Script
+### Option 3: Using Command Line
 
 #### 1. Check Subdomain Availability
 
@@ -77,19 +97,32 @@ When you run `pnpm dev:discord-auth`, you'll see:
 
 ## ⚙️ Configuration Options
 
+### Environment Variable (Recommended)
+
+Set in your `.env` file:
+
+- **TUNNEL_SUBDOMAIN**: Your stable subdomain (takes precedence over all other methods)
+
 ### Discord Auth Script Configuration
 
 Edit `scripts/discord-auth-config.sh` to customize:
 
-- **DISCORD_AUTH_SUBDOMAIN**: Your stable subdomain
+- **DISCORD_AUTH_SUBDOMAIN**: Your stable subdomain (used if TUNNEL_SUBDOMAIN is not set)
 - **DEV_PORT**: Local development port (default: 3000)
 - **TUNNEL_SERVICE**: Tunnel service (local or ngrok)
 
 ### Main Deploy Script Commands
 
-- **`pnpm deploy:web:tunnel`**: Start with random subdomain
-- **`pnpm deploy:web:tunnel-custom <subdomain>`**: Start with custom subdomain
+- **`pnpm deploy:web:tunnel`**: Start with TUNNEL_SUBDOMAIN or random subdomain
+- **`pnpm deploy:web:tunnel-custom <subdomain>`**: Start with custom subdomain (overrides env var)
 - **`pnpm check-subdomain <subdomain>`**: Check if subdomain is available
+
+### Priority Order
+
+1. **Command line argument** (highest priority)
+2. **TUNNEL_SUBDOMAIN environment variable**
+3. **DISCORD_AUTH_SUBDOMAIN config file**
+4. **Random subdomain** (lowest priority)
 
 ## 🔧 How It Works
 

@@ -458,6 +458,12 @@ start_local_tunnel() {
     echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
+    # Check for TUNNEL_SUBDOMAIN environment variable first
+    if [ -z "$subdomain" ] && [ -n "$TUNNEL_SUBDOMAIN" ]; then
+        subdomain="$TUNNEL_SUBDOMAIN"
+        log_info "Using TUNNEL_SUBDOMAIN from environment: $subdomain"
+    fi
+    
     # Generate a random subdomain if not provided
     if [ -z "$subdomain" ]; then
         subdomain="t3-turbo-$(date +%s)"

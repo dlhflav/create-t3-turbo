@@ -129,6 +129,29 @@ Better-auth comes with an [auth proxy plugin](https://www.better-auth.com/docs/p
 
 By using the proxy plugin, the Next.js apps will forward any auth requests to the proxy server, which will handle the OAuth flow and then redirect back to the Next.js app. This makes it easy to get OAuth working since you'll have a stable URL that is publicly accessible and doesn't change for every deployment and doesn't rely on what port the app is running on. So if port 3000 is taken and your Next.js app starts at port 3001 instead, your auth should still work without having to reconfigure the OAuth provider.
 
+#### Use Local Tunnel with Stable Subdomain (DEVELOPMENT)
+
+For local development, you can use a local tunnel with a stable subdomain. This gives you a consistent HTTPS URL for OAuth callbacks while keeping all development logs in your console.
+
+1. **Set your tunnel subdomain** in `.env`:
+   ```bash
+   TUNNEL_SUBDOMAIN="my-app-oauth-2024"
+   ```
+
+2. **Start development with tunnel**:
+   ```bash
+   pnpm dev:discord-auth
+   # or
+   pnpm deploy:web:tunnel
+   ```
+
+3. **Configure Discord OAuth** with the tunnel URL:
+   ```
+   https://my-app-oauth-2024.loca.lt/api/auth/callback/discord
+   ```
+
+> **Note**: The `TUNNEL_SUBDOMAIN` environment variable takes precedence over other configuration methods. You can also use `pnpm deploy:web:tunnel-custom <subdomain>` to override the environment variable for a specific session.
+
 #### Add your local IP to your OAuth provider
 
 You can alternatively add your local IP (e.g. `192.168.x.y:$PORT`) to your OAuth provider. This may not be as reliable as your local IP may change when you change networks. Some OAuth providers may also only support a single callback URL for each app making this approach unviable for some providers (e.g. GitHub).

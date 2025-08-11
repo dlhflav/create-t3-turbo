@@ -29,8 +29,17 @@ else
     TUNNEL_SERVICE="local"
 fi
 
-# Stable subdomain for Discord auth
-STABLE_SUBDOMAIN="${DISCORD_AUTH_SUBDOMAIN}"
+# Check for TUNNEL_SUBDOMAIN environment variable first, then config file
+if [ -n "$TUNNEL_SUBDOMAIN" ]; then
+    STABLE_SUBDOMAIN="$TUNNEL_SUBDOMAIN"
+    log_info "Using TUNNEL_SUBDOMAIN from environment: $STABLE_SUBDOMAIN"
+elif [ -n "$DISCORD_AUTH_SUBDOMAIN" ]; then
+    STABLE_SUBDOMAIN="$DISCORD_AUTH_SUBDOMAIN"
+    log_info "Using DISCORD_AUTH_SUBDOMAIN from config: $STABLE_SUBDOMAIN"
+else
+    STABLE_SUBDOMAIN="your-app-discord-auth"
+    log_warning "No subdomain configured, using default: $STABLE_SUBDOMAIN"
+fi
 
 log_step "Starting Discord Auth Development Tunnel..."
 
