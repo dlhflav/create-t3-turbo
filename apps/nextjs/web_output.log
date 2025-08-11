@@ -11,10 +11,10 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 942ms
+ ✓ Ready in 957ms
  ○ Compiling / ...
- ✓ Compiled / in 3.9s
-[TRPC] post.all took 624ms to execute
+ ✓ Compiled / in 4.1s
+[TRPC] post.all took 514ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -26,7 +26,7 @@ params: 10
   93 |   const end = Date.now();
   94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
   code: 'INTERNAL_SERVER_ERROR',
-  digest: '2343717955',
+  digest: '2648750913',
   [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
   params: 10
       at async (../../packages/api/src/trpc.ts:91:17)
@@ -68,8 +68,7 @@ params: 10
     }
   }
 }
- GET / 200 in 4996ms
-[TRPC] post.all took 589ms to execute
+[TRPC] post.all took 630ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -81,7 +80,7 @@ params: 10
   93 |   const end = Date.now();
   94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
   code: 'INTERNAL_SERVER_ERROR',
-  digest: '2343717955',
+  digest: '2648750913',
   [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
   params: 10
       at async (../../packages/api/src/trpc.ts:91:17)
@@ -123,8 +122,9 @@ params: 10
     }
   }
 }
- GET / 200 in 701ms
-[TRPC] post.all took 678ms to execute
+ GET / 200 in 2608ms
+ GET / 200 in 5102ms
+[TRPC] post.all took 699ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -136,7 +136,7 @@ params: 10
   93 |   const end = Date.now();
   94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
   code: 'INTERNAL_SERVER_ERROR',
-  digest: '2343717955',
+  digest: '2648750913',
   [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
   params: 10
       at async (../../packages/api/src/trpc.ts:91:17)
@@ -178,8 +178,59 @@ params: 10
     }
   }
 }
- GET / 200 in 761ms
- ○ Compiling /api/auth/[...all] ...
- ✓ Compiled /api/auth/[...all] in 1503ms
-[2m2025-08-11T23:11:06.662Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
- GET /api/auth/callback/discord?code=6QaB13zq5OpTP5SYloc1htuxS6PRHh 302 in 2224ms
+ GET / 200 in 781ms
+[TRPC] post.all took 750ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '2648750913',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET / 200 in 836ms

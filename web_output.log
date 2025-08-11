@@ -8,4 +8,4 @@ Scope: all 13 workspace projects
 ../.. postinstall: > pnpm dlx sherif@latest
 ../.. postinstall: ✓ No issues found
 ../.. postinstall: Done
-Done in 2s using pnpm v10.11.1
+Done in 2.1s using pnpm v10.11.1
