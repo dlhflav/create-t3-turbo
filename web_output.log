@@ -25,3 +25,10 @@ turbo 2.5.4
 @acme/nextjs:dev: 
 @acme/nextjs:dev:  ✓ Starting...
 @acme/nextjs:dev:  ✓ Ready in 1035ms
+@acme/nextjs:dev:  ELIFECYCLE  Command failed.
+@acme/nextjs:dev:  ELIFECYCLE  Command failed.
+@acme/nextjs:dev: [?25h
+ WARNING  could not start shutdown, exiting
+  x Watch interrupted due to signal.
+
+ ELIFECYCLE  Command failed.
