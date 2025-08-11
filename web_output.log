@@ -1,2 +1,71 @@
-Scope: all 13 workspace projects
-../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
+
+> @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+> pnpm with-env next dev --turbopack
+
+
+> @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+> dotenv -e ../../.env -- next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.30.0.2:3000
+
+ ✓ Starting...
+ ✓ Ready in 1005ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.8s
+[TRPC] post.all took 626ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '2648750913',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: error: Tenant or user not found
+        at async (../../packages/api/src/trpc.ts:91:17)
+      89 |   }
+      90 |
+    > 91 |   const result = await next();
+         |                 ^
+      92 |
+      93 |   const end = Date.now();
+      94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+      length: 52,
+      severity: 'FATAL',
+      code: 'XX000',
+      detail: undefined,
+      hint: undefined,
+      position: undefined,
+      internalPosition: undefined,
+      internalQuery: undefined,
+      where: undefined,
+      schema: undefined,
+      table: undefined,
+      column: undefined,
+      dataType: undefined,
+      constraint: undefined,
+      file: undefined,
+      line: undefined,
+      routine: undefined
+    }
+  }
+}
+ GET / 200 in 5952ms
