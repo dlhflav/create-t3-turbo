@@ -31,3 +31,7 @@ Android Bundled 10143ms apps/expo/index.ts (1380 modules)
 Tunnel connection has been closed. This is often related to intermittent connection problems with the Ngrok servers. Restart the dev server to try connecting to Ngrok again.
 Check the Ngrok status page for outages: https://status.ngrok.com/
 Tunnel connected.
+Android apps/expo/index.ts ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android Bundled 817ms apps/expo/index.ts (1 module)
+ LOG  getBaseUrl http://m4tpp6i-dlhflav-8081.exp.direct:3000
+ LOG  [30;46m >> query [1;30;46m #1 post.all [0m {"input": undefined}
