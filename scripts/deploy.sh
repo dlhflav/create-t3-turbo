@@ -964,7 +964,7 @@ case "${1:-help}" in
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../eas_build.log && cd ../..
+        cd apps/expo && pnpm exec eas build --profile development 2>&1 | tee ../../eas_build.log && cd ../..
         ;;
 
     
@@ -975,11 +975,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for all platforms..."
-        if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
-        else
-            npx eas build --platform all 2>&1 | tee ../eas_build.log
-        fi
+        cd apps/expo && pnpm exec eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
         log_success "EAS build for all platforms completed!"
         ;;
     "mobile:android")
@@ -988,11 +984,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for Android..."
-        if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform android 2>&1 | tee ../../eas_build.log && cd ../..
-        else
-            npx eas build --platform android 2>&1 | tee ../eas_build.log
-        fi
+        cd apps/expo && pnpm exec eas build --platform android 2>&1 | tee ../../eas_build.log && cd ../..
         log_success "EAS build for Android completed!"
         ;;
     "mobile:ios")
@@ -1001,11 +993,7 @@ case "${1:-help}" in
         install_packages "mobile"
         install_eas
         log_step "Starting EAS build for iOS..."
-        if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform ios 2>&1 | tee ../../eas_build.log && cd ../..
-        else
-            npx eas build --platform ios 2>&1 | tee ../eas_build.log
-        fi
+        cd apps/expo && pnpm exec eas build --platform ios 2>&1 | tee ../../eas_build.log && cd ../..
         log_success "EAS build for iOS completed!"
         ;;
     
@@ -1045,11 +1033,7 @@ case "${1:-help}" in
         log_step "Starting complete build (Vercel + EAS)..."
         deploy_vercel
         log_step "Starting EAS build for all platforms..."
-        if [ -d "apps/expo" ]; then
-            cd apps/expo && npx eas build --platform all 2>&1 | tee ../../mobile_output.log && cd ../..
-        else
-            npx eas build --platform all 2>&1 | tee ../mobile_output.log
-        fi
+        cd apps/expo && pnpm exec eas build --platform all 2>&1 | tee ../../eas_build.log && cd ../..
         log_success "Complete build (Vercel + EAS) finished!"
         ;;
     

@@ -86,13 +86,14 @@ pnpm deploy:all                   # Complete build (script: Vercel + EAS)
 ./scripts/deploy.sh web:vercel    # Deploy web to Vercel
 ./scripts/deploy.sh mobile:dev    # Start mobile development server
 ./scripts/deploy.sh mobile:tunnel # Start mobile with Expo tunnel
-./scripts/deploy.sh mobile:all    # Build mobile app (development)
-./scripts/deploy.sh mobile:deploy # EAS build for all platforms
-./scripts/deploy.sh mobile:android # EAS build for Android
-./scripts/deploy.sh mobile:ios    # EAS build for iOS
+./scripts/deploy.sh mobile:all    # Build mobile app (development) - uses pnpm exec
+./scripts/deploy.sh mobile:deploy # EAS build for all platforms - uses pnpm exec
+./scripts/deploy.sh mobile:android # EAS build for Android - uses pnpm exec
+./scripts/deploy.sh mobile:ios    # EAS build for iOS - uses pnpm exec
 ./scripts/deploy.sh all:local     # Complete local development
 ./scripts/deploy.sh all:tunnel    # Complete tunnel development
 ./scripts/deploy.sh all:build     # Complete build (Vercel + EAS)
+```
 
 # Stop commands
 ./scripts/deploy.sh stop:web      # Stop web servers
