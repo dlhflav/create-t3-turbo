@@ -8,4 +8,6 @@ No environment variables with visibility "Plain text" and "Sensitive" found for 
 
 🤖 Android build
 ✔ Using remote Android credentials (Expo server)
-[?25l[2K[1G[36m?[39m [1mGenerate a new Android Keystore?[22m [90m›[39m [90m(Y/n)[39m
+[?25l[2K[1G[36m?[39m [1mGenerate a new Android Keystore?[22m [90m›[39m [90m(Y/n)[39m[2K[1G[2K[1G[31m✖[39m [1mGenerate a new Android Keystore?[22m [90m…[39m yes
+[?25h ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 build: `eas build --platform all`
+Exit status 130

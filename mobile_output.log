@@ -24,6 +24,3 @@ The following packages should be updated for best compatibility with the install
 Your project may not work correctly until you install the expected versions of the packages.
 Waiting on http://localhost:8081
 Logs for your project will appear below.
-/workspace/apps/expo:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/expo@0.1.0 dev:tunnel: `expo start --tunnel --go`
-Command failed with signal "SIGTERM"
