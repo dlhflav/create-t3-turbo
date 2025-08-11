@@ -6,3 +6,6 @@ Scope: all 13 workspace projects
 ../.. postinstall$ pnpm lint:ws
 ../.. postinstall: > create-t3-turbo@ lint:ws /workspace
 ../.. postinstall: > pnpm dlx sherif@latest
+../.. postinstall: ✓ No issues found
+../.. postinstall: Done
+Done in 2s using pnpm v10.11.1
