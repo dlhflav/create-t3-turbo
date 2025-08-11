@@ -47,6 +47,11 @@ catalogs:
       specifier: 19.0.0
       version: 19.0.0
 
+patchedDependencies:
+  '@vercel/postgres':
+    hash: fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68
+    path: patches/@vercel__postgres.patch
+
 importers:
 
   .:
@@ -366,7 +371,7 @@ importers:
         version: link:../../tooling/typescript
       '@better-auth/cli':
         specifier: 1.2.12
-        version: 1.2.12(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(react@19.0.0)
+        version: 1.2.12(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(react@19.0.0)
       '@types/react':
         specifier: catalog:react19
         version: 19.1.6
@@ -384,13 +389,13 @@ importers:
     dependencies:
       '@vercel/postgres':
         specifier: ^0.10.0
-        version: 0.10.0(utf-8-validate@6.0.4)
+        version: 0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4)
       drizzle-orm:
         specifier: ^0.44.1
-        version: 0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)
+        version: 0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)
       drizzle-zod:
         specifier: ^0.8.2
-        version: 0.8.2(drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0))(zod@3.25.49)
+        version: 0.8.2(drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0))(zod@3.25.49)
       zod:
         specifier: 'catalog:'
         version: 3.25.49
@@ -8616,7 +8621,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.27.1
 
-  '@better-auth/cli@1.2.12(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(react@19.0.0)':
+  '@better-auth/cli@1.2.12(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(react@19.0.0)':
     dependencies:
       '@babel/core': 7.27.4
       '@babel/preset-react': 7.27.1(@babel/core@7.27.4)
@@ -8632,7 +8637,7 @@ snapshots:
       chalk: 5.4.1
       commander: 12.1.0
       dotenv: 16.4.7
-      drizzle-orm: 0.33.0(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)(react@19.0.0)
+      drizzle-orm: 0.33.0(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)(react@19.0.0)
       fs-extra: 11.3.0
       get-tsconfig: 4.10.1
       prettier: 3.5.3
@@ -10895,7 +10900,7 @@ snapshots:
       '@urql/core': 5.1.1(graphql@15.8.0)
       wonka: 6.3.5
 
-  '@vercel/postgres@0.10.0(utf-8-validate@6.0.4)':
+  '@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4)':
     dependencies:
       '@neondatabase/serverless': 0.9.5
       bufferutil: 4.0.8
@@ -11858,7 +11863,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.33.0(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)(react@19.0.0):
+  drizzle-orm@0.33.0(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@types/react@19.1.6)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)(react@19.0.0):
     optionalDependencies:
       '@neondatabase/serverless': 0.10.0
       '@opentelemetry/api': 1.9.0
@@ -11867,7 +11872,7 @@ snapshots:
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.11.10
       '@types/react': 19.1.6
-      '@vercel/postgres': 0.10.0(utf-8-validate@6.0.4)
+      '@vercel/postgres': 0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4)
       better-sqlite3: 11.10.0
       kysely: 0.28.2
       mysql2: 3.11.3
@@ -11875,7 +11880,7 @@ snapshots:
       prisma: 5.22.0
       react: 19.0.0
 
-  drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0):
+  drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0):
     optionalDependencies:
       '@neondatabase/serverless': 0.10.0
       '@opentelemetry/api': 1.9.0
@@ -11883,7 +11888,7 @@ snapshots:
       '@prisma/client': 5.22.0(prisma@5.22.0)
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.11.10
-      '@vercel/postgres': 0.10.0(utf-8-validate@6.0.4)
+      '@vercel/postgres': 0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4)
       better-sqlite3: 11.10.0
       gel: 2.0.0
       kysely: 0.28.2
@@ -11891,9 +11896,9 @@ snapshots:
       postgres: 3.4.4
       prisma: 5.22.0
 
-  drizzle-zod@0.8.2(drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0))(zod@3.25.49):
+  drizzle-zod@0.8.2(drizzle-orm@0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0))(zod@3.25.49):
     dependencies:
-      drizzle-orm: 0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)
+      drizzle-orm: 0.44.1(@neondatabase/serverless@0.10.0)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@prisma/client@5.22.0(prisma@5.22.0))(@types/better-sqlite3@7.6.13)(@types/pg@8.11.10)(@vercel/postgres@0.10.0(patch_hash=fa226c17710aed69317a37ad1c4476ec072cb65fbef20e35b22474a9230dba68)(utf-8-validate@6.0.4))(better-sqlite3@11.10.0)(gel@2.0.0)(kysely@0.28.2)(mysql2@3.11.3)(postgres@3.4.4)(prisma@5.22.0)
       zod: 3.25.49
 
   dunder-proto@1.0.1:

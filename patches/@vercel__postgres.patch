@@ -1,0 +1,13 @@
+diff --git a/dist/chunk-7IR77QAQ.js b/dist/chunk-7IR77QAQ.js
+index 3f48d55a6a75344500ee0cad493bbf1f7b12e012..d6fb2989590c92ffc4809ebc2e9f459b178d9a8f 100644
+--- a/dist/chunk-7IR77QAQ.js
++++ b/dist/chunk-7IR77QAQ.js
+@@ -35,7 +35,7 @@ function postgresConnectionString(type = "pool") {
+   return connectionString;
+ }
+ function isPooledConnectionString(connectionString) {
+-  return connectionString.includes("-pooler.");
++  return connectionString.includes("-pooler.") || connectionString.includes(".pooler.");
+ }
+ function isDirectConnectionString(connectionString) {
+   return !isPooledConnectionString(connectionString);
