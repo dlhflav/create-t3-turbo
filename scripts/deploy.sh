@@ -28,12 +28,12 @@ clean_logs() {
     log_step "Cleaning live output logs for $app_type..."
     
     # Always clean general logs
-    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log localtunnel_output.log
     
     # Clean app-specific logs based on app type
     case $app_type in
         "web"|"next")
-            rm -f web_output.log
+            rm -f web_output.log web_tunnel_output.log
             log_success "Web logs cleaned"
             ;;
         "mobile"|"expo")
@@ -41,7 +41,7 @@ clean_logs() {
             log_success "Mobile logs cleaned"
             ;;
         "all")
-            rm -f web_output.log mobile_output.log
+            rm -f web_output.log web_tunnel_output.log mobile_output.log
             log_success "All logs cleaned"
             ;;
         *)
@@ -73,16 +73,26 @@ install_packages() {
             ;;
         "mobile"|"expo")
             log_info "Installing Expo dependencies..."
-            cd apps/expo
-            pnpm install 2>&1 | tee ../../mobile_output.log
-            if [ $? -eq 0 ]; then
-                log_success "Expo dependencies installed"
-            else
-                log_error "Failed to install Expo dependencies"
+            if [ -d "apps/expo" ]; then
+                cd apps/expo
+                pnpm install 2>&1 | tee ../../mobile_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Expo dependencies installed"
+                else
+                    log_error "Failed to install Expo dependencies"
+                    cd ../..
+                    return 1
+                fi
                 cd ../..
-                return 1
+            else
+                pnpm install 2>&1 | tee ../mobile_output.log
+                if [ $? -eq 0 ]; then
+                    log_success "Expo dependencies installed"
+                else
+                    log_error "Failed to install Expo dependencies"
+                    return 1
+                fi
             fi
-            cd ../..
             ;;
         *)
             log_error "Unknown app type: $app_type"
@@ -308,6 +318,60 @@ install_vercel() {
     return 0
 }
 
+# Install and configure EAS CLI
+install_eas() {
+    log_step "Installing and configuring EAS CLI..."
+    
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Check if EAS CLI is installed
+    if ! command -v eas &> /dev/null; then
+        log_info "EAS CLI not found, installing..."
+        
+        # Install EAS CLI globally
+        npm install -g eas-cli
+        
+        if [ $? -eq 0 ]; then
+            log_success "EAS CLI installed successfully"
+        else
+            log_error "Failed to install EAS CLI"
+            return 1
+        fi
+    else
+        log_info "EAS CLI already installed: $(eas --version)"
+    fi
+    
+    # Get EXPO_TOKEN from environment
+    local expo_token=$(get_shell_var_value "EXPO_TOKEN")
+    if [ -z "$expo_token" ]; then
+        log_warning "EXPO_TOKEN not found in environment, EAS builds may require manual authentication"
+        log_info "You can set EXPO_TOKEN for automated authentication"
+        return 0
+    fi
+    
+    # Check if already logged in
+    if eas whoami &> /dev/null; then
+        log_info "EAS CLI already authenticated"
+    else
+        log_info "Authenticating EAS CLI with token..."
+        echo "$expo_token" | eas login --non-interactive
+        
+        if [ $? -eq 0 ]; then
+            log_success "EAS CLI authenticated successfully"
+        else
+            log_error "Failed to authenticate EAS CLI"
+            log_info "You may need to authenticate manually with: eas login"
+            return 1
+        fi
+    fi
+    
+    return 0
+}
+
 # Get current IP address
 get_current_ip() {
     local ip=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || echo "unknown")
@@ -351,6 +415,11 @@ start_local_tunnel() {
     
     log_step "Starting Local Tunnel on port $port..."
     
+    # Get local tunnel password before starting and log it
+    LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+    echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
+    log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
+    
     # Generate a random subdomain if not provided
     if [ -z "$subdomain" ]; then
         subdomain="t3-turbo-$(date +%s)"
@@ -358,17 +427,17 @@ start_local_tunnel() {
     
     # Start local tunnel
     if [ -n "$subdomain" ]; then
-        lt --port $port --subdomain $subdomain 2>&1 | tee localtunnel_output.log &
+        lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
-        lt --port $port 2>&1 | tee localtunnel_output.log &
+        lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
     LOCAL_TUNNEL_PID=$!
     sleep 5
     
     # Get tunnel URL from log
-    if [ -f localtunnel_output.log ]; then
-        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+    if [ -f web_tunnel_output.log ]; then
+        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
         if [ -n "$TUNNEL_URL" ]; then
             log_success "Local Tunnel started:"
             log_info "  - $TUNNEL_URL -> http://localhost:$port"
@@ -404,7 +473,7 @@ start_ngrok() {
     fi
     
     # Start ngrok with web tunnel only
-    ngrok start web 2>&1 | tee ngrok_output.log &
+    ngrok start web 2>&1 | tee web_tunnel_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -428,7 +497,7 @@ start_web_dev() {
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
-    pnpm dev:next 2>&1 | tee web_output.log &
+    pnpm -F @acme/nextjs dev 2>&1 | tee web_output.log &
     WEB_PID=$!
     sleep 10
     
@@ -474,13 +543,10 @@ start_mobile_dev() {
     local use_tunnel=${1:-false}
     log_step "Starting mobile development server..."
     
-    cd apps/expo
-    
     if [ "$use_tunnel" = true ]; then
         log_success "Starting Expo server with tunnel"
-        npx expo start --tunnel 2>&1 | tee ../../mobile_output.log &
+        pnpm -F @acme/expo dev:tunnel 2>&1 | tee mobile_output.log &
         MOBILE_PID=$!
-        cd ../..
         sleep 15
         
         # Wait for tunnel to be established
@@ -491,9 +557,8 @@ start_mobile_dev() {
         log_info "Check the QR code or terminal output for tunnel URL"
     else
         log_success "Starting Expo server on http://localhost:8081"
-        npx expo start --lan 2>&1 | tee ../../mobile_output.log &
+        pnpm -F @acme/expo dev 2>&1 | tee mobile_output.log &
         MOBILE_PID=$!
-        cd ../..
         sleep 10
         
         if curl -s http://localhost:8081 > /dev/null 2>&1; then
@@ -535,6 +600,42 @@ deploy_vercel() {
     return 0
 }
 
+# Get PID of a process by pattern
+get_pid() {
+    local pattern=$1
+    pgrep -f "$pattern" | head -1
+}
+
+# Get multiple PIDs of processes by pattern
+get_pids() {
+    local pattern=$1
+    pgrep -f "$pattern" | tr '\n' ' ' | sed 's/ $//'
+}
+
+# Get process names with PIDs
+get_process_names() {
+    local pattern=$1
+    local category=$2
+    local pids=$(pgrep -f "$pattern")
+    if [ -n "$pids" ]; then
+        echo "$pids" | while read pid; do
+            local args=$(ps -p "$pid" -o args= 2>/dev/null | head -1)
+            if [ -n "$args" ]; then
+                # Show the first part of the command (truncated if too long)
+                local cmd=$(echo "$args" | cut -d' ' -f1-3 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+                if [ ${#cmd} -gt 50 ]; then
+                    cmd=$(echo "$cmd" | cut -c1-47)"..."
+                fi
+                echo "    $pid ($cmd)"
+            else
+                echo "    $pid"
+            fi
+        done
+    fi
+}
+
+
+
 # Show status
 show_status() {
     log_info "Current Status"
@@ -547,42 +648,95 @@ show_status() {
     
     # Check web server
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success "Web server: Running on http://localhost:3000"
+        WEB_PID=$(get_pid "next dev")
+        if [ -n "$WEB_PID" ]; then
+            log_success "Web server: Running on http://localhost:3000 (PID: $WEB_PID)"
+        else
+            log_success "Web server: Running on http://localhost:3000"
+        fi
     else
         log_error "Web server: Not running"
     fi
     
     # Check mobile server
     if curl -s http://localhost:8081 > /dev/null 2>&1; then
-        log_success "Mobile server: Running on http://localhost:8081"
+        MOBILE_PID=$(get_pid "expo start")
+        if [ -n "$MOBILE_PID" ]; then
+            log_success "Mobile server: Running on http://localhost:8081 (PID: $MOBILE_PID)"
+        else
+            log_success "Mobile server: Running on http://localhost:8081"
+        fi
     else
         log_error "Mobile server: Not running"
     fi
     
     # Check ngrok tunnels
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        TUNNELS=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); [print(f'  - {t[\"public_url\"]} -> {t[\"config\"][\"addr\"]}') for t in data['tunnels']]" 2>/dev/null || echo "Unknown")
-        log_success "Ngrok tunnels:"
-        echo "$TUNNELS"
+        NGROK_PID=$(get_pid "ngrok")
+        NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data['tunnels'] else '')" 2>/dev/null || echo "")
+        if [ -n "$NGROK_PID" ] && [ -n "$NGROK_URL" ]; then
+            log_success "Ngrok tunnel: $NGROK_URL (PID: $NGROK_PID)"
+        elif [ -n "$NGROK_PID" ]; then
+            log_success "Ngrok tunnels: (PID: $NGROK_PID)"
+        else
+            log_success "Ngrok tunnels:"
+        fi
+        if [ -n "$NGROK_URL" ]; then
+            log_info "  - $NGROK_URL -> http://localhost:3000"
+        fi
         log_info "Monitor: http://localhost:4040"
     else
         log_error "Ngrok tunnels: Not running"
     fi
     
     # Check local tunnel
-    if [ -f "localtunnel_output.log" ]; then
-        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+    if [ -f "web_tunnel_output.log" ]; then
+        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
         if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            LOCAL_TUNNEL_PID=$(get_pid "lt --port")
             log_success "Local tunnel:"
             log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
-            # Get local tunnel password
-            LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
-            log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            if [ -n "$LOCAL_TUNNEL_PID" ]; then
+                log_info "  - PID: $LOCAL_TUNNEL_PID"
+            fi
+            # Display stored local tunnel password
+            if [ -n "$LOCAL_TUNNEL_PASSWORD" ]; then
+                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            else
+                # Fallback to fetching password if not stored
+                LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
+                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
+            fi
         else
             log_error "Local tunnel: Not running"
         fi
     else
         log_error "Local tunnel: Not running"
+    fi
+    
+    # Show process details
+    echo ""
+    log_info "Process Details:"
+    
+    # Web processes
+    WEB_PIDS=$(get_pids "next dev|pnpm -F @acme/nextjs")
+    if [ -n "$WEB_PIDS" ]; then
+        log_info "  Web processes:"
+        get_process_names "next dev|pnpm -F @acme/nextjs"
+    fi
+    
+    # Mobile processes
+    MOBILE_PIDS=$(get_pids "expo start|pnpm -F @acme/expo")
+    if [ -n "$MOBILE_PIDS" ]; then
+        log_info "  Mobile processes:"
+        get_process_names "expo start|pnpm -F @acme/expo"
+    fi
+    
+    # Tunnel processes
+    TUNNEL_PIDS=$(get_pids "lt --port|ngrok")
+    if [ -n "$TUNNEL_PIDS" ]; then
+        log_info "  Tunnel processes:"
+        get_process_names "lt --port|ngrok"
     fi
     
     # Show live output if available
@@ -592,11 +746,97 @@ show_status() {
         tail -10 web_output.log
     fi
     
+    if [ -f "web_tunnel_output.log" ]; then
+        echo ""
+        log_info "Recent tunnel output:"
+        tail -10 web_tunnel_output.log
+    fi
+    
     if [ -f "mobile_output.log" ]; then
         echo ""
         log_info "Recent mobile output:"
         tail -10 mobile_output.log
     fi
+}
+
+# Stop development servers
+stop_servers() {
+    local target=${1:-"all"}
+    
+    case $target in
+        "web")
+            log_step "Stopping web development servers..."
+            
+            # Kill Next.js processes
+            if pkill -f "next dev" 2>/dev/null; then
+                log_success "Next.js development server stopped"
+            else
+                log_warning "No Next.js development server found"
+            fi
+            
+            # Kill pnpm processes for web
+            if pkill -f "pnpm -F @acme/nextjs" 2>/dev/null; then
+                log_success "pnpm web processes stopped"
+            fi
+            
+            # Kill local tunnel processes
+            if pkill -f "localtunnel\|lt --port" 2>/dev/null; then
+                log_success "Local tunnel stopped"
+            fi
+            
+            # Kill ngrok processes for web
+            if pkill -f "ngrok.*3000\|ngrok.*3001" 2>/dev/null; then
+                log_success "Ngrok tunnel for web stopped"
+            fi
+            
+            log_success "Web development servers stopped"
+            ;;
+            
+        "mobile")
+            log_step "Stopping mobile development servers..."
+            
+            # Kill Expo processes
+            if pkill -f "expo start" 2>/dev/null; then
+                log_success "Expo development server stopped"
+            else
+                log_warning "No Expo development server found"
+            fi
+            
+            # Kill pnpm processes for mobile
+            if pkill -f "pnpm -F @acme/expo" 2>/dev/null; then
+                log_success "pnpm mobile processes stopped"
+            fi
+            
+            # Kill ngrok processes for mobile
+            if pkill -f "ngrok.*8081" 2>/dev/null; then
+                log_success "Ngrok tunnel for mobile stopped"
+            fi
+            
+            log_success "Mobile development servers stopped"
+            ;;
+            
+        "all")
+            log_step "Stopping all development servers..."
+            
+            # Stop web servers
+            stop_servers "web"
+            
+            # Stop mobile servers
+            stop_servers "mobile"
+            
+            # Kill any remaining pnpm processes
+            if pkill -f "pnpm -F" 2>/dev/null; then
+                log_success "Remaining pnpm processes stopped"
+            fi
+            
+            log_success "All development servers stopped"
+            ;;
+            
+        *)
+            log_error "Invalid target: $target. Use 'web', 'mobile', or 'all'"
+            return 1
+            ;;
+    esac
 }
 
 # Show usage
@@ -608,18 +848,24 @@ show_usage() {
     echo "  web:dev        - Start web development server"
     echo "  web:tunnel     - Start web dev + local tunnel (default)"
     echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
-    echo "  web:deploy     - Deploy web to Vercel"
+    echo "  web:vercel     - Deploy web to Vercel"
     echo ""
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
     echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
-    echo "  mobile:build  - Build mobile app (development)"
-    echo "  mobile:prod   - Build mobile app (production)"
+    echo "  mobile:all    - EAS build for all platforms"
+    echo "  mobile:android - EAS build for Android"
+    echo "  mobile:ios    - EAS build for iOS"
     echo ""
     echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:web       - Complete web deployment (dev + local tunnel + deploy)"
-    echo "  all:web:ngrok - Complete web deployment (dev + ngrok tunnel + deploy)"
-    echo "  all:mobile    - Complete mobile deployment (dev + Expo tunnel + build)"
+    echo "  all:local     - Complete local development (web + mobile)"
+    echo "  all:tunnel    - Complete tunnel development (web + mobile)"
+    echo "  all:build     - Complete build (Vercel + EAS)"
+    echo ""
+    echo -e "${RED}Stop Commands:${NC}"
+    echo "  stop:web      - Stop web development servers"
+    echo "  stop:mobile   - Stop mobile development servers"
+    echo "  stop:all      - Stop all development servers"
     echo ""
     echo -e "${BLUE}Utility Commands:${NC}"
     echo "  status     - Show all services status"
@@ -644,8 +890,10 @@ show_usage() {
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
     echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
-    echo "  ./scripts/deploy.sh all:web           # Complete web deployment"
-    echo "  ./scripts/deploy.sh all:web:ngrok     # Complete web deployment with ngrok tunnel"
+    echo "  ./scripts/deploy.sh all:local         # Complete local development"
+    echo "  ./scripts/deploy.sh all:tunnel        # Complete tunnel development"
+    echo "  ./scripts/deploy.sh all:build         # Complete build (Vercel + EAS)"
+    echo "  ./scripts/deploy.sh stop:all          # Stop all development servers"
 }
 
 # Main script logic
@@ -679,7 +927,7 @@ case "${1:-help}" in
         log_success "Web development with ngrok tunnel started!"
         wait $WEB_PID $NGROK_PID
         ;;
-    "web:deploy")
+    "web:vercel")
         clean_logs "web"
         install_env_file "web"
         install_packages "web"
@@ -705,46 +953,84 @@ case "${1:-help}" in
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
-    "mobile:build")
+    # EAS deployments
+    "mobile:all")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        cd apps/expo && npx eas build --profile development 2>&1 | tee ../../mobile_output.log && cd ../..
+        install_eas
+        log_step "Starting EAS build for all platforms..."
+        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
+        log_success "EAS build for all platforms completed!"
         ;;
-    "mobile:prod")
+    "mobile:android")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"
-        cd apps/expo && npx eas build --profile production 2>&1 | tee ../../mobile_output.log && cd ../..
+        install_eas
+        log_step "Starting EAS build for Android..."
+        pnpm -F @acme/expo build:android 2>&1 | tee mobile_output.log
+        log_success "EAS build for Android completed!"
+        ;;
+    "mobile:ios")
+        clean_logs "mobile"
+        install_env_file "mobile"
+        install_packages "mobile"
+        install_eas
+        log_step "Starting EAS build for iOS..."
+        pnpm -F @acme/expo build:ios 2>&1 | tee mobile_output.log
+        log_success "EAS build for iOS completed!"
         ;;
     
     # Complete deployments
-    "all:web")
-        clean_logs "web"
+    "all:local")
+        clean_logs "all"
         install_env_file "web"
-        install_packages "web"
-        install_local_tunnel
-        install_vercel
-        start_web_dev true "local" && deploy_vercel
-        log_success "Complete web deployment finished!"
-        ;;
-    "all:web:ngrok")
-        clean_logs "web"
-        install_env_file "web"
-        install_packages "web"
-        install_ngrok
-        install_vercel
-        start_web_dev true "ngrok" && deploy_vercel
-        log_success "Complete web deployment with ngrok tunnel finished!"
-        ;;
-    "all:mobile")
-        clean_logs "mobile"
         install_env_file "mobile"
+        install_packages "web"
         install_packages "mobile"
-        install_ngrok
+        start_web_dev true "local"
         start_mobile_dev true
-        log_success "Complete mobile deployment started!"
-        wait $MOBILE_PID
+        log_success "Complete local development started!"
+        wait $WEB_PID $MOBILE_PID
+        ;;
+    "all:tunnel")
+        clean_logs "all"
+        install_env_file "web"
+        install_env_file "mobile"
+        install_packages "web"
+        install_packages "mobile"
+        install_local_tunnel
+        install_ngrok
+        start_web_dev true "local"
+        start_mobile_dev true
+        log_success "Complete tunnel development started!"
+        wait $WEB_PID $MOBILE_PID $LOCAL_TUNNEL_PID
+        ;;
+    "all:build")
+        clean_logs "all"
+        install_env_file "web"
+        install_env_file "mobile"
+        install_packages "web"
+        install_packages "mobile"
+        install_vercel
+        install_eas
+        log_step "Starting complete build (Vercel + EAS)..."
+        deploy_vercel
+        log_step "Starting EAS build for all platforms..."
+        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
+        log_success "Complete build (Vercel + EAS) finished!"
+        ;;
+    
+    # Stop commands
+    "stop:web")
+        stop_servers "web"
+        ;;
+    "stop:mobile")
+        stop_servers "mobile"
+        ;;
+    "stop:all")
+        stop_servers "all"
         ;;
     
     # Utility commands
