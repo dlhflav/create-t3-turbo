@@ -7,17 +7,19 @@ import { initAuth } from "@acme/auth";
 
 import { env } from "~/env";
 
-const baseUrl =
-  env.VERCEL_ENV === "production"
-    ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : env.VERCEL_ENV === "preview"
-      ? `https://${env.VERCEL_URL}`
-      : "http://localhost:3000";
-
 // Use tunnel URL if available, otherwise use production URL
 const tunnelUrl = env.TUNNEL_SUBDOMAIN 
   ? `https://${env.TUNNEL_SUBDOMAIN}.loca.lt`
   : undefined;
+
+const baseUrl =
+  tunnelUrl
+    ? tunnelUrl
+    : env.VERCEL_ENV === "production"
+      ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : env.VERCEL_ENV === "preview"
+        ? `https://${env.VERCEL_URL}`
+        : "http://localhost:3000";
 
 export const auth = initAuth({
   baseUrl,
