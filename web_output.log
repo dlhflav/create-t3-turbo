@@ -6,15 +6,104 @@
 > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
 > dotenv -e ../../.env -- next dev --turbopack
 
- ⚠ Port 3000 is in use, using available port 3002 instead.
    ▲ Next.js 15.3.3 (Turbopack)
-   - Local:        http://localhost:3002
-   - Network:      http://172.30.0.2:3002
+   - Local:        http://localhost:3000
+   - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 945ms
-/workspace/apps/nextjs:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/nextjs@0.1.0 dev: `pnpm with-env next dev --turbopack`
-Command failed with signal "SIGTERM"
- ELIFECYCLE  Command failed.
-[?25h
+ ✓ Ready in 946ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.3s
+[TRPC] post.all took 263ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '4126144013',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+[TRPC] post.all took 363ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '4126144013',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+ GET / 200 in 4617ms
+ GET / 200 in 5076ms
+[TRPC] post.all took 169ms to execute
+ ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+params: 10
+    at async (../../packages/api/src/trpc.ts:91:17)
+  89 |   }
+  90 |
+> 91 |   const result = await next();
+     |                 ^
+  92 |
+  93 |   const end = Date.now();
+  94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+  code: 'INTERNAL_SERVER_ERROR',
+  digest: '4126144013',
+  [cause]: Error: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
+  params: 10
+      at async (../../packages/api/src/trpc.ts:91:17)
+    89 |   }
+    90 |
+  > 91 |   const result = await next();
+       |                 ^
+    92 |
+    93 |   const end = Date.now();
+    94 |   console.log(`[TRPC] ${path} took ${end - start}ms to execute`); {
+    query: 'select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1',
+    params: [ 10 ],
+    [cause]: [Error [VercelPostgresError]: VercelPostgresError - 'invalid_connection_string': This connection string is meant to be used with a direct connection. Make sure to use a pooled connection string or try `createClient()` instead.] {
+      code: 'invalid_connection_string'
+    }
+  }
+}
+ GET / 200 in 251ms
