@@ -13,9 +13,7 @@ export function authEnv() {
       NODE_ENV: z.enum(["development", "production"]).optional(),
       TUNNEL_SUBDOMAIN: z.string().optional(),
     },
-    experimental__runtimeEnv: {
-      TUNNEL_SUBDOMAIN: process.env.TUNNEL_SUBDOMAIN,
-    },
+    experimental__runtimeEnv: {},
     skipValidation:
       !!process.env.CI || process.env.npm_lifecycle_event === "lint",
   });

@@ -140,8 +140,6 @@ For local development, you can use a local tunnel with a stable subdomain. This 
 
 2. **Start development with tunnel**:
    ```bash
-   pnpm dev:discord-auth
-   # or
    pnpm deploy:web:tunnel
    ```
 
@@ -150,7 +148,7 @@ For local development, you can use a local tunnel with a stable subdomain. This 
    https://my-app-oauth-2024.loca.lt/api/auth/callback/discord
    ```
 
-> **Note**: The `TUNNEL_SUBDOMAIN` environment variable takes precedence over other configuration methods.
+> **Note**: The `TUNNEL_SUBDOMAIN` environment variable will be used automatically when starting the tunnel.
 
 #### Add your local IP to your OAuth provider
 
