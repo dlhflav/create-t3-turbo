@@ -10,7 +10,9 @@ This setup allows you to develop Discord OAuth authentication locally while main
 
 ## 🚀 Quick Start
 
-### 1. Configure Your Tunnel
+### Option 1: Using Discord Auth Script (Recommended)
+
+#### 1. Configure Your Tunnel
 
 Edit `scripts/discord-auth-config.sh`:
 
@@ -19,10 +21,26 @@ Edit `scripts/discord-auth-config.sh`:
 export DISCORD_AUTH_SUBDOMAIN="my-app-discord-auth-2024"
 ```
 
-### 2. Start Development Tunnel
+#### 2. Start Development Tunnel
 
 ```bash
 pnpm dev:discord-auth
+```
+
+### Option 2: Using Main Deploy Script
+
+#### 1. Check Subdomain Availability
+
+```bash
+# Check if your desired subdomain is available
+pnpm check-subdomain my-awesome-app
+```
+
+#### 2. Start with Custom Subdomain
+
+```bash
+# Start web development with custom subdomain
+pnpm deploy:web:tunnel-custom my-awesome-app
 ```
 
 ### 3. Configure Discord OAuth
@@ -59,11 +77,19 @@ When you run `pnpm dev:discord-auth`, you'll see:
 
 ## ⚙️ Configuration Options
 
+### Discord Auth Script Configuration
+
 Edit `scripts/discord-auth-config.sh` to customize:
 
 - **DISCORD_AUTH_SUBDOMAIN**: Your stable subdomain
 - **DEV_PORT**: Local development port (default: 3000)
 - **TUNNEL_SERVICE**: Tunnel service (local or ngrok)
+
+### Main Deploy Script Commands
+
+- **`pnpm deploy:web:tunnel`**: Start with random subdomain
+- **`pnpm deploy:web:tunnel-custom <subdomain>`**: Start with custom subdomain
+- **`pnpm check-subdomain <subdomain>`**: Check if subdomain is available
 
 ## 🔧 How It Works
 

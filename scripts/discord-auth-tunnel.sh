@@ -56,10 +56,49 @@ if curl -s http://localhost:${DEV_PORT} > /dev/null 2>&1; then
         npm install -g localtunnel
     fi
     
-    # Start tunnel with stable subdomain
-    lt --port ${DEV_PORT} --subdomain $STABLE_SUBDOMAIN 2>&1 | tee web_tunnel_output.log &
-    TUNNEL_PID=$!
-    sleep 5
+    # Check if subdomain is available before starting tunnel
+    log_step "Checking if subdomain '$STABLE_SUBDOMAIN' is available..."
+    
+    # Start a temporary tunnel to test availability
+    lt --port ${DEV_PORT} --subdomain $STABLE_SUBDOMAIN > /tmp/subdomain-test.log 2>&1 &
+    TEMP_PID=$!
+    sleep 3
+    
+    # Check if tunnel started successfully
+    local tunnel_url="https://${STABLE_SUBDOMAIN}.loca.lt"
+    if curl -s "$tunnel_url" > /dev/null 2>&1; then
+        # Subdomain is available, kill the test tunnel
+        kill $TEMP_PID 2>/dev/null || true
+        rm -f /tmp/subdomain-test.log
+        log_success "✅ Subdomain '$STABLE_SUBDOMAIN' is available"
+        
+        # Start the actual tunnel
+        log_step "Starting tunnel with subdomain: $STABLE_SUBDOMAIN"
+        lt --port ${DEV_PORT} --subdomain $STABLE_SUBDOMAIN 2>&1 | tee web_tunnel_output.log &
+        TUNNEL_PID=$!
+        sleep 5
+    else
+        # Check if it failed due to subdomain already in use
+        if grep -q "subdomain.*already taken" /tmp/subdomain-test.log 2>/dev/null; then
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_error "❌ Subdomain '$STABLE_SUBDOMAIN' is already taken"
+            log_info "Please change DISCORD_AUTH_SUBDOMAIN in scripts/discord-auth-config.sh"
+            kill $WEB_PID 2>/dev/null || true
+            return 1
+        else
+            # Other error, but we'll still try to use it
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_warning "⚠️ Could not verify subdomain availability, but will try to use it"
+            
+            # Start the actual tunnel
+            log_step "Starting tunnel with subdomain: $STABLE_SUBDOMAIN"
+            lt --port ${DEV_PORT} --subdomain $STABLE_SUBDOMAIN 2>&1 | tee web_tunnel_output.log &
+            TUNNEL_PID=$!
+            sleep 5
+        fi
+    fi
     
     # Get tunnel URL
     if [ -f web_tunnel_output.log ]; then

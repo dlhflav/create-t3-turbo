@@ -408,6 +408,44 @@ install_local_tunnel() {
     return 0
 }
 
+# Check if subdomain is available
+check_subdomain_availability() {
+    local subdomain=$1
+    local port=${2:-3000}
+    
+    log_step "Checking if subdomain '$subdomain' is available..."
+    
+    # Start a temporary tunnel to test availability
+    lt --port $port --subdomain $subdomain > /tmp/subdomain-test.log 2>&1 &
+    TEMP_PID=$!
+    sleep 3
+    
+    # Check if tunnel started successfully
+    local tunnel_url="https://${subdomain}.loca.lt"
+    if curl -s "$tunnel_url" > /dev/null 2>&1; then
+        # Subdomain is available, kill the test tunnel
+        kill $TEMP_PID 2>/dev/null || true
+        rm -f /tmp/subdomain-test.log
+        log_success "✅ Subdomain '$subdomain' is available"
+        return 0
+    else
+        # Check if it failed due to subdomain already in use
+        if grep -q "subdomain.*already taken" /tmp/subdomain-test.log 2>/dev/null; then
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_error "❌ Subdomain '$subdomain' is already taken"
+            log_info "Try a different subdomain name"
+            return 1
+        else
+            # Other error, but we'll still try to use it
+            kill $TEMP_PID 2>/dev/null || true
+            rm -f /tmp/subdomain-test.log
+            log_warning "⚠️ Could not verify subdomain availability, but will try to use it"
+            return 0
+        fi
+    fi
+}
+
 # Start local tunnel
 start_local_tunnel() {
     local port=${1:-3000}
@@ -423,12 +461,21 @@ start_local_tunnel() {
     # Generate a random subdomain if not provided
     if [ -z "$subdomain" ]; then
         subdomain="t3-turbo-$(date +%s)"
+        log_info "Using random subdomain: $subdomain"
+    else
+        # Check if the specified subdomain is available
+        if ! check_subdomain_availability "$subdomain" "$port"; then
+            log_error "Cannot start tunnel - subdomain '$subdomain' is not available"
+            return 1
+        fi
     fi
     
     # Start local tunnel
     if [ -n "$subdomain" ]; then
+        log_step "Starting tunnel with subdomain: $subdomain"
         lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
+        log_step "Starting tunnel with random subdomain"
         lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
@@ -494,6 +541,7 @@ start_ngrok() {
 start_web_dev() {
     local use_tunnel=${1:-false}
     local tunnel_type=${2:-"local"}
+    local custom_subdomain=${3:-""}
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
@@ -517,7 +565,11 @@ start_web_dev() {
                     ;;
                 "local")
                     log_step "Starting local tunnel..."
-                    start_local_tunnel 3000
+                    if [ -n "$custom_subdomain" ]; then
+                        start_local_tunnel 3000 "$custom_subdomain"
+                    else
+                        start_local_tunnel 3000
+                    fi
                     if [ $? -eq 0 ]; then
                         log_success "Web server with local tunnel is running"
                     else
@@ -847,6 +899,7 @@ show_usage() {
     echo -e "${GREEN}Web Commands:${NC}"
     echo "  web:dev        - Start web development server"
     echo "  web:tunnel     - Start web dev + local tunnel (default)"
+    echo "  web:tunnel-custom - Start web dev + custom subdomain tunnel"
     echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
     echo "  web:vercel     - Deploy web to Vercel"
     echo ""
@@ -888,6 +941,7 @@ show_usage() {
     echo ""
     echo -e "${BLUE}Examples:${NC}"
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
+    echo "  ./scripts/deploy.sh web:tunnel-custom my-app # Web with custom subdomain"
     echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:local         # Complete local development"
@@ -916,6 +970,21 @@ case "${1:-help}" in
         install_local_tunnel
         start_web_dev true "local"
         log_success "Web development with local tunnel started!"
+        wait $WEB_PID $LOCAL_TUNNEL_PID
+        ;;
+    "web:tunnel-custom")
+        if [ -z "$2" ]; then
+            log_error "Please provide a subdomain name"
+            echo "Usage: $0 web:tunnel-custom <subdomain>"
+            echo "Example: $0 web:tunnel-custom my-app-name"
+            exit 1
+        fi
+        clean_logs "web"
+        install_env_file "web"
+        install_packages "web"
+        install_local_tunnel
+        start_web_dev true "local" "$2"
+        log_success "Web development with custom tunnel started!"
         wait $WEB_PID $LOCAL_TUNNEL_PID
         ;;
     "web:ngrok-tunnel")
