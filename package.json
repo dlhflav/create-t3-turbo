@@ -39,9 +39,7 @@
           "deploy:mobile:tunnel": "pnpm -F @acme/expo deploy:tunnel",
           "deploy:all:local": "./scripts/deploy.sh all:local",
     "deploy:all:tunnel": "./scripts/deploy.sh all:tunnel",
-    "deploy:all:build": "./scripts/deploy.sh all:build",
-    "dev:discord-auth": "./scripts/discord-auth-tunnel.sh",
-    "check-subdomain": "./scripts/check-subdomain.sh"
+    "deploy:all:build": "./scripts/deploy.sh all:build"
     },
     "devDependencies": {
     "@acme/prettier-config": "workspace:*",
