@@ -136,3 +136,11 @@ turbo 2.5.4
 @acme/nextjs:dev:   }
 @acme/nextjs:dev: }
 @acme/nextjs:dev:  GET / 200 in 796ms
+@acme/validators:dev: cache bypass, force executing 0b1795ae51ef655d
+@acme/db:dev: cache bypass, force executing 8ccb01ab53fb7149
+ WARNING  could not start shutdown, exiting
+@acme/nextjs:dev:  ELIFECYCLE  Command failed.
+@acme/nextjs:dev:  ELIFECYCLE  Command failed.
+ ELIFECYCLE  Command failed.
+  x Watch interrupted due to signal.
+
