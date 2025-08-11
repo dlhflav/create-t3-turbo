@@ -240,3 +240,4 @@ params: 10
  ✓ Compiled /api/auth/[...all] in 1056ms
 [2m2025-08-11T23:07:32.693Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
  GET /api/auth/callback/discord?code=AohKWQ90xud5s8ioFbUIcSSIt04hJM 302 in 1581ms
+[?25h
