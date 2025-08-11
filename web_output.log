@@ -11,10 +11,10 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 1005ms
+ ✓ Ready in 962ms
  ○ Compiling / ...
- ✓ Compiled / in 4.8s
-[TRPC] post.all took 626ms to execute
+ ✓ Compiled / in 4.2s
+[TRPC] post.all took 779ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -68,9 +68,4 @@ params: 10
     }
   }
 }
- GET / 200 in 5952ms
- ELIFECYCLE  Command failed.
-/workspace/apps/nextjs:
- ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @acme/nextjs@0.1.0 dev: `pnpm with-env next dev --turbopack`
-Command failed with signal "SIGTERM"
-[?25h
+ GET / 200 in 5554ms
