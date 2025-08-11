@@ -232,6 +232,7 @@ pkill -f "expo\|ngrok\|next"
 # - Active tunnel URLs
 # - Local tunnel password (if applicable)
 # - Ngrok tunnel URLs (if applicable)
+# - Recent tunnel output from web_tunnel_output.log
 ```
 
 ---
@@ -255,3 +256,15 @@ pkill -f "expo\|ngrok\|next"
 **🎉 Recommendation: Use `./scripts/deploy.sh` for all deployments!**
 
 **⚠️ Note**: Due to ngrok limitations, only one tunnel can be active at a time. Choose the tunnel type based on your current development needs.
+
+---
+
+## 📄 **Log Files**
+
+The deployment script creates several log files for monitoring:
+
+- **`web_output.log`** - Next.js development server output
+- **`web_tunnel_output.log`** - Local tunnel and ngrok tunnel output
+- **`mobile_output.log`** - Expo development server output
+
+These logs are automatically cleaned when using the `clean` command or when starting new deployments.

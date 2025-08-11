@@ -28,12 +28,12 @@ clean_logs() {
     log_step "Cleaning live output logs for $app_type..."
     
     # Always clean general logs
-    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log
+    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log localtunnel_output.log
     
     # Clean app-specific logs based on app type
     case $app_type in
         "web"|"next")
-            rm -f web_output.log
+            rm -f web_output.log web_tunnel_output.log
             log_success "Web logs cleaned"
             ;;
         "mobile"|"expo")
@@ -41,7 +41,7 @@ clean_logs() {
             log_success "Mobile logs cleaned"
             ;;
         "all")
-            rm -f web_output.log mobile_output.log
+            rm -f web_output.log web_tunnel_output.log mobile_output.log
             log_success "All logs cleaned"
             ;;
         *)
@@ -358,17 +358,17 @@ start_local_tunnel() {
     
     # Start local tunnel
     if [ -n "$subdomain" ]; then
-        lt --port $port --subdomain $subdomain 2>&1 | tee localtunnel_output.log &
+        lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
-        lt --port $port 2>&1 | tee localtunnel_output.log &
+        lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
     LOCAL_TUNNEL_PID=$!
     sleep 5
     
     # Get tunnel URL from log
-    if [ -f localtunnel_output.log ]; then
-        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+    if [ -f web_tunnel_output.log ]; then
+        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
         if [ -n "$TUNNEL_URL" ]; then
             log_success "Local Tunnel started:"
             log_info "  - $TUNNEL_URL -> http://localhost:$port"
@@ -404,7 +404,7 @@ start_ngrok() {
     fi
     
     # Start ngrok with web tunnel only
-    ngrok start web 2>&1 | tee ngrok_output.log &
+    ngrok start web 2>&1 | tee web_tunnel_output.log &
     NGROK_PID=$!
     sleep 5
     
@@ -570,8 +570,8 @@ show_status() {
     fi
     
     # Check local tunnel
-    if [ -f "localtunnel_output.log" ]; then
-        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' localtunnel_output.log | head -1)
+    if [ -f "web_tunnel_output.log" ]; then
+        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
         if [ -n "$LOCAL_TUNNEL_URL" ]; then
             log_success "Local tunnel:"
             log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
@@ -590,6 +590,12 @@ show_status() {
         echo ""
         log_info "Recent web output:"
         tail -10 web_output.log
+    fi
+    
+    if [ -f "web_tunnel_output.log" ]; then
+        echo ""
+        log_info "Recent tunnel output:"
+        tail -10 web_tunnel_output.log
     fi
     
     if [ -f "mobile_output.log" ]; then
