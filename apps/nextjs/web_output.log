@@ -179,3 +179,7 @@ params: 10
   }
 }
  GET / 200 in 761ms
+ ○ Compiling /api/auth/[...all] ...
+ ✓ Compiled /api/auth/[...all] in 1503ms
+[2m2025-08-11T23:11:06.662Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
+ GET /api/auth/callback/discord?code=6QaB13zq5OpTP5SYloc1htuxS6PRHh 302 in 2224ms
