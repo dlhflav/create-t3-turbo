@@ -853,8 +853,7 @@ show_usage() {
     echo -e "${CYAN}Mobile Commands:${NC}"
     echo "  mobile:dev    - Start mobile development server"
     echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
-    echo "  mobile:all    - Build mobile app (development)"
-    echo "  mobile:deploy - EAS build for all platforms"
+    echo "  mobile:all    - EAS build for all platforms"
     echo "  mobile:android - EAS build for Android"
     echo "  mobile:ios    - EAS build for iOS"
     echo ""
@@ -954,16 +953,8 @@ case "${1:-help}" in
         log_success "Mobile development with tunnel started!"
         wait $MOBILE_PID
         ;;
-    "mobile:all")
-        clean_logs "mobile"
-        install_env_file "mobile"
-        install_packages "mobile"
-        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
-        ;;
-
-    
     # EAS deployments
-    "mobile:deploy")
+    "mobile:all")
         clean_logs "mobile"
         install_env_file "mobile"
         install_packages "mobile"

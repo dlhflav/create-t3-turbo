@@ -91,8 +91,7 @@ pnpm deploy:all                   # Complete build (script: Vercel + EAS)
 ./scripts/deploy.sh web:vercel    # Deploy web to Vercel
 ./scripts/deploy.sh mobile:dev    # Start mobile development server
 ./scripts/deploy.sh mobile:tunnel # Start mobile with Expo tunnel
-./scripts/deploy.sh mobile:all    # Build mobile app (development) - uses package.json
-./scripts/deploy.sh mobile:deploy # EAS build for all platforms - uses package.json
+./scripts/deploy.sh mobile:all    # EAS build for all platforms - uses package.json
 ./scripts/deploy.sh mobile:android # EAS build for Android - uses package.json
 ./scripts/deploy.sh mobile:ios    # EAS build for iOS - uses package.json
 ./scripts/deploy.sh all:local     # Complete local development
