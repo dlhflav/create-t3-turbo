@@ -11,10 +11,10 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 968ms
+ ✓ Ready in 1098ms
  ○ Compiling / ...
- ✓ Compiled / in 4.8s
-[TRPC] post.all took 363ms to execute
+ ✓ Compiled / in 5.3s
+[TRPC] post.all took 264ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -44,8 +44,8 @@ params: 10
     }
   }
 }
- GET / 200 in 5668ms
-[TRPC] post.all took 433ms to execute
+ GET / 200 in 6080ms
+[TRPC] post.all took 437ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -75,8 +75,8 @@ params: 10
     }
   }
 }
- GET / 200 in 688ms
-[TRPC] post.all took 475ms to execute
+ GET / 200 in 4740ms
+[TRPC] post.all took 202ms to execute
  ⨯ Error [TRPCError]: Failed query: select "id", "title", "content", "created_at", "updated_at" from "post" "Post" order by "Post"."id" desc limit $1
 params: 10
     at async (../../packages/api/src/trpc.ts:91:17)
@@ -106,4 +106,4 @@ params: 10
     }
   }
 }
- GET / 200 in 558ms
+ GET / 200 in 271ms
