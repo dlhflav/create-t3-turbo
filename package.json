@@ -28,7 +28,7 @@
     "deploy:web:vercel": "pnpm -F @acme/nextjs deploy:vercel",
     "deploy:web:local": "pnpm -F @acme/nextjs deploy:local",
     "deploy:web:tunnel": "pnpm -F @acme/nextjs deploy:tunnel",
-    "deploy:web:tunnel-custom": "./scripts/deploy.sh web:tunnel-custom",
+
     "deploy:web:ngrok": "pnpm -F @acme/nextjs deploy:ngrok",
     "deploy:mobile:local": "pnpm -F @acme/expo deploy:local",
     "deploy:mobile:android": "pnpm -F @acme/expo deploy:android",

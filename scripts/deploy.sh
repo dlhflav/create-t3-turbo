@@ -547,7 +547,6 @@ start_ngrok() {
 start_web_dev() {
     local use_tunnel=${1:-false}
     local tunnel_type=${2:-"local"}
-    local custom_subdomain=${3:-""}
     log_step "Starting web development server..."
     
     log_success "Starting web server on http://localhost:3000"
@@ -571,11 +570,7 @@ start_web_dev() {
                     ;;
                 "local")
                     log_step "Starting local tunnel..."
-                    if [ -n "$custom_subdomain" ]; then
-                        start_local_tunnel 3000 "$custom_subdomain"
-                    else
-                        start_local_tunnel 3000
-                    fi
+                    start_local_tunnel 3000
                     if [ $? -eq 0 ]; then
                         log_success "Web server with local tunnel is running"
                     else
@@ -905,7 +900,7 @@ show_usage() {
     echo -e "${GREEN}Web Commands:${NC}"
     echo "  web:dev        - Start web development server"
     echo "  web:tunnel     - Start web dev + local tunnel (default)"
-    echo "  web:tunnel-custom - Start web dev + custom subdomain tunnel"
+
     echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
     echo "  web:vercel     - Deploy web to Vercel"
     echo ""
@@ -947,7 +942,7 @@ show_usage() {
     echo ""
     echo -e "${BLUE}Examples:${NC}"
     echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
-    echo "  ./scripts/deploy.sh web:tunnel-custom my-app # Web with custom subdomain"
+
     echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
     echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
     echo "  ./scripts/deploy.sh all:local         # Complete local development"
@@ -978,21 +973,7 @@ case "${1:-help}" in
         log_success "Web development with local tunnel started!"
         wait $WEB_PID $LOCAL_TUNNEL_PID
         ;;
-    "web:tunnel-custom")
-        if [ -z "$2" ]; then
-            log_error "Please provide a subdomain name"
-            echo "Usage: $0 web:tunnel-custom <subdomain>"
-            echo "Example: $0 web:tunnel-custom my-app-name"
-            exit 1
-        fi
-        clean_logs "web"
-        install_env_file "web"
-        install_packages "web"
-        install_local_tunnel
-        start_web_dev true "local" "$2"
-        log_success "Web development with custom tunnel started!"
-        wait $WEB_PID $LOCAL_TUNNEL_PID
-        ;;
+
     "web:ngrok-tunnel")
         clean_logs "web"
         install_env_file "web"

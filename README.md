@@ -150,7 +150,7 @@ For local development, you can use a local tunnel with a stable subdomain. This 
    https://my-app-oauth-2024.loca.lt/api/auth/callback/discord
    ```
 
-> **Note**: The `TUNNEL_SUBDOMAIN` environment variable takes precedence over other configuration methods. You can also use `pnpm deploy:web:tunnel-custom <subdomain>` to override the environment variable for a specific session.
+> **Note**: The `TUNNEL_SUBDOMAIN` environment variable takes precedence over other configuration methods.
 
 #### Add your local IP to your OAuth provider
 
