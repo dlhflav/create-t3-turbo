@@ -6,22 +6,16 @@
 > @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
 > dotenv -e ../../.env -- next dev --turbopack
 
+ ⚠ Port 3000 is in use, using available port 3001 instead.
    ▲ Next.js 15.3.3 (Turbopack)
-   - Local:        http://localhost:3000
-   - Network:      http://172.30.0.2:3000
-
- ✓ Starting...
-Attention: Next.js now collects completely anonymous telemetry regarding usage.
-This information is used to shape Next.js' roadmap and prioritize features.
-You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
-https://nextjs.org/telemetry
-
- ✓ Ready in 989ms
- ○ Compiling / ...
- ✓ Compiled / in 4.7s
-[TRPC] post.all took 1092ms to execute
- GET / 200 in 6173ms
+   - Local:        http://localhost:3001
+   - Network:      h ○ Compiling / ...
+ ✓ Compiled / in 4.5s
 [TRPC] post.all took 1106ms to execute
- GET / 200 in 1155ms
-[TRPC] post.all took 984ms to execute
- GET / 200 in 1045ms
+ GET / 200 in 5967ms
+[TRPC] post.all took 1077ms to execute
+ GET / 200 in 3419ms
+[TRPC] post.all took 191ms to execute
+ GET / 200 in 237ms
+ GET / 200 in 109ms
+[TRPC] post.all took 380ms to execute
