@@ -1,0 +1,11 @@
+Scope: all 13 workspace projects
+../..                                    | Progress: resolved 0, reused 1, downloaded 0, added 0
+../..                                    | -101 ----------
+../..                                    | Progress: resolved 0, reused 101, downloaded 0, added 0, done
+
+../.. postinstall$ pnpm lint:ws
+../.. postinstall: > create-t3-turbo@ lint:ws /workspace
+../.. postinstall: > pnpm dlx sherif@latest
+../.. postinstall: ✓ No issues found
+../.. postinstall: Done
+Done in 2.1s using pnpm v10.11.1

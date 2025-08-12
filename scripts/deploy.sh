@@ -842,36 +842,75 @@ show_status() {
     # Check local tunnel
     LOCAL_TUNNEL_PID=$(get_pid "lt --port")
     if [ -n "$LOCAL_TUNNEL_PID" ]; then
-        # Check if custom subdomain is configured and working
+        # Check if custom subdomain is configured
         local tunnel_subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
         if [ -n "$tunnel_subdomain" ]; then
             CUSTOM_URL="https://${tunnel_subdomain}.loca.lt"
-            if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
-                LOCAL_TUNNEL_URL="$CUSTOM_URL"
-                log_success "Local tunnel:"
-                log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
-            else
-                # Fallback to log file if custom subdomain not working
-                if [ -f "web_tunnel_output.log" ]; then
-                    LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-                fi
-                if [ -n "$LOCAL_TUNNEL_URL" ]; then
-                    log_success "Local tunnel:"
-                    log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+            EXPECTED_URL="$CUSTOM_URL"
+            
+            # Check if output log shows the correct URL
+            if [ -f "web_tunnel_output.log" ]; then
+                LOG_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
+                if [ "$LOG_URL" != "$EXPECTED_URL" ]; then
+                    log_error "Local tunnel: Output log shows wrong URL"
+                    log_error "  Expected: $EXPECTED_URL"
+                    log_error "  Found: $LOG_URL"
+                    log_error "  Stopping local tunnel due to URL mismatch"
+                    pkill -f "lt --port"
+                    LOCAL_TUNNEL_PID=""
+                    LOCAL_TUNNEL_URL=""
                 else
-                    log_error "Local tunnel: Not running"
+                    # Output log is correct, now curl test it
+                    if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
+                        LOCAL_TUNNEL_URL="$CUSTOM_URL"
+                        log_success "Local tunnel:"
+                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
+                    else
+                        log_error "Local tunnel: Custom subdomain not accessible"
+                        log_error "  URL: $CUSTOM_URL"
+                        log_error "  Stopping local tunnel due to accessibility issue"
+                        pkill -f "lt --port"
+                        LOCAL_TUNNEL_PID=""
+                        LOCAL_TUNNEL_URL=""
+                    fi
                 fi
+            else
+                log_error "Local tunnel: No output log found"
+                log_error "  Stopping local tunnel due to missing log"
+                pkill -f "lt --port"
+                LOCAL_TUNNEL_PID=""
+                LOCAL_TUNNEL_URL=""
             fi
         else
             # No custom subdomain, use log file
             if [ -f "web_tunnel_output.log" ]; then
                 LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-            fi
-            if [ -n "$LOCAL_TUNNEL_URL" ]; then
-                log_success "Local tunnel:"
-                log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+                if [ -n "$LOCAL_TUNNEL_URL" ]; then
+                    # Test the URL from log
+                    if curl -s -H "bypass-tunnel-reminder:true" "$LOCAL_TUNNEL_URL" > /dev/null 2>&1; then
+                        log_success "Local tunnel:"
+                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+                    else
+                        log_error "Local tunnel: URL from log not accessible"
+                        log_error "  URL: $LOCAL_TUNNEL_URL"
+                        log_error "  Stopping local tunnel due to accessibility issue"
+                        pkill -f "lt --port"
+                        LOCAL_TUNNEL_PID=""
+                        LOCAL_TUNNEL_URL=""
+                    fi
+                else
+                    log_error "Local tunnel: No URL found in output log"
+                    log_error "  Stopping local tunnel due to missing URL"
+                    pkill -f "lt --port"
+                    LOCAL_TUNNEL_PID=""
+                    LOCAL_TUNNEL_URL=""
+                fi
             else
-                log_error "Local tunnel: Not running"
+                log_error "Local tunnel: No output log found"
+                log_error "  Stopping local tunnel due to missing log"
+                pkill -f "lt --port"
+                LOCAL_TUNNEL_PID=""
+                LOCAL_TUNNEL_URL=""
             fi
         fi
         
