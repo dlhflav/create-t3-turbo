@@ -20,3 +20,17 @@
  GET / 200 in 2258ms
 [TRPC] post.all took 247ms to execute
  GET / 200 in 294ms
+[TRPC] post.all took 750ms to execute
+ GET / 200 in 814ms
+ ⚠ Cross origin request detected from gopher-assuring-seriously.ngrok-free.app to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ POST / 303 in 123ms
+[TRPC] post.all took 1055ms to execute
+ GET / 200 in 1113ms
+[TRPC] post.all took 505ms to execute
+ GET / 200 in 547ms
+ POST / 303 in 97ms
+ ○ Compiling /api/auth/[...all] ...
+ ✓ Compiled /api/auth/[...all] in 1478ms
+[2m2025-08-12T02:16:06.667Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
+ GET /api/auth/callback/discord?code=Z8BEMSYrQZ4WbmuA6yy7G7L68qfmq3 302 in 2247ms
