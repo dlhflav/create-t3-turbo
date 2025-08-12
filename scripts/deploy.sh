@@ -217,6 +217,17 @@ install_env_file() {
         fi
     done
 
+    # Also add important shell variables that might not be in .env.example
+    important_shell_vars="TUNNEL_SUBDOMAIN NGROK_TOKEN VERCEL_TOKEN EXPO_TOKEN"
+    for var in $important_shell_vars; do
+        shell_value=$(get_shell_var_value "$var")
+        if [ -n "$shell_value" ] && ! var_exists_in_env "$var"; then
+            log_info "Adding important shell variable: $var"
+            echo "${var}=${shell_value}" >> .env
+            updated_vars=$((updated_vars + 1))
+        fi
+    done
+
     if [ $updated_vars -gt 0 ]; then
         log_info "Added/updated $updated_vars variables from shell environment"
     else
