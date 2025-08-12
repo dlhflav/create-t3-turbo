@@ -1,13 +1,23 @@
-Scope: all 13 workspace projects
-../..                                    |    +1469 ++++++++++++++++++++++++++++
 
-   ╭──────────────────────────────────────────╮
-   │                                          │
-   │   Update available! 10.11.1 → 10.14.0.   │
-   │   Changelog: https://pnpm.io/v/10.14.0   │
-   │     To update, run: pnpm add -g pnpm     │
-   │                                          │
-   ╰──────────────────────────────────────────╯
+> @acme/nextjs@0.1.0 dev /workspace/apps/nextjs
+> pnpm with-env next dev --turbopack
 
-../..                                    | Progress: resolved 0, reused 0, downloaded 1, added 0
-../..                                    | Progress: resolved 0, reused 0, downloaded 96, added 53
+
+> @acme/nextjs@0.1.0 with-env /workspace/apps/nextjs
+> dotenv -e ../../.env -- next dev --turbopack
+
+   ▲ Next.js 15.3.3 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.30.0.2:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 989ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.7s
+[TRPC] post.all took 1092ms to execute
+ GET / 200 in 6173ms
