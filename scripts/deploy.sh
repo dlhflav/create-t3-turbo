@@ -185,6 +185,41 @@ install_env_file() {
         eval "echo \$${var_name}"
     }
 
+    # Function to get environment value following priority order:
+    # 1. .env if defined and different from example
+    # 2. Shell value if defined
+    # 3. Example value
+    get_env_value() {
+        local var_name="$1"
+        
+        # Get values from all sources
+        local env_value=$(get_env_var_value "$var_name")
+        local shell_value=$(get_shell_var_value "$var_name")
+        local example_value=$(get_example_var_value "$var_name")
+        
+        # Priority 1: .env if defined and different from example
+        if [ -n "$env_value" ] && [ "$env_value" != "$example_value" ]; then
+            echo "$env_value"
+            return 0
+        fi
+        
+        # Priority 2: Shell value if defined
+        if [ -n "$shell_value" ]; then
+            echo "$shell_value"
+            return 0
+        fi
+        
+        # Priority 3: Example value
+        if [ -n "$example_value" ]; then
+            echo "$example_value"
+            return 0
+        fi
+        
+        # No value found
+        echo ""
+        return 1
+    }
+
     # Get all variables from .env.example
     env_vars=$(get_env_vars_from_example)
 
@@ -235,6 +270,59 @@ install_env_file() {
     fi
     
     log_success "Environment file installation complete for $app_type"
+}
+
+# Global function to get environment value following priority order:
+# 1. .env if defined and different from example
+# 2. Shell value if defined
+# 3. Example value
+get_env_value() {
+    local var_name="$1"
+    
+    # Function to get variable value from .env file
+    get_env_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
+    # Function to get variable value from .env.example file
+    get_example_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env.example 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
+    # Function to get variable value from shell environment
+    get_shell_var_value() {
+        local var_name="$1"
+        eval "echo \$${var_name}"
+    }
+    
+    # Get values from all sources
+    local env_value=$(get_env_var_value "$var_name")
+    local shell_value=$(get_shell_var_value "$var_name")
+    local example_value=$(get_example_var_value "$var_name")
+    
+    # Priority 1: .env if defined and different from example
+    if [ -n "$env_value" ] && [ "$env_value" != "$example_value" ]; then
+        echo "$env_value"
+        return 0
+    fi
+    
+    # Priority 2: Shell value if defined
+    if [ -n "$shell_value" ]; then
+        echo "$shell_value"
+        return 0
+    fi
+    
+    # Priority 3: Example value
+    if [ -n "$example_value" ]; then
+        echo "$example_value"
+        return 0
+    fi
+    
+    # No value found
+    echo ""
+    return 1
 }
 
 # Install and configure ngrok
@@ -512,12 +600,13 @@ start_local_tunnel() {
     echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
-    # Check for TUNNEL_SUBDOMAIN environment variable first
+    # Check for TUNNEL_SUBDOMAIN using the composition logic
     log_info "DEBUG: Initial subdomain parameter: '$subdomain'"
-    log_info "DEBUG: TUNNEL_SUBDOMAIN environment variable: '$TUNNEL_SUBDOMAIN'"
-    if [ -z "$subdomain" ] && [ -n "$TUNNEL_SUBDOMAIN" ]; then
-        subdomain="$TUNNEL_SUBDOMAIN"
-        log_info "Using TUNNEL_SUBDOMAIN from environment: $subdomain"
+    if [ -z "$subdomain" ]; then
+        subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
+        if [ -n "$subdomain" ]; then
+            log_info "Using TUNNEL_SUBDOMAIN from composition logic: $subdomain"
+        fi
     fi
     
     # Generate a random subdomain if not provided
@@ -805,8 +894,9 @@ show_status() {
     LOCAL_TUNNEL_PID=$(get_pid "lt --port")
     if [ -n "$LOCAL_TUNNEL_PID" ]; then
         # Check if custom subdomain is configured and working
-        if [ -n "$TUNNEL_SUBDOMAIN" ]; then
-            CUSTOM_URL="https://${TUNNEL_SUBDOMAIN}.loca.lt"
+        local tunnel_subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
+        if [ -n "$tunnel_subdomain" ]; then
+            CUSTOM_URL="https://${tunnel_subdomain}.loca.lt"
             if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
                 LOCAL_TUNNEL_URL="$CUSTOM_URL"
                 log_success "Local tunnel:"
