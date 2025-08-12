@@ -1,1261 +1,496 @@
 #!/bin/bash
 
-# T3 Turbo Deployment Script
-# This script handles both web and mobile deployments with ngrok tunneling
+set -e
 
-set -e  # Exit on any error
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
-
-# Logging functions
+# Colors and logging
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; PURPLE='\033[0;35m'; CYAN='\033[0;36m'; NC='\033[0m'
 log_info() { echo -e "${BLUE}ℹ️ $1${NC}"; }
 log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️ $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 log_step() { echo -e "${CYAN}🔧 $1${NC}"; }
-log_deploy() { echo -e "${PURPLE}🚀 $1${NC}"; }
 
-# Clean live output logs
+# =============================================================================
+# UTILITY FUNCTIONS
+# =============================================================================
+
+# Clean logs
 clean_logs() {
     local app_type=${1:-"all"}
-    log_step "Cleaning live output logs for $app_type..."
-    
-    # Always clean general logs
-    rm -f live_output.log live_console.log tunnel_live.log console_output.log tunnel_output.log current_console.log deployment-*.log ngrok_output.log localtunnel_output.log
-    
-    # Clean app-specific logs based on app type
-    case $app_type in
-        "web"|"next")
-            rm -f web_output.log web_tunnel_output.log
-            log_success "Web logs cleaned"
-            ;;
-        "mobile"|"expo")
-            rm -f mobile_output.log
-            log_success "Mobile logs cleaned"
-            ;;
-        "all")
-            rm -f web_output.log web_tunnel_output.log mobile_output.log
-            log_success "All logs cleaned"
-            ;;
-        *)
-            log_warning "Unknown app type for log cleaning: $app_type"
-            ;;
+    case $app_type in 
+        "web") rm -f web_output.log web_tunnel_output.log ;;
+        "mobile") rm -f mobile_output.log ;;
+        "all") rm -f web_output.log web_tunnel_output.log mobile_output.log ;;
     esac
+    log_success "Logs cleaned for $app_type"
 }
 
-
-
-# Install JavaScript packages for specific app
+# Install packages
 install_packages() {
     local app_type=$1
-    log_step "Installing JavaScript packages for $app_type..."
+    log_step "Installing $app_type dependencies..."
     
     case $app_type in
-        "web"|"next")
-            log_info "Installing Next.js dependencies..."
-            # Check if we're already in the nextjs directory
-            if [ "$(basename $(pwd))" = "nextjs" ] && [ -f "package.json" ]; then
-                # We're already in the nextjs directory
-                pnpm install 2>&1 | tee ../../web_output.log
-                if [ $? -eq 0 ]; then
-                    log_success "Next.js dependencies installed"
-                else
-                    log_error "Failed to install Next.js dependencies"
-                    return 1
-                fi
-            else
-                # Navigate to nextjs directory from root
-                cd apps/nextjs
-                pnpm install 2>&1 | tee ../../web_output.log
-                if [ $? -eq 0 ]; then
-                    log_success "Next.js dependencies installed"
-                else
-                    log_error "Failed to install Next.js dependencies"
-                    cd ../..
-                    return 1
-                fi
-                cd ../..
-            fi
-            ;;
-        "mobile"|"expo")
-            log_info "Installing Expo dependencies..."
-            if [ -d "apps/expo" ]; then
-                cd apps/expo
-                pnpm install 2>&1 | tee ../../mobile_output.log
-                if [ $? -eq 0 ]; then
-                    log_success "Expo dependencies installed"
-                else
-                    log_error "Failed to install Expo dependencies"
-                    cd ../..
-                    return 1
-                fi
-                cd ../..
-            else
-                pnpm install 2>&1 | tee ../mobile_output.log
-                if [ $? -eq 0 ]; then
-                    log_success "Expo dependencies installed"
-                else
-                    log_error "Failed to install Expo dependencies"
-                    return 1
-                fi
-            fi
-            ;;
-        *)
-            log_error "Unknown app type: $app_type"
-            return 1
-            ;;
+        "web") pnpm install -F @acme/nextjs ;;
+        "mobile") pnpm install -F @acme/expo ;;
     esac
-    
-    log_success "$app_type dependencies are ready"
-    return 0
+    log_success "$app_type dependencies installed"
 }
 
-# Load environment variables safely
+# Environment management
 load_env() {
-    if [ -f .env ]; then
-        log_info "Loading environment variables from .env"
-        while IFS= read -r line; do
-            [[ $line =~ ^[[:space:]]*# ]] && continue
-            [[ -z $line ]] && continue
-            if [[ $line =~ ^(VERCEL_TOKEN|NGROK_TOKEN|EXPO_TOKEN)= ]]; then
-                export "$line"
-            fi
-        done < .env
-    else
-        log_warning ".env file not found, using environment variables"
-    fi
+    [ -f .env ] && export $(grep -E '^(VERCEL_TOKEN|NGROK_TOKEN|EXPO_TOKEN|TUNNEL_SUBDOMAIN)=' .env | xargs)
 }
 
-# Install environment file from .env.example and shell environment
-install_env_file() {
-    local app_type=${1:-"all"}
-    log_step "Installing environment file for $app_type..."
-    
-    # Check if .env.example exists
-    if [ ! -f ".env.example" ]; then
-        log_warning ".env.example file not found, skipping environment setup"
-        return 0
-    fi
-
-    # Create .env from .env.example if it doesn't exist
-    if [ ! -f ".env" ]; then
-        log_info "Creating .env file from .env.example..."
-        cp .env.example .env
-    fi
-
-    # Function to extract variable names from .env.example (excluding comments and empty lines)
-    get_env_vars_from_example() {
-        grep -E '^[A-Z_][A-Z0-9_]*=' .env.example | cut -d'=' -f1
-    }
-
-    # Function to check if a variable exists in .env file
-    var_exists_in_env() {
-        local var_name="$1"
-        grep -q "^${var_name}=" .env
-    }
-
-    # Function to get variable value from .env file
-    get_env_var_value() {
-        local var_name="$1"
-        grep "^${var_name}=" .env | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
-    }
-
-    # Function to get variable value from .env.example file
-    get_example_var_value() {
-        local var_name="$1"
-        grep "^${var_name}=" .env.example | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
-    }
-
-    # Function to remove existing variable from .env file
-    remove_var_from_env() {
-        local var_name="$1"
-        sed -i "/^${var_name}=/d" .env
-    }
-
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-
-    # Get all variables from .env.example
-    env_vars=$(get_env_vars_from_example)
-
-    # Check each variable and update if needed
-    updated_vars=0
-    for var in $env_vars; do
-        shell_value=$(get_shell_var_value "$var")
-        
-        if var_exists_in_env "$var"; then
-            # Variable exists in .env, check if it's still equal to example value
-            env_value=$(get_env_var_value "$var")
-            example_value=$(get_example_var_value "$var")
-            
-            # Check if .env value is empty, undefined, or equal to example value
-            if [ -z "$env_value" ] || [ "$env_value" = "$example_value" ] || [ "$env_value" = "''" ] || [ "$env_value" = '""' ]; then
-                if [ -n "$shell_value" ]; then
-                    log_info "Updating variable from example value: $var"
-                    remove_var_from_env "$var"
-                    echo "${var}=${shell_value}" >> .env
-                    updated_vars=$((updated_vars + 1))
-                fi
-            fi
-        else
-            # Variable doesn't exist in .env, add it if shell value exists
-            if [ -n "$shell_value" ]; then
-                log_info "Adding missing variable: $var"
-                echo "${var}=${shell_value}" >> .env
-                updated_vars=$((updated_vars + 1))
-            fi
-        fi
-    done
-
-    # Also add important shell variables that might not be in .env.example
-    important_shell_vars="TUNNEL_SUBDOMAIN NGROK_TOKEN VERCEL_TOKEN EXPO_TOKEN"
-    for var in $important_shell_vars; do
-        shell_value=$(get_shell_var_value "$var")
-        if [ -n "$shell_value" ] && ! var_exists_in_env "$var"; then
-            log_info "Adding important shell variable: $var"
-            echo "${var}=${shell_value}" >> .env
-            updated_vars=$((updated_vars + 1))
-        fi
-    done
-
-    if [ $updated_vars -gt 0 ]; then
-        log_info "Added/updated $updated_vars variables from shell environment"
-    else
-        log_info "No environment variables needed updating"
-    fi
-    
-    log_success "Environment file installation complete for $app_type"
-}
-
-# Global function to get environment value following priority order:
-# 1. .env if defined and different from example
-# 2. Shell value if defined
-# 3. Example value
 get_env_value() {
     local var_name="$1"
+    local env_value=$(grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//')
+    local shell_value=$(eval "echo \$${var_name}")
+    local example_value=$(grep "^${var_name}=" .env.example 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//')
     
-    # Function to get variable value from .env file
-    get_env_var_value() {
-        local var_name="$1"
-        grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
-    }
-
-    # Function to get variable value from .env.example file
-    get_example_var_value() {
-        local var_name="$1"
-        grep "^${var_name}=" .env.example 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
-    }
-
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
-    # Get values from all sources
-    local env_value=$(get_env_var_value "$var_name")
-    local shell_value=$(get_shell_var_value "$var_name")
-    local example_value=$(get_example_var_value "$var_name")
-    
-    # Priority 1: .env if defined and different from example
-    if [ -n "$env_value" ] && [ "$env_value" != "$example_value" ]; then
-        echo "$env_value"
-        return 0
-    fi
-    
-    # Priority 2: Shell value if defined
-    if [ -n "$shell_value" ]; then
-        echo "$shell_value"
-        return 0
-    fi
-    
-    # Priority 3: Example value
-    if [ -n "$example_value" ]; then
-        echo "$example_value"
-        return 0
-    fi
-    
-    # No value found
+    [ -n "$env_value" ] && [ "$env_value" != "$example_value" ] && echo "$env_value" && return 0
+    [ -n "$shell_value" ] && echo "$shell_value" && return 0
+    [ -n "$example_value" ] && echo "$example_value" && return 0
     echo ""
-    return 1
 }
 
-# Install and configure ngrok
-install_ngrok() {
-    log_step "Installing and configuring ngrok..."
+# Install tools
+install_tool() {
+    local tool=$1
+    local install_cmd=$2
     
-    # Check if ngrok is installed
-    if ! command -v ngrok &> /dev/null; then
-        log_info "Ngrok not found, installing..."
-        
-        # Add ngrok repository and install
-        curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
-        echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list >/dev/null
-        sudo apt update && sudo apt install -y ngrok
-        
-        if [ $? -eq 0 ]; then
-            log_success "Ngrok installed successfully"
-        else
-            log_error "Failed to install ngrok"
-            return 1
-        fi
+    if ! command -v $tool &> /dev/null; then
+        log_info "Installing $tool..."
+        eval $install_cmd
+        log_success "$tool installed"
     else
-        log_info "Ngrok already installed: $(ngrok version)"
+        log_info "$tool already installed"
     fi
     
-    # Get NGROK_TOKEN using composition logic
-    local ngrok_token=$(get_env_value "NGROK_TOKEN")
-    if [ -z "$ngrok_token" ]; then
-        log_warning "NGROK_TOKEN not found, skipping ngrok configuration"
-        return 0
-    fi
-    
-    # Create ngrok config directory
-    mkdir -p ~/.config/ngrok
-    
-    # Check if config file exists and needs updating
-    local config_file=~/.config/ngrok/ngrok.yml
-    local config_needs_update=false
-    
-    if [ ! -f "$config_file" ]; then
-        config_needs_update=true
-        log_info "Ngrok config file not found, creating new one"
-    else
-        # Check if token is different
-        local current_token=$(grep -o 'authtoken: [^[:space:]]*' "$config_file" | cut -d' ' -f2)
-        if [ "$current_token" != "$ngrok_token" ]; then
-            config_needs_update=true
-            log_info "Ngrok token changed, updating config"
-        fi
-        
-        # Check if endpoints need updating
-        if ! grep -q "name: web" "$config_file"; then
-            config_needs_update=true
-            log_info "Ngrok endpoints missing, updating config"
-        fi
-    fi
-    
-    if [ "$config_needs_update" = true ]; then
-        # Create/update ngrok configuration file
-        cat > "$config_file" << EOF
-version: 3
-agent:
-  authtoken: ${ngrok_token}
-endpoints:
-  - name: web
-    url: gopher-assuring-seriously.ngrok-free.app
-    upstream:
-      url: http://localhost:3000
-EOF
-        
-        log_success "Ngrok configuration updated at $config_file"
-        log_info "Web tunnel: gopher-assuring-seriously.ngrok-free.app -> http://localhost:3000"
-    else
-        log_info "Ngrok configuration is up to date"
-    fi
-    
-    return 0
+    # Configure if needed
+    case $tool in
+        "ngrok")
+            local token=$(get_env_value "NGROK_TOKEN")
+            [ -n "$token" ] && mkdir -p ~/.config/ngrok && echo "authtoken: $token" > ~/.config/ngrok/ngrok.yml
+            ;;
+        "vercel")
+            local token=$(get_env_value "VERCEL_TOKEN")
+            [ -n "$token" ] && echo "$token" | vercel login --token
+            ;;
+        "eas")
+            local token=$(get_env_value "EXPO_TOKEN")
+            [ -n "$token" ] && echo "$token" | eas login --non-interactive
+            ;;
+    esac
 }
 
-# Install and configure Vercel CLI
-install_vercel() {
-    log_step "Installing and configuring Vercel CLI..."
-    
-    # Check if Vercel CLI is installed
-    if ! command -v vercel &> /dev/null; then
-        log_info "Vercel CLI not found, installing..."
-        
-        # Install Vercel CLI globally
-        npm install -g vercel
-        
-        if [ $? -eq 0 ]; then
-            log_success "Vercel CLI installed successfully"
-        else
-            log_error "Failed to install Vercel CLI"
-            return 1
-        fi
-    else
-        log_info "Vercel CLI already installed: $(vercel --version)"
-    fi
-    
-    # Get VERCEL_TOKEN using composition logic
-    local vercel_token=$(get_env_value "VERCEL_TOKEN")
-    if [ -z "$vercel_token" ]; then
-        log_warning "VERCEL_TOKEN not found, skipping Vercel configuration"
-        return 0
-    fi
-    
-    # Check if already logged in
-    if vercel whoami &> /dev/null; then
-        log_info "Vercel CLI already authenticated"
-    else
-        log_info "Authenticating Vercel CLI with token..."
-        echo "$vercel_token" | vercel login --token
-        
-        if [ $? -eq 0 ]; then
-            log_success "Vercel CLI authenticated successfully"
-        else
-            log_error "Failed to authenticate Vercel CLI"
-            return 1
-        fi
-    fi
-    
-    return 0
+# =============================================================================
+# SERVICE DETECTION FUNCTIONS
+# =============================================================================
+
+# Web server detection
+is_web_running() {
+    pgrep -f "next dev" >/dev/null 2>&1 || pgrep -f "next-server" >/dev/null 2>&1 || pgrep -f "pnpm -F @acme/nextjs" >/dev/null 2>&1
 }
 
-# Install and configure EAS CLI
-install_eas() {
-    log_step "Installing and configuring EAS CLI..."
-    
-    # Check if EAS CLI is installed
-    if ! command -v eas &> /dev/null; then
-        log_info "EAS CLI not found, installing..."
-        
-        # Install EAS CLI globally
-        npm install -g eas-cli
-        
-        if [ $? -eq 0 ]; then
-            log_success "EAS CLI installed successfully"
-        else
-            log_error "Failed to install EAS CLI"
-            return 1
-        fi
+get_web_info() {
+    if curl -s http://localhost:3000 > /dev/null 2>&1; then
+        echo "http://localhost:3000"
     else
-        log_info "EAS CLI already installed: $(eas --version)"
-    fi
-    
-    # Get EXPO_TOKEN using composition logic
-    local expo_token=$(get_env_value "EXPO_TOKEN")
-    if [ -z "$expo_token" ]; then
-        log_warning "EXPO_TOKEN not found, EAS builds may require manual authentication"
-        log_info "You can set EXPO_TOKEN for automated authentication"
-        return 0
-    fi
-    
-    # Check if already logged in
-    if eas whoami &> /dev/null; then
-        log_info "EAS CLI already authenticated"
-    else
-        log_info "Authenticating EAS CLI with token..."
-        echo "$expo_token" | eas login --non-interactive
-        
-        if [ $? -eq 0 ]; then
-            log_success "EAS CLI authenticated successfully"
-        else
-            log_error "Failed to authenticate EAS CLI"
-            log_info "You may need to authenticate manually with: eas login"
-            return 1
-        fi
-    fi
-    
-    return 0
-}
-
-# Get current IP address
-get_current_ip() {
-    local ip=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || echo "unknown")
-    echo "$ip"
-}
-
-# Get local tunnel password
-get_local_tunnel_password() {
-    local password=$(curl -s https://loca.lt/mytunnelpassword 2>/dev/null || echo "unknown")
-    echo "$password"
-}
-
-# Install and configure Local Tunnel
-install_local_tunnel() {
-    log_step "Installing and configuring Local Tunnel..."
-    
-    # Check if localtunnel is installed globally
-    if ! command -v lt &> /dev/null; then
-        log_info "Local Tunnel not found, installing..."
-        
-        # Install localtunnel globally
-        npm install -g localtunnel
-        
-        if [ $? -eq 0 ]; then
-            log_success "Local Tunnel installed successfully"
-        else
-            log_error "Failed to install Local Tunnel"
-            return 1
-        fi
-    else
-        log_info "Local Tunnel already installed: $(lt --version 2>/dev/null || echo 'version unknown')"
-    fi
-    
-    return 0
-}
-
-# Check if subdomain is available
-check_subdomain_availability() {
-    local subdomain=$1
-    local port=${2:-3000}
-    
-    log_step "Checking if subdomain '$subdomain' is available..."
-    
-    # Start a temporary tunnel to test availability
-    lt --port $port --subdomain $subdomain > /tmp/subdomain-test.log 2>&1 &
-    TEMP_PID=$!
-    sleep 3
-    
-    # Check if tunnel started successfully
-    local tunnel_url="https://${subdomain}.loca.lt"
-    if curl -s "$tunnel_url" > /dev/null 2>&1; then
-        # Subdomain is available, kill the test tunnel
-        kill $TEMP_PID 2>/dev/null || true
-        rm -f /tmp/subdomain-test.log
-        log_success "✅ Subdomain '$subdomain' is available"
-        return 0
-    else
-        # Check if it failed due to subdomain already in use
-        if grep -q "subdomain.*already taken" /tmp/subdomain-test.log 2>/dev/null; then
-            kill $TEMP_PID 2>/dev/null || true
-            rm -f /tmp/subdomain-test.log
-            log_error "❌ Subdomain '$subdomain' is already taken"
-            log_info "Try a different subdomain name"
-            return 1
-        else
-            # Other error, but we'll still try to use it
-            kill $TEMP_PID 2>/dev/null || true
-            rm -f /tmp/subdomain-test.log
-            log_warning "⚠️ Could not verify subdomain availability, but will try to use it"
-            return 0
-        fi
+        echo "unknown"
     fi
 }
 
-# Start local tunnel
-start_local_tunnel() {
-    local port=${1:-3000}
-    local subdomain=${2:-""}
-    
-    log_step "Starting Local Tunnel on port $port..."
-    
-    # Get local tunnel password before starting and log it
-    LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
-    echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
-    log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
-    
-    # Check for TUNNEL_SUBDOMAIN using the composition logic
-    log_info "DEBUG: Initial subdomain parameter: '$subdomain'"
-    if [ -z "$subdomain" ]; then
-        subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
-        if [ -n "$subdomain" ]; then
-            log_info "Using TUNNEL_SUBDOMAIN from composition logic: $subdomain"
+# Mobile server detection
+is_mobile_running() {
+    pgrep -f "expo start" >/dev/null 2>&1 || pgrep -f "pnpm -F @acme/expo" >/dev/null 2>&1
+}
+
+get_mobile_info() {
+    if curl -s http://localhost:8081 > /dev/null 2>&1; then
+        # Check if mobile is running in tunnel mode by looking for ngrok tunnel
+        if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
+            local tunnel_url=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); tunnels=data.get('tunnels', []); mobile_tunnel=next((t['public_url'] for t in tunnels if t['public_url'].endswith('8081.exp.direct')), ''); print(mobile_tunnel)" 2>/dev/null)
+            if [ -n "$tunnel_url" ]; then
+                echo "$tunnel_url"
+                return 0
+            fi
         fi
-    fi
-    
-    # Generate a random subdomain if not provided
-    if [ -z "$subdomain" ]; then
-        subdomain="t3-turbo-$(date +%s)"
-        log_info "Using random subdomain: $subdomain"
+        echo "http://localhost:8081"
     else
-        # Check if the specified subdomain is available
-        if ! check_subdomain_availability "$subdomain" "$port"; then
-            log_error "Cannot start tunnel - subdomain '$subdomain' is not available"
-            return 1
-        fi
+        echo "unknown"
     fi
-    
-    # Start local tunnel
-    log_info "DEBUG: Final subdomain value before starting tunnel: '$subdomain'"
-    if [ -n "$subdomain" ]; then
-        log_step "Starting tunnel with subdomain: $subdomain"
-        log_info "DEBUG: Executing command: lt --port $port --subdomain $subdomain"
-        lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
-    else
-        log_step "Starting tunnel with random subdomain"
-        log_info "DEBUG: Executing command: lt --port $port"
-        lt --port $port 2>&1 | tee web_tunnel_output.log &
-    fi
-    
-    LOCAL_TUNNEL_PID=$!
-    sleep 5
-    
-    # Get tunnel URL from log
+}
+
+# Tunnel detection
+is_local_tunnel_running() {
+    pgrep -f "lt --port" >/dev/null 2>&1
+}
+
+get_local_tunnel_info() {
     if [ -f web_tunnel_output.log ]; then
-        TUNNEL_URL=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
-        if [ -n "$TUNNEL_URL" ]; then
-            log_success "Local Tunnel started:"
-            log_info "  - $TUNNEL_URL -> http://localhost:$port"
+        local url=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
+        if [ -n "$url" ]; then
+            echo "$url"
+        else
+            echo "unknown"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+is_ngrok_running() {
+    pgrep -f "ngrok" >/dev/null 2>&1
+}
+
+get_ngrok_info() {
+    if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
+        local url=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data['tunnels'] else '')" 2>/dev/null)
+        if [ -n "$url" ]; then
+            echo "$url"
+        else
+            echo "unknown"
+        fi
+    else
+        echo "unknown"
+    fi
+}
+
+# =============================================================================
+# TUNNEL FUNCTIONS
+# =============================================================================
+
+start_local_tunnel() {
+    if is_local_tunnel_running; then
+        local url=$(get_local_tunnel_info)
+        log_info "Local tunnel is already running at $url, skipping..."
+        return 0
+    fi
+
+    log_info "Starting local tunnel in background (logs: web_tunnel_output.log)..."
+    install_tool "lt" "npm install -g localtunnel"
+
+    local port=${1:-3000}
+    local subdomain=${2:-$(get_env_value "TUNNEL_SUBDOMAIN")}
+    [ -z "$subdomain" ] && subdomain="t3-turbo-$(date +%s)"
+
+    rm -f web_tunnel_output.log
+    lt --port $port --subdomain $subdomain > web_tunnel_output.log 2>&1 &
+    log_info "Waiting 5 seconds for local tunnel to start..."
+    sleep 5
+    
+    if [ -f web_tunnel_output.log ]; then
+        local tunnel_url=$(grep -o 'https://[^[:space:]]*' web_tunnel_output.log | head -1)
+        if [ -n "$tunnel_url" ]; then
+            # Check for URL mismatch
+            if [ -n "$subdomain" ]; then
+                local expected_url="https://${subdomain}.loca.lt"
+                [ "$tunnel_url" != "$expected_url" ] && log_warning "URL mismatch: Expected $expected_url, got $tunnel_url"
+            fi
+            log_success "Local tunnel: $tunnel_url -> http://localhost:$port"
             return 0
         fi
     fi
-    
-    log_error "Failed to start Local Tunnel"
+    log_error "Failed to start local tunnel"
     return 1
 }
 
-
-
-# Check if token is set
-check_token() {
-    local token_name=$1
-    local token_value=$2
-    
-    if [ -z "$token_value" ] || [ "$token_value" = "your-$token_name-here" ]; then
-        log_error "$token_name not set"
-        return 1
-    fi
-    return 0
-}
-
-# Start ngrok tunnel
 start_ngrok() {
-    log_step "Starting ngrok tunnels..."
-    
-    local ngrok_token=$(get_env_value "NGROK_TOKEN")
-    if ! check_token "NGROK_TOKEN" "$ngrok_token"; then
-        log_warning "Skipping ngrok - NGROK_TOKEN not configured"
-        return 1
+    if is_ngrok_running; then
+        local url=$(get_ngrok_info)
+        log_info "Ngrok is already running at $url, skipping..."
+        return 0
     fi
     
-    # Start ngrok with web tunnel only
-    ngrok start web 2>&1 | tee web_tunnel_output.log &
-    NGROK_PID=$!
+    log_info "Starting ngrok in background (logs: web_tunnel_output.log)..."
+    install_tool "ngrok" "curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null && echo 'deb https://ngrok-agent.s3.amazonaws.com buster main' | sudo tee /etc/apt/sources.list.d/ngrok.list >/dev/null && sudo apt update && sudo apt install -y ngrok"
+    
+    local token=$(get_env_value "NGROK_TOKEN")
+    [ -z "$token" ] && log_warning "NGROK_TOKEN not set" && return 1
+    
+    rm -f web_tunnel_output.log
+    ngrok start web > web_tunnel_output.log 2>&1 &
+    log_info "Waiting 5 seconds for ngrok to start..."
     sleep 5
     
-    # Get tunnel URLs
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        TUNNELS=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); [print(f'  - {t[\"public_url\"]} -> {t[\"config\"][\"addr\"]}') for t in data['tunnels']]" 2>/dev/null || echo "Unknown")
-        log_success "Ngrok tunnels started:"
-        echo "$TUNNELS"
-        log_info "Monitor: http://localhost:4040"
+        local url=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data['tunnels'] else '')" 2>/dev/null)
+        log_success "Ngrok tunnel: $url -> http://localhost:3000"
         return 0
-    else
-        log_error "Failed to start ngrok tunnels"
-        return 1
     fi
+    log_error "Failed to start ngrok"
+    return 1
 }
 
-# Start web development server
+# =============================================================================
+# DEVELOPMENT SERVER FUNCTIONS
+# =============================================================================
+
 start_web_dev() {
     local use_tunnel=${1:-false}
     local tunnel_type=${2:-"local"}
-    log_step "Starting web development server..."
+
+    if is_web_running; then
+        local url=$(get_web_info)
+        log_info "Web server is already running at $url, skipping..."
+        [ "$use_tunnel" = true ] && {
+            case $tunnel_type in
+                "ngrok") start_ngrok ;;
+                "local") start_local_tunnel 3000 ;;
+            esac
+        }
+        return 0
+    fi
     
-    log_success "Starting web server on http://localhost:3000"
-    pnpm -F @acme/nextjs dev 2>&1 | tee web_output.log &
-    WEB_PID=$!
-    sleep 10
+    log_info "Starting web server in background (logs: web_output.log)..."
+    rm -f web_output.log
+    pnpm -F @acme/nextjs dev > web_output.log 2>&1 &
+    log_info "Waiting 5 seconds for web server to start..."
+    sleep 5
     
     if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        log_success "Web server is running"
-        
-        if [ "$use_tunnel" = true ]; then
+        log_success "Web server running on http://localhost:3000"
+        [ "$use_tunnel" = true ] && {
             case $tunnel_type in
-                "ngrok")
-                    log_step "Starting ngrok tunnels..."
-                    start_ngrok
-                    if [ $? -eq 0 ]; then
-                        log_success "Web server with ngrok tunnel is running"
-                    else
-                        log_warning "Web server running without tunnel"
-                    fi
-                    ;;
-                "local")
-                    log_step "Starting local tunnel..."
-                    start_local_tunnel 3000
-                    if [ $? -eq 0 ]; then
-                        log_success "Web server with local tunnel is running"
-                    else
-                        log_warning "Web server running without tunnel"
-                    fi
-                    ;;
-                *)
-                    log_error "Unknown tunnel type: $tunnel_type"
-                    return 1
-                    ;;
+                "ngrok") start_ngrok ;;
+                "local") start_local_tunnel 3000 ;;
             esac
-        fi
-        
+        }
         return 0
-    else
-        log_error "Failed to start web server"
-        return 1
     fi
+    log_error "Failed to start web server"
+    return 1
 }
 
-# Start mobile development server
 start_mobile_dev() {
     local use_tunnel=${1:-false}
-    log_step "Starting mobile development server..."
+
+    if is_mobile_running; then
+        local url=$(get_mobile_info)
+        log_info "Mobile server is already running at $url, skipping..."
+        return 0
+    fi
+    
+    log_info "Starting mobile server in background (logs: mobile_output.log)..."
+    rm -f mobile_output.log
     
     if [ "$use_tunnel" = true ]; then
-        log_success "Starting Expo server with tunnel"
-        pnpm -F @acme/expo dev:tunnel 2>&1 | tee mobile_output.log &
-        MOBILE_PID=$!
-        sleep 15
+        pnpm -F @acme/expo dev:tunnel > mobile_output.log 2>&1 &
+        log_info "Waiting 5 seconds for mobile server to start..."
+        sleep 5
         
-        # Wait for tunnel to be established
-        log_info "Waiting for tunnel to be established..."
-        sleep 10
-        
-        log_success "Mobile server with tunnel is running"
-        log_info "Check the QR code or terminal output for tunnel URL"
-    else
-        log_success "Starting Expo server on http://localhost:8081"
-        pnpm -F @acme/expo dev 2>&1 | tee mobile_output.log &
-        MOBILE_PID=$!
-        sleep 10
-        
-        if curl -s http://localhost:8081 > /dev/null 2>&1; then
-            log_success "Mobile server is running"
-        else
-            log_error "Failed to start mobile server"
-            return 1
-        fi
-    fi
-    
-    return 0
-}
-
-
-
-# Deploy to Vercel
-deploy_vercel() {
-    log_deploy "Starting Vercel deployment..."
-    
-        local vercel_token=$(get_env_value "VERCEL_TOKEN")
-    if ! check_token "VERCEL_TOKEN" "$vercel_token"; then
-        log_warning "Skipping Vercel deployment - VERCEL_TOKEN not configured"
-        return 1
-    fi
-
-    TIMEOUT=${VERCEL_TIMEOUT:-180}
-    log_info "Deployment timeout: ${TIMEOUT} seconds"
-    
-    start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$vercel_token" --yes --prod 2>&1 | tee "web_output.log"
-    
-    if [ $? -eq 124 ]; then
-        log_error "Deployment timed out"
-        return 1
-    fi
-    
-    end_time=$(date +%s)
-    deployment_time=$((end_time - start_time))
-    log_success "Deployment completed in ${deployment_time} seconds"
-    return 0
-}
-
-# Get PID of a process by pattern
-get_pid() {
-    local pattern=$1
-    pgrep -f "$pattern" | head -1
-}
-
-# Get multiple PIDs of processes by pattern
-get_pids() {
-    local pattern=$1
-    pgrep -f "$pattern" | tr '\n' ' ' | sed 's/ $//'
-}
-
-# Get process names with PIDs
-get_process_names() {
-    local pattern=$1
-    local category=$2
-    local pids=$(pgrep -f "$pattern")
-    if [ -n "$pids" ]; then
-        echo "$pids" | while read pid; do
-            local args=$(ps -p "$pid" -o args= 2>/dev/null | head -1)
-            if [ -n "$args" ]; then
-                # Show the first part of the command (truncated if too long)
-                local cmd=$(echo "$args" | cut -d' ' -f1-3 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-                if [ ${#cmd} -gt 50 ]; then
-                    cmd=$(echo "$cmd" | cut -c1-47)"..."
-                fi
-                echo "    $pid ($cmd)"
-            else
-                echo "    $pid"
+        # Try to extract tunnel URL from ngrok API (expo uses ngrok internally)
+        sleep 2  # Give ngrok a moment to start
+        if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
+            local tunnel_url=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); tunnels=data.get('tunnels', []); mobile_tunnel=next((t['public_url'] for t in tunnels if t['public_url'].endswith('8081.exp.direct')), ''); print(mobile_tunnel)" 2>/dev/null)
+            if [ -n "$tunnel_url" ]; then
+                log_success "Mobile server started with tunnel: $tunnel_url"
+                return 0
             fi
-        done
+        fi
+        log_success "Mobile server started (tunnel mode)"
+    else
+        pnpm -F @acme/expo dev > mobile_output.log 2>&1 &
+        log_info "Waiting 5 seconds for mobile server to start..."
+        sleep 5
+        log_success "Mobile server started"
     fi
 }
 
+# =============================================================================
+# DEPLOYMENT FUNCTIONS
+# =============================================================================
 
+deploy_vercel() {
+    log_step "Deploying to Vercel..."
+    install_tool "vercel" "npm install -g vercel"
+    
+    local token=$(get_env_value "VERCEL_TOKEN")
+    [ -z "$token" ] && log_error "VERCEL_TOKEN not set" && return 1
+    
+    timeout ${VERCEL_TIMEOUT:-180} vercel --token "$token" --yes --prod
+    log_success "Vercel deployment completed"
+}
 
-# Show status
+deploy_mobile() {
+    local platform=${1:-"all"}
+    log_step "Building mobile app for $platform..."
+    install_tool "eas" "npm install -g eas-cli"
+    
+    case $platform in
+        "android") pnpm -F @acme/expo build:android ;;
+        "ios") pnpm -F @acme/expo build:ios ;;
+        *) pnpm -F @acme/expo build ;;
+    esac
+    log_success "Mobile build completed"
+}
+
+# =============================================================================
+# STATUS AND CONTROL FUNCTIONS
+# =============================================================================
+
 show_status() {
-    log_info "Current Status"
+    log_info "Current Status:"
     echo ""
     
-    # Get current IP address
-    CURRENT_IP=$(get_current_ip)
-    log_info "Current IP Address: $CURRENT_IP"
-    echo ""
-    
-    # Check web server
-    if curl -s http://localhost:3000 > /dev/null 2>&1; then
-        WEB_PID=$(get_pid "next dev")
-        if [ -n "$WEB_PID" ]; then
-            log_success "Web server: Running on http://localhost:3000 (PID: $WEB_PID)"
-        else
-            log_success "Web server: Running on http://localhost:3000"
-        fi
+    # Web server
+    if is_web_running; then
+        local url=$(get_web_info)
+        local pid=$(pgrep -f "next dev" | head -1)
+        log_success "Web server: Running on $url${pid:+ (PID: $pid)}"
     else
         log_error "Web server: Not running"
     fi
     
-    # Check mobile server
-    if curl -s http://localhost:8081 > /dev/null 2>&1; then
-        MOBILE_PID=$(get_pid "expo start")
-        if [ -n "$MOBILE_PID" ]; then
-            log_success "Mobile server: Running on http://localhost:8081 (PID: $MOBILE_PID)"
-        else
-            log_success "Mobile server: Running on http://localhost:8081"
-        fi
+    # Mobile server
+    if is_mobile_running; then
+        local url=$(get_mobile_info)
+        local pid=$(pgrep -f "expo start" | head -1)
+        log_success "Mobile server: Running on $url${pid:+ (PID: $pid)}"
     else
         log_error "Mobile server: Not running"
     fi
     
-    # Check ngrok tunnels
+    # Tunnels
     if curl -s http://localhost:4040/api/tunnels > /dev/null 2>&1; then
-        NGROK_PID=$(get_pid "ngrok")
-        NGROK_URL=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data['tunnels'] else '')" 2>/dev/null || echo "")
-        if [ -n "$NGROK_PID" ] && [ -n "$NGROK_URL" ]; then
-            log_success "Ngrok tunnel: $NGROK_URL (PID: $NGROK_PID)"
-        elif [ -n "$NGROK_PID" ]; then
-            log_success "Ngrok tunnels: (PID: $NGROK_PID)"
-        else
-            log_success "Ngrok tunnels:"
-        fi
-        if [ -n "$NGROK_URL" ]; then
-            log_info "  - $NGROK_URL -> http://localhost:3000"
-        fi
-        log_info "Monitor: http://localhost:4040"
-    else
-        log_error "Ngrok tunnels: Not running"
+        local url=$(curl -s http://localhost:4040/api/tunnels | python3 -c "import sys, json; data=json.load(sys.stdin); print(data['tunnels'][0]['public_url'] if data['tunnels'] else '')" 2>/dev/null)
+        [ -n "$url" ] && log_success "Ngrok tunnel: $url"
     fi
     
-    # Check local tunnel
-    LOCAL_TUNNEL_PID=$(get_pid "lt --port")
-    if [ -n "$LOCAL_TUNNEL_PID" ]; then
-        # Check if custom subdomain is configured
-        local tunnel_subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
-        if [ -n "$tunnel_subdomain" ]; then
-            CUSTOM_URL="https://${tunnel_subdomain}.loca.lt"
-            EXPECTED_URL="$CUSTOM_URL"
-            
-            # Check if output log shows the correct URL
-            if [ -f "web_tunnel_output.log" ]; then
-                LOG_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-                if [ "$LOG_URL" != "$EXPECTED_URL" ]; then
-                    log_warning "Local tunnel: Output log shows different URL than expected"
-                    log_warning "  Expected: $EXPECTED_URL"
-                    log_warning "  Found: $LOG_URL"
-                    log_warning "  Using found URL for status check"
-                    
-                    # Use the found URL for curl test
-                    if curl -s -H "bypass-tunnel-reminder:true" "$LOG_URL" > /dev/null 2>&1; then
-                        LOCAL_TUNNEL_URL="$LOG_URL"
-                        log_success "Local tunnel:"
-                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (fallback subdomain)"
-                    else
-                        log_error "Local tunnel: Found URL not accessible"
-                        log_error "  URL: $LOG_URL"
-                        log_error "  Stopping local tunnel due to accessibility issue"
-                        pkill -f "lt --port"
-                        LOCAL_TUNNEL_PID=""
-                        LOCAL_TUNNEL_URL=""
-                    fi
-                else
-                    # Output log is correct, now curl test it
-                    if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
-                        LOCAL_TUNNEL_URL="$CUSTOM_URL"
-                        log_success "Local tunnel:"
-                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
-                    else
-                        log_error "Local tunnel: Custom subdomain not accessible"
-                        log_error "  URL: $CUSTOM_URL"
-                        log_error "  Stopping local tunnel due to accessibility issue"
-                        pkill -f "lt --port"
-                        LOCAL_TUNNEL_PID=""
-                        LOCAL_TUNNEL_URL=""
-                    fi
-                fi
-            else
-                log_error "Local tunnel: No output log found"
-                log_error "  Stopping local tunnel due to missing log"
-                pkill -f "lt --port"
-                LOCAL_TUNNEL_PID=""
-                LOCAL_TUNNEL_URL=""
-            fi
-        else
-            # No custom subdomain, use log file
-            if [ -f "web_tunnel_output.log" ]; then
-                LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-                if [ -n "$LOCAL_TUNNEL_URL" ]; then
-                    # Test the URL from log
-                    if curl -s -H "bypass-tunnel-reminder:true" "$LOCAL_TUNNEL_URL" > /dev/null 2>&1; then
-                        log_success "Local tunnel:"
-                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
-                    else
-                        log_error "Local tunnel: URL from log not accessible"
-                        log_error "  URL: $LOCAL_TUNNEL_URL"
-                        log_error "  Stopping local tunnel due to accessibility issue"
-                        pkill -f "lt --port"
-                        LOCAL_TUNNEL_PID=""
-                        LOCAL_TUNNEL_URL=""
-                    fi
-                                 else
-                     log_warning "Local tunnel: No URL found in output log"
-                     log_warning "  Tunnel may still be starting up"
-                     LOCAL_TUNNEL_URL=""
-                 fi
-             else
-                 log_warning "Local tunnel: No output log found"
-                 log_warning "  Tunnel may still be starting up"
-                 LOCAL_TUNNEL_URL=""
-             fi
-        fi
-        
-        if [ -n "$LOCAL_TUNNEL_URL" ]; then
-            log_info "  - PID: $LOCAL_TUNNEL_PID"
-            # Display stored local tunnel password
-            if [ -n "$LOCAL_TUNNEL_PASSWORD" ]; then
-                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
-            else
-                # Fallback to fetching password if not stored
-                LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
-                log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
-            fi
-        fi
-    else
-        log_error "Local tunnel: Not running"
+    if is_local_tunnel_running; then
+        local url=$(get_local_tunnel_info)
+        [ "$url" != "unknown" ] && log_success "Local tunnel: $url"
     fi
     
-    # Show process details
+    # Process list
     echo ""
-    log_info "Process Details:"
+    log_info "Running Processes:"
     
     # Web processes
-    WEB_PIDS=$(get_pids "next dev|pnpm -F @acme/nextjs")
-    if [ -n "$WEB_PIDS" ]; then
-        log_info "  Web processes:"
-        get_process_names "next dev|pnpm -F @acme/nextjs"
+    local next_pids=$(pgrep -f "next dev")
+    local next_server_pids=$(pgrep -f "next-server")
+    local pnpm_next_pids=$(pgrep -f "pnpm -F @acme/nextjs")
+    local lt_pids=$(pgrep -f "lt --port")
+    local ngrok_pids=$(pgrep -f "ngrok")
+    
+    if [ -n "$next_pids" ] || [ -n "$next_server_pids" ] || [ -n "$pnpm_next_pids" ] || [ -n "$lt_pids" ] || [ -n "$ngrok_pids" ]; then
+        for pid in $next_pids $next_server_pids $pnpm_next_pids $lt_pids $ngrok_pids; do
+            local cmd=$(ps -p "$pid" -o args= 2>/dev/null | head -1)
+            [ -n "$cmd" ] && echo "  $pid: $cmd"
+        done | sort -u
     fi
     
     # Mobile processes
-    MOBILE_PIDS=$(get_pids "expo start|pnpm -F @acme/expo")
-    if [ -n "$MOBILE_PIDS" ]; then
-        log_info "  Mobile processes:"
-        get_process_names "expo start|pnpm -F @acme/expo"
+    local expo_pids=$(pgrep -f "expo start")
+    local pnpm_expo_pids=$(pgrep -f "pnpm -F @acme/expo")
+    
+    if [ -n "$expo_pids" ] || [ -n "$pnpm_expo_pids" ]; then
+        for pid in $expo_pids $pnpm_expo_pids; do
+            local cmd=$(ps -p "$pid" -o args= 2>/dev/null | head -1)
+            [ -n "$cmd" ] && echo "  $pid: $cmd"
+        done | sort -u
     fi
     
-    # Tunnel processes
-    TUNNEL_PIDS=$(get_pids "lt --port|ngrok")
-    if [ -n "$TUNNEL_PIDS" ]; then
-        log_info "  Tunnel processes:"
-        get_process_names "lt --port|ngrok"
-    fi
-    
-    # Show live output if available
-    if [ -f "web_output.log" ]; then
-        echo ""
-        log_info "Recent web output:"
-        tail -10 web_output.log
-    fi
-    
-    if [ -f "web_tunnel_output.log" ]; then
-        echo ""
-        log_info "Recent tunnel output:"
-        tail -10 web_tunnel_output.log
-    fi
-    
-    if [ -f "mobile_output.log" ]; then
-        echo ""
-        log_info "Recent mobile output:"
-        tail -10 mobile_output.log
+    # Show if no processes found
+    if [ -z "$next_pids" ] && [ -z "$next_server_pids" ] && [ -z "$pnpm_next_pids" ] && [ -z "$lt_pids" ] && [ -z "$ngrok_pids" ] && [ -z "$expo_pids" ] && [ -z "$pnpm_expo_pids" ]; then
+        log_warning "No development processes found"
     fi
 }
 
-# Stop development servers
 stop_servers() {
     local target=${1:-"all"}
+    log_step "Stopping $target servers..."
     
     case $target in
         "web")
-            log_step "Stopping web development servers..."
-            
-            # Kill Next.js processes
-            if pkill -f "next dev" 2>/dev/null; then
-                log_success "Next.js development server stopped"
-            else
-                log_warning "No Next.js development server found"
-            fi
-            
-            # Kill pnpm processes for web
-            if pkill -f "pnpm -F @acme/nextjs" 2>/dev/null; then
-                log_success "pnpm web processes stopped"
-            fi
-            
-            # Kill local tunnel processes
-            if pkill -f "localtunnel\|lt --port" 2>/dev/null; then
-                log_success "Local tunnel stopped"
-            fi
-            
-            # Kill ngrok processes for web
-            if pkill -f "ngrok.*3000\|ngrok.*3001" 2>/dev/null; then
-                log_success "Ngrok tunnel for web stopped"
-            fi
-            
-            log_success "Web development servers stopped"
+            pkill -f "next dev" 2>/dev/null || true
+            pkill -f "next-server" 2>/dev/null || true
+            pkill -f "pnpm -F @acme/nextjs" 2>/dev/null || true
+            pkill -f "lt --port" 2>/dev/null || true
+            pkill -f "ngrok" 2>/dev/null || true
+            clean_logs "web"
             ;;
-            
         "mobile")
-            log_step "Stopping mobile development servers..."
-            
-            # Kill Expo processes
-            if pkill -f "expo start" 2>/dev/null; then
-                log_success "Expo development server stopped"
-            else
-                log_warning "No Expo development server found"
-            fi
-            
-            # Kill pnpm processes for mobile
-            if pkill -f "pnpm -F @acme/expo" 2>/dev/null; then
-                log_success "pnpm mobile processes stopped"
-            fi
-            
-            # Kill ngrok processes for mobile
-            if pkill -f "ngrok.*8081" 2>/dev/null; then
-                log_success "Ngrok tunnel for mobile stopped"
-            fi
-            
-            log_success "Mobile development servers stopped"
+            pkill -f "expo start" 2>/dev/null || true
+            pkill -f "pnpm -F @acme/expo" 2>/dev/null || true
+            clean_logs "mobile"
             ;;
-            
         "all")
-            log_step "Stopping all development servers..."
-            
-            # Stop web servers
-            stop_servers "web"
-            
-            # Stop mobile servers
-            stop_servers "mobile"
-            
-            # Kill any remaining pnpm processes
-            if pkill -f "pnpm -F" 2>/dev/null; then
-                log_success "Remaining pnpm processes stopped"
-            fi
-            
-            log_success "All development servers stopped"
-            ;;
-            
-        *)
-            log_error "Invalid target: $target. Use 'web', 'mobile', or 'all'"
-            return 1
+            pkill -f "next dev" 2>/dev/null || true
+            pkill -f "next-server" 2>/dev/null || true
+            pkill -f "expo start" 2>/dev/null || true
+            pkill -f "pnpm -F @acme" 2>/dev/null || true
+            pkill -f "lt --port" 2>/dev/null || true
+            pkill -f "ngrok" 2>/dev/null || true
+            clean_logs "all"
             ;;
     esac
+    log_success "$target servers stopped"
 }
 
-# Show usage
-show_usage() {
-    echo -e "${PURPLE}🚀 T3 Turbo Deployment Script${NC}"
-    echo "This script handles both web and mobile deployments with tunneling"
-    echo ""
-    echo -e "${GREEN}Web Commands:${NC}"
-    echo "  web:dev        - Start web development server"
-    echo "  web:tunnel     - Start web dev + local tunnel (default)"
+# =============================================================================
+# MAIN SCRIPT
+# =============================================================================
 
-    echo "  web:ngrok-tunnel - Start web dev + ngrok tunnel"
-    echo "  web:vercel     - Deploy web to Vercel"
-    echo ""
-    echo -e "${CYAN}Mobile Commands:${NC}"
-    echo "  mobile:dev    - Start mobile development server"
-    echo "  mobile:tunnel - Start mobile dev + Expo tunnel"
-    echo "  mobile:all    - EAS build for all platforms"
-    echo "  mobile:android - EAS build for Android"
-    echo "  mobile:ios    - EAS build for iOS"
-    echo ""
-    echo -e "${YELLOW}Complete Deployments:${NC}"
-    echo "  all:local     - Complete local development (web + mobile)"
-    echo "  all:tunnel    - Complete tunnel development (web + mobile)"
-    echo "  all:build     - Complete build (Vercel + EAS)"
-    echo ""
-    echo -e "${RED}Stop Commands:${NC}"
-    echo "  stop:web      - Stop web development servers"
-    echo "  stop:mobile   - Stop mobile development servers"
-    echo "  stop:all      - Stop all development servers"
-    echo ""
-    echo -e "${BLUE}Utility Commands:${NC}"
-    echo "  status     - Show all services status"
-    echo "  clean      - Clean all live output logs"
-    echo "  install:web   - Install Next.js dependencies"
-    echo "  install:mobile - Install Expo dependencies"
-    echo "  install:env:web   - Install environment file for web"
-    echo "  install:env:mobile - Install environment file for mobile"
-    echo "  install:ngrok - Install and configure ngrok"
-    echo "  help       - Show this help"
-    echo ""
-    echo -e "${YELLOW}Prerequisites:${NC}"
-    echo "  - VERCEL_TOKEN: https://vercel.com/account/tokens (for web deployment)"
-    echo "  - NGROK_TOKEN: https://ngrok.com/dashboard/your/authtokens (for ngrok tunnel)"
-    echo "  - EXPO_TOKEN: https://expo.dev/accounts/[username]/settings/access-tokens (optional)"
-    echo ""
-    echo -e "${YELLOW}Local Tunnel:${NC}"
-    echo "  - Password is automatically fetched from https://loca.lt/mytunnelpassword"
-    echo "  - No additional configuration required"
-    echo ""
-    echo -e "${BLUE}Examples:${NC}"
-    echo "  ./scripts/deploy.sh web:tunnel        # Web with local tunnel (default)"
-
-    echo "  ./scripts/deploy.sh web:ngrok-tunnel  # Web with ngrok tunnel"
-    echo "  ./scripts/deploy.sh mobile:tunnel     # Mobile with Expo tunnel"
-    echo "  ./scripts/deploy.sh all:local         # Complete local development"
-    echo "  ./scripts/deploy.sh all:tunnel        # Complete tunnel development"
-    echo "  ./scripts/deploy.sh all:build         # Complete build (Vercel + EAS)"
-    echo "  ./scripts/deploy.sh stop:all          # Stop all development servers"
-}
-
-# Main script logic
 load_env
 
 case "${1:-help}" in
     # Web commands
     "web:dev")
-        clean_logs "web"
-        install_env_file "web"
         install_packages "web"
         start_web_dev
-        log_success "Web development server started!"
-        wait $WEB_PID
         ;;
     "web:tunnel")
-        clean_logs "web"
-        install_env_file "web"
         install_packages "web"
-        install_local_tunnel
         start_web_dev true "local"
-        log_success "Web development with local tunnel started!"
-        wait $WEB_PID $LOCAL_TUNNEL_PID
         ;;
-
     "web:ngrok-tunnel")
-        clean_logs "web"
-        install_env_file "web"
         install_packages "web"
-        install_ngrok
         start_web_dev true "ngrok"
-        log_success "Web development with ngrok tunnel started!"
-        wait $WEB_PID $NGROK_PID
         ;;
     "web:vercel")
-        clean_logs "web"
-        install_env_file "web"
         install_packages "web"
-        install_vercel
         deploy_vercel
         ;;
     
     # Mobile commands
     "mobile:dev")
-        clean_logs "mobile"
-        install_env_file "mobile"
         install_packages "mobile"
         start_mobile_dev
-        log_success "Mobile development server started!"
-        wait $MOBILE_PID
         ;;
     "mobile:tunnel")
-        clean_logs "mobile"
-        install_env_file "mobile"
         install_packages "mobile"
-        install_ngrok
         start_mobile_dev true
-        log_success "Mobile development with tunnel started!"
-        wait $MOBILE_PID
         ;;
-    # EAS deployments
-    "mobile:all")
-        clean_logs "mobile"
-        install_env_file "mobile"
+    "mobile:android"|"mobile:ios"|"mobile:all")
         install_packages "mobile"
-        install_eas
-        log_step "Starting EAS build for all platforms..."
-        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
-        log_success "EAS build for all platforms completed!"
-        ;;
-    "mobile:android")
-        clean_logs "mobile"
-        install_env_file "mobile"
-        install_packages "mobile"
-        install_eas
-        log_step "Starting EAS build for Android..."
-        pnpm -F @acme/expo build:android 2>&1 | tee mobile_output.log
-        log_success "EAS build for Android completed!"
-        ;;
-    "mobile:ios")
-        clean_logs "mobile"
-        install_env_file "mobile"
-        install_packages "mobile"
-        install_eas
-        log_step "Starting EAS build for iOS..."
-        pnpm -F @acme/expo build:ios 2>&1 | tee mobile_output.log
-        log_success "EAS build for iOS completed!"
+        deploy_mobile "${1#mobile:}"
         ;;
     
-    # Complete deployments
+    # Combined commands
     "all:local")
-        clean_logs "all"
-        install_env_file "web"
-        install_env_file "mobile"
         install_packages "web"
         install_packages "mobile"
         start_web_dev true "local"
         start_mobile_dev true
-        log_success "Complete local development started!"
-        wait $WEB_PID $MOBILE_PID
         ;;
     "all:tunnel")
-        clean_logs "all"
-        install_env_file "web"
-        install_env_file "mobile"
         install_packages "web"
         install_packages "mobile"
-        install_local_tunnel
-        install_ngrok
         start_web_dev true "local"
         start_mobile_dev true
-        log_success "Complete tunnel development started!"
-        wait $WEB_PID $MOBILE_PID $LOCAL_TUNNEL_PID
         ;;
     "all:build")
-        clean_logs "all"
-        install_env_file "web"
-        install_env_file "mobile"
         install_packages "web"
         install_packages "mobile"
-        install_vercel
-        install_eas
-        log_step "Starting complete build (Vercel + EAS)..."
         deploy_vercel
-        log_step "Starting EAS build for all platforms..."
-        pnpm -F @acme/expo build 2>&1 | tee mobile_output.log
-        log_success "Complete build (Vercel + EAS) finished!"
+        deploy_mobile
         ;;
     
-    # Stop commands
-    "stop:web")
-        stop_servers "web"
-        ;;
-    "stop:mobile")
-        stop_servers "mobile"
-        ;;
-    "stop:all")
-        stop_servers "all"
+    # Control commands
+    "stop:web"|"stop:mobile"|"stop:all")
+        stop_servers "${1#stop:}"
         ;;
     
     # Utility commands
@@ -1265,35 +500,25 @@ case "${1:-help}" in
     "clean")
         clean_logs "all"
         ;;
-    "install")
-        clean_logs "all"
-        log_error "Please specify app type: install:web or install:mobile"
+    "install:web"|"install:mobile")
+        install_packages "${1#install:}"
         ;;
-    "install:web")
-        clean_logs "web"
-        install_packages "web"
-        ;;
-    "install:mobile")
-        clean_logs "mobile"
-        install_packages "mobile"
-        ;;
-    "install:env")
-        clean_logs "all"
-        log_error "Please specify app type: install:env:web or install:env:mobile"
-        ;;
-    "install:env:web")
-        clean_logs "web"
-        install_env_file "web"
-        ;;
-    "install:env:mobile")
-        clean_logs "mobile"
-        install_env_file "mobile"
-        ;;
-    "install:ngrok")
-        clean_logs "all"
-        install_ngrok
+    "install:ngrok"|"install:vercel"|"install:eas")
+        install_tool "${1#install:}" "npm install -g ${1#install:}-cli"
         ;;
     "help"|*)
-        show_usage
+        echo -e "${PURPLE}🚀 T3 Turbo Deployment Script${NC}"
+        echo ""
+        echo -e "${GREEN}Web:${NC} web:dev, web:tunnel, web:ngrok-tunnel, web:vercel"
+        echo -e "${CYAN}Mobile:${NC} mobile:dev, mobile:tunnel, mobile:android, mobile:ios, mobile:all"
+        echo -e "${YELLOW}Combined:${NC} all:local, all:tunnel, all:build"
+        echo -e "${RED}Stop:${NC} stop:web, stop:mobile, stop:all"
+        echo -e "${BLUE}Utils:${NC} status, clean, install:web, install:mobile"
+        echo ""
+        echo -e "${YELLOW}Examples:${NC}"
+        echo "  ./scripts/deploy.sh web:tunnel     # Web with local tunnel"
+        echo "  ./scripts/deploy.sh mobile:tunnel  # Mobile with Expo tunnel"
+        echo "  ./scripts/deploy.sh all:local      # Complete local development"
+        echo "  ./scripts/deploy.sh stop:all       # Stop all servers"
         ;;
 esac
