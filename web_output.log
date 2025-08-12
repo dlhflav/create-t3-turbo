@@ -11,37 +11,14 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 1018ms
+ ✓ Ready in 962ms
  ○ Compiling / ...
- ✓ Compiled / in 5.1s
-[TRPC] post.all took 1032ms to execute
- GET / 200 in 5978ms
-[TRPC] post.all took 1153ms to execute
- GET / 200 in 6693ms
-[TRPC] post.all took 559ms to execute
- GET / 200 in 608ms
-[TRPC] post.all took 565ms to execute
- GET / 200 in 605ms
-[TRPC] post.all took 811ms to execute
- GET / 200 in 876ms
- ⚠ Cross origin request detected from dlhflav-t3-create-dev-1.loca.lt to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
-Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
- POST / 303 in 800ms
-[TRPC] post.all took 1066ms to execute
- GET / 200 in 1118ms
- POST / 303 in 108ms
- ○ Compiling /api/auth/[...all] ...
- ✓ Compiled /api/auth/[...all] in 1560ms
-[2m2025-08-12T01:43:17.615Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
- GET /api/auth/callback/discord?code=N6U721mv8pa6b5diUEEJUaR62b0yPN 302 in 2322ms
-[TRPC] post.all took 841ms to execute
- GET / 200 in 896ms
-[TRPC] post.all took 339ms to execute
- GET / 200 in 381ms
-[TRPC] post.all took 935ms to execute
- GET / 200 in 998ms
- POST / 303 in 619ms
- ○ Compiling /api/trpc/[trpc] ...
- ✓ Compiled /api/trpc/[trpc] in 1171ms
-[TRPC] post.all took 969ms to execute
- GET /api/trpc/post.all?batch=1&input=%7B%220%22%3A%7B%22json%22%3Anull%2C%22meta%22%3A%7B%22values%22%3A%5B%22undefined%22%5D%7D%7D%7D 200 in 2720ms
+ ✓ Compiled / in 4.4s
+[TRPC] post.all took 834ms to execute
+ GET / 200 in 4765ms
+[TRPC] post.all took 809ms to execute
+ GET / 200 in 5668ms
+[TRPC] post.all took 243ms to execute
+ GET / 200 in 289ms
+[TRPC] post.all took 569ms to execute
+ GET / 200 in 612ms
