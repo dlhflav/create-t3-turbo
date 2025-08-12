@@ -802,7 +802,7 @@ show_status() {
         # Check if custom subdomain is configured and working
         if [ -n "$TUNNEL_SUBDOMAIN" ]; then
             CUSTOM_URL="https://${TUNNEL_SUBDOMAIN}.loca.lt"
-            if curl -s "$CUSTOM_URL" > /dev/null 2>&1; then
+            if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
                 LOCAL_TUNNEL_URL="$CUSTOM_URL"
                 log_success "Local tunnel:"
                 log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
