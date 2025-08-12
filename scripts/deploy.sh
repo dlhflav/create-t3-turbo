@@ -797,15 +797,42 @@ show_status() {
     fi
     
     # Check local tunnel
-    if [ -f "web_tunnel_output.log" ]; then
-        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-        if [ -n "$LOCAL_TUNNEL_URL" ]; then
-            LOCAL_TUNNEL_PID=$(get_pid "lt --port")
-            log_success "Local tunnel:"
-            log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
-            if [ -n "$LOCAL_TUNNEL_PID" ]; then
-                log_info "  - PID: $LOCAL_TUNNEL_PID"
+    LOCAL_TUNNEL_PID=$(get_pid "lt --port")
+    if [ -n "$LOCAL_TUNNEL_PID" ]; then
+        # Check if custom subdomain is configured and working
+        if [ -n "$TUNNEL_SUBDOMAIN" ]; then
+            CUSTOM_URL="https://${TUNNEL_SUBDOMAIN}.loca.lt"
+            if curl -s "$CUSTOM_URL" > /dev/null 2>&1; then
+                LOCAL_TUNNEL_URL="$CUSTOM_URL"
+                log_success "Local tunnel:"
+                log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
+            else
+                # Fallback to log file if custom subdomain not working
+                if [ -f "web_tunnel_output.log" ]; then
+                    LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
+                fi
+                if [ -n "$LOCAL_TUNNEL_URL" ]; then
+                    log_success "Local tunnel:"
+                    log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+                else
+                    log_error "Local tunnel: Not running"
+                fi
             fi
+        else
+            # No custom subdomain, use log file
+            if [ -f "web_tunnel_output.log" ]; then
+                LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
+            fi
+            if [ -n "$LOCAL_TUNNEL_URL" ]; then
+                log_success "Local tunnel:"
+                log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+            else
+                log_error "Local tunnel: Not running"
+            fi
+        fi
+        
+        if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            log_info "  - PID: $LOCAL_TUNNEL_PID"
             # Display stored local tunnel password
             if [ -n "$LOCAL_TUNNEL_PASSWORD" ]; then
                 log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
@@ -814,8 +841,6 @@ show_status() {
                 LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
                 log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
             fi
-        else
-            log_error "Local tunnel: Not running"
         fi
     else
         log_error "Local tunnel: Not running"
