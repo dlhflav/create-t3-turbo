@@ -164,7 +164,7 @@ install_env_file() {
     # Function to get variable value from .env file
     get_env_var_value() {
         local var_name="$1"
-        grep "^${var_name}=" .env | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+        grep "^${var_name}=" .env | cut -d'=' -f2- | sed 's/^["'\'']*//;s/["'\'']*$//'
     }
 
     # Function to get variable value from .env.example file
@@ -247,7 +247,7 @@ get_env_value() {
     # Function to get variable value from .env file
     get_env_var_value() {
         local var_name="$1"
-        grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+        grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']*//;s/["'\'']*$//'
     }
 
     # Function to get variable value from .env.example file
