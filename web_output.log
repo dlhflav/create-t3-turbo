@@ -12,3 +12,11 @@
 
  ✓ Starting...
  ✓ Ready in 1002ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.8s
+[TRPC] post.all took 918ms to execute
+ GET / 200 in 3839ms
+[TRPC] post.all took 751ms to execute
+ GET / 200 in 6135ms
+[TRPC] post.all took 553ms to execute
+ GET / 200 in 597ms
