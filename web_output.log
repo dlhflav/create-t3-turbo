@@ -21,3 +21,7 @@ https://nextjs.org/telemetry
  ✓ Compiled / in 4.7s
 [TRPC] post.all took 1092ms to execute
  GET / 200 in 6173ms
+[TRPC] post.all took 1106ms to execute
+ GET / 200 in 1155ms
+[TRPC] post.all took 984ms to execute
+ GET / 200 in 1045ms
