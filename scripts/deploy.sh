@@ -161,6 +161,18 @@ install_env_file() {
         grep -q "^${var_name}=" .env
     }
 
+    # Function to get variable value from .env file
+    get_env_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
+    # Function to get variable value from .env.example file
+    get_example_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env.example | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
     # Function to remove existing variable from .env file
     remove_var_from_env() {
         local var_name="$1"
@@ -176,21 +188,50 @@ install_env_file() {
     # Get all variables from .env.example
     env_vars=$(get_env_vars_from_example)
 
-    # Check each variable and add missing ones from shell environment
-    added_vars=0
+    # Check each variable and update if needed
+    updated_vars=0
     for var in $env_vars; do
-        if ! var_exists_in_env "$var"; then
-            shell_value=$(get_shell_var_value "$var")
+        shell_value=$(get_shell_var_value "$var")
+        
+        if var_exists_in_env "$var"; then
+            # Variable exists in .env, check if it's still equal to example value
+            env_value=$(get_env_var_value "$var")
+            example_value=$(get_example_var_value "$var")
+            
+            # Check if .env value is empty, undefined, or equal to example value
+            if [ -z "$env_value" ] || [ "$env_value" = "$example_value" ] || [ "$env_value" = "''" ] || [ "$env_value" = '""' ]; then
+                if [ -n "$shell_value" ]; then
+                    log_info "Updating variable from example value: $var"
+                    remove_var_from_env "$var"
+                    echo "${var}=${shell_value}" >> .env
+                    updated_vars=$((updated_vars + 1))
+                fi
+            fi
+        else
+            # Variable doesn't exist in .env, add it if shell value exists
             if [ -n "$shell_value" ]; then
                 log_info "Adding missing variable: $var"
                 echo "${var}=${shell_value}" >> .env
-                added_vars=$((added_vars + 1))
+                updated_vars=$((updated_vars + 1))
             fi
         fi
     done
 
-    if [ $added_vars -gt 0 ]; then
-        log_info "Added/updated $added_vars variables from shell environment"
+    # Also add important shell variables that might not be in .env.example
+    important_shell_vars="TUNNEL_SUBDOMAIN NGROK_TOKEN VERCEL_TOKEN EXPO_TOKEN"
+    for var in $important_shell_vars; do
+        shell_value=$(get_shell_var_value "$var")
+        if [ -n "$shell_value" ] && ! var_exists_in_env "$var"; then
+            log_info "Adding important shell variable: $var"
+            echo "${var}=${shell_value}" >> .env
+            updated_vars=$((updated_vars + 1))
+        fi
+    done
+
+    if [ $updated_vars -gt 0 ]; then
+        log_info "Added/updated $updated_vars variables from shell environment"
+    else
+        log_info "No environment variables needed updating"
     fi
     
     log_success "Environment file installation complete for $app_type"
