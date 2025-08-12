@@ -11,18 +11,16 @@
    - Network:      http://172.30.0.2:3000
 
  ✓ Starting...
- ✓ Ready in 1030ms
+ ✓ Ready in 995ms
  ○ Compiling / ...
- ✓ Compiled / in 5s
-[TRPC] post.all took 935ms to execute
- GET / 200 in 6319ms
-[TRPC] post.all took 1136ms to execute
- GET / 200 in 2316ms
-[TRPC] post.all took 463ms to execute
- GET / 200 in 524ms
-[TRPC] post.all took 395ms to execute
- GET / 200 in 448ms
-[TRPC] post.all took 286ms to execute
- GET / 200 in 341ms
-[TRPC] post.all took 1029ms to execute
- GET / 200 in 1093ms
+ ✓ Compiled / in 4.5s
+[TRPC] post.all took 841ms to execute
+ GET / 200 in 4677ms
+[TRPC] post.all took 1057ms to execute
+ GET / 200 in 5974ms
+[TRPC] post.all took 504ms to execute
+ GET / 200 in 556ms
+[TRPC] post.all took 250ms to execute
+ GET / 200 in 298ms
+[TRPC] post.all took 512ms to execute
+ GET / 200 in 565ms
