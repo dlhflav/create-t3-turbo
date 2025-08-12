@@ -513,6 +513,8 @@ start_local_tunnel() {
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
     # Check for TUNNEL_SUBDOMAIN environment variable first
+    log_info "DEBUG: Initial subdomain parameter: '$subdomain'"
+    log_info "DEBUG: TUNNEL_SUBDOMAIN environment variable: '$TUNNEL_SUBDOMAIN'"
     if [ -z "$subdomain" ] && [ -n "$TUNNEL_SUBDOMAIN" ]; then
         subdomain="$TUNNEL_SUBDOMAIN"
         log_info "Using TUNNEL_SUBDOMAIN from environment: $subdomain"
@@ -531,11 +533,14 @@ start_local_tunnel() {
     fi
     
     # Start local tunnel
+    log_info "DEBUG: Final subdomain value before starting tunnel: '$subdomain'"
     if [ -n "$subdomain" ]; then
         log_step "Starting tunnel with subdomain: $subdomain"
+        log_info "DEBUG: Executing command: lt --port $port --subdomain $subdomain"
         lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
         log_step "Starting tunnel with random subdomain"
+        log_info "DEBUG: Executing command: lt --port $port"
         lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
