@@ -182,7 +182,7 @@ install_env_file() {
     # Function to get variable value from shell environment
     get_shell_var_value() {
         local var_name="$1"
-        eval "echo \$${var_name}"
+        printf '%s' "${!var_name}"
     }
 
     # Get all variables from .env.example
@@ -259,7 +259,7 @@ get_env_value() {
     # Function to get variable value from shell environment
     get_shell_var_value() {
         local var_name="$1"
-        eval "echo \$${var_name}"
+        printf '%s' "${!var_name}"
     }
     
     # Get values from all sources
