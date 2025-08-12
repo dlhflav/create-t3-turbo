@@ -7,21 +7,27 @@ import { initAuth } from "@acme/auth";
 
 import { env } from "~/env";
 
-const baseUrl =
-  env.VERCEL_ENV === "production"
-    ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : env.VERCEL_ENV === "preview"
-      ? `https://${env.VERCEL_URL}`
-      : "http://localhost:3000";
-
 // Use tunnel URL if available, otherwise use production URL
 const tunnelUrl = env.TUNNEL_SUBDOMAIN 
   ? `https://${env.TUNNEL_SUBDOMAIN}.loca.lt`
   : undefined;
 
+const baseUrl =
+  env.VERCEL_ENV === "production" || env.VERCEL_ENV === "preview"
+    ? (env.VERCEL_ENV === "production" 
+        ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : `https://${env.VERCEL_URL}`)
+    : tunnelUrl ?? "http://localhost:3000";
+
+// Use tunnel URL as production URL when not in actual production/preview
+const productionUrl = 
+  env.VERCEL_ENV === "production" || env.VERCEL_ENV === "preview"
+    ? `https://${env.VERCEL_PROJECT_PRODUCTION_URL ?? "turbo.t3.gg"}`
+    : tunnelUrl ?? `https://${env.VERCEL_PROJECT_PRODUCTION_URL ?? "turbo.t3.gg"}`;
+
 export const auth = initAuth({
   baseUrl,
-  productionUrl: tunnelUrl ?? `https://${env.VERCEL_PROJECT_PRODUCTION_URL ?? "turbo.t3.gg"}`,
+  productionUrl,
   secret: env.AUTH_SECRET,
   discordClientId: env.AUTH_DISCORD_ID,
   discordClientSecret: env.AUTH_DISCORD_SECRET,
