@@ -20,3 +20,5 @@
  GET / 200 in 848ms
 [TRPC] post.all took 516ms to execute
  GET / 200 in 562ms
+[TRPC] post.all took 1048ms to execute
+ GET / 200 in 1113ms
