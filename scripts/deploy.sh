@@ -148,6 +148,8 @@ install_env_file() {
     if [ ! -f ".env" ]; then
         log_info "Creating .env file from .env.example..."
         cp .env.example .env
+        # Ensure proper line endings
+        dos2unix .env 2>/dev/null || true
     fi
 
     # Function to extract variable names from .env.example (excluding comments and empty lines)
