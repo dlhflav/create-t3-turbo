@@ -237,15 +237,62 @@ install_env_file() {
     log_success "Environment file installation complete for $app_type"
 }
 
-# Install and configure ngrok
-install_ngrok() {
-    log_step "Installing and configuring ngrok..."
+# Global function to get environment value following priority order:
+# 1. .env if defined and different from example
+# 2. Shell value if defined
+# 3. Example value
+get_env_value() {
+    local var_name="$1"
     
+    # Function to get variable value from .env file
+    get_env_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
+    # Function to get variable value from .env.example file
+    get_example_var_value() {
+        local var_name="$1"
+        grep "^${var_name}=" .env.example 2>/dev/null | cut -d'=' -f2- | sed 's/^["'\'']//;s/["'\'']$//'
+    }
+
     # Function to get variable value from shell environment
     get_shell_var_value() {
         local var_name="$1"
         eval "echo \$${var_name}"
     }
+    
+    # Get values from all sources
+    local env_value=$(get_env_var_value "$var_name")
+    local shell_value=$(get_shell_var_value "$var_name")
+    local example_value=$(get_example_var_value "$var_name")
+    
+    # Priority 1: .env if defined and different from example
+    if [ -n "$env_value" ] && [ "$env_value" != "$example_value" ]; then
+        echo "$env_value"
+        return 0
+    fi
+    
+    # Priority 2: Shell value if defined
+    if [ -n "$shell_value" ]; then
+        echo "$shell_value"
+        return 0
+    fi
+    
+    # Priority 3: Example value
+    if [ -n "$example_value" ]; then
+        echo "$example_value"
+        return 0
+    fi
+    
+    # No value found
+    echo ""
+    return 1
+}
+
+# Install and configure ngrok
+install_ngrok() {
+    log_step "Installing and configuring ngrok..."
     
     # Check if ngrok is installed
     if ! command -v ngrok &> /dev/null; then
@@ -266,10 +313,10 @@ install_ngrok() {
         log_info "Ngrok already installed: $(ngrok version)"
     fi
     
-    # Get NGROK_TOKEN from environment
-    local ngrok_token=$(get_shell_var_value "NGROK_TOKEN")
+    # Get NGROK_TOKEN using composition logic
+    local ngrok_token=$(get_env_value "NGROK_TOKEN")
     if [ -z "$ngrok_token" ]; then
-        log_warning "NGROK_TOKEN not found in environment, skipping ngrok configuration"
+        log_warning "NGROK_TOKEN not found, skipping ngrok configuration"
         return 0
     fi
     
@@ -324,12 +371,6 @@ EOF
 install_vercel() {
     log_step "Installing and configuring Vercel CLI..."
     
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
     # Check if Vercel CLI is installed
     if ! command -v vercel &> /dev/null; then
         log_info "Vercel CLI not found, installing..."
@@ -347,10 +388,10 @@ install_vercel() {
         log_info "Vercel CLI already installed: $(vercel --version)"
     fi
     
-    # Get VERCEL_TOKEN from environment
-    local vercel_token=$(get_shell_var_value "VERCEL_TOKEN")
+    # Get VERCEL_TOKEN using composition logic
+    local vercel_token=$(get_env_value "VERCEL_TOKEN")
     if [ -z "$vercel_token" ]; then
-        log_warning "VERCEL_TOKEN not found in environment, skipping Vercel configuration"
+        log_warning "VERCEL_TOKEN not found, skipping Vercel configuration"
         return 0
     fi
     
@@ -376,12 +417,6 @@ install_vercel() {
 install_eas() {
     log_step "Installing and configuring EAS CLI..."
     
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
     # Check if EAS CLI is installed
     if ! command -v eas &> /dev/null; then
         log_info "EAS CLI not found, installing..."
@@ -399,10 +434,10 @@ install_eas() {
         log_info "EAS CLI already installed: $(eas --version)"
     fi
     
-    # Get EXPO_TOKEN from environment
-    local expo_token=$(get_shell_var_value "EXPO_TOKEN")
+    # Get EXPO_TOKEN using composition logic
+    local expo_token=$(get_env_value "EXPO_TOKEN")
     if [ -z "$expo_token" ]; then
-        log_warning "EXPO_TOKEN not found in environment, EAS builds may require manual authentication"
+        log_warning "EXPO_TOKEN not found, EAS builds may require manual authentication"
         log_info "You can set EXPO_TOKEN for automated authentication"
         return 0
     fi
@@ -512,10 +547,13 @@ start_local_tunnel() {
     echo "Local tunnel password: $LOCAL_TUNNEL_PASSWORD" | tee -a web_tunnel_output.log
     log_info "Local tunnel password: $LOCAL_TUNNEL_PASSWORD"
     
-    # Check for TUNNEL_SUBDOMAIN environment variable first
-    if [ -z "$subdomain" ] && [ -n "$TUNNEL_SUBDOMAIN" ]; then
-        subdomain="$TUNNEL_SUBDOMAIN"
-        log_info "Using TUNNEL_SUBDOMAIN from environment: $subdomain"
+    # Check for TUNNEL_SUBDOMAIN using the composition logic
+    log_info "DEBUG: Initial subdomain parameter: '$subdomain'"
+    if [ -z "$subdomain" ]; then
+        subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
+        if [ -n "$subdomain" ]; then
+            log_info "Using TUNNEL_SUBDOMAIN from composition logic: $subdomain"
+        fi
     fi
     
     # Generate a random subdomain if not provided
@@ -531,11 +569,14 @@ start_local_tunnel() {
     fi
     
     # Start local tunnel
+    log_info "DEBUG: Final subdomain value before starting tunnel: '$subdomain'"
     if [ -n "$subdomain" ]; then
         log_step "Starting tunnel with subdomain: $subdomain"
+        log_info "DEBUG: Executing command: lt --port $port --subdomain $subdomain"
         lt --port $port --subdomain $subdomain 2>&1 | tee web_tunnel_output.log &
     else
         log_step "Starting tunnel with random subdomain"
+        log_info "DEBUG: Executing command: lt --port $port"
         lt --port $port 2>&1 | tee web_tunnel_output.log &
     fi
     
@@ -574,7 +615,8 @@ check_token() {
 start_ngrok() {
     log_step "Starting ngrok tunnels..."
     
-    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
+    local ngrok_token=$(get_env_value "NGROK_TOKEN")
+    if ! check_token "NGROK_TOKEN" "$ngrok_token"; then
         log_warning "Skipping ngrok - NGROK_TOKEN not configured"
         return 1
     fi
@@ -685,16 +727,17 @@ start_mobile_dev() {
 deploy_vercel() {
     log_deploy "Starting Vercel deployment..."
     
-    if ! check_token "VERCEL_TOKEN" "$VERCEL_TOKEN"; then
+        local vercel_token=$(get_env_value "VERCEL_TOKEN")
+    if ! check_token "VERCEL_TOKEN" "$vercel_token"; then
         log_warning "Skipping Vercel deployment - VERCEL_TOKEN not configured"
         return 1
     fi
-    
+
     TIMEOUT=${VERCEL_TIMEOUT:-180}
     log_info "Deployment timeout: ${TIMEOUT} seconds"
     
     start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "web_output.log"
+    timeout $TIMEOUT vercel --token "$vercel_token" --yes --prod 2>&1 | tee "web_output.log"
     
     if [ $? -eq 124 ]; then
         log_error "Deployment timed out"
@@ -797,15 +840,89 @@ show_status() {
     fi
     
     # Check local tunnel
-    if [ -f "web_tunnel_output.log" ]; then
-        LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
-        if [ -n "$LOCAL_TUNNEL_URL" ]; then
-            LOCAL_TUNNEL_PID=$(get_pid "lt --port")
-            log_success "Local tunnel:"
-            log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
-            if [ -n "$LOCAL_TUNNEL_PID" ]; then
-                log_info "  - PID: $LOCAL_TUNNEL_PID"
+    LOCAL_TUNNEL_PID=$(get_pid "lt --port")
+    if [ -n "$LOCAL_TUNNEL_PID" ]; then
+        # Check if custom subdomain is configured
+        local tunnel_subdomain=$(get_env_value "TUNNEL_SUBDOMAIN")
+        if [ -n "$tunnel_subdomain" ]; then
+            CUSTOM_URL="https://${tunnel_subdomain}.loca.lt"
+            EXPECTED_URL="$CUSTOM_URL"
+            
+            # Check if output log shows the correct URL
+            if [ -f "web_tunnel_output.log" ]; then
+                LOG_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
+                if [ "$LOG_URL" != "$EXPECTED_URL" ]; then
+                    log_warning "Local tunnel: Output log shows different URL than expected"
+                    log_warning "  Expected: $EXPECTED_URL"
+                    log_warning "  Found: $LOG_URL"
+                    log_warning "  Using found URL for status check"
+                    
+                    # Use the found URL for curl test
+                    if curl -s -H "bypass-tunnel-reminder:true" "$LOG_URL" > /dev/null 2>&1; then
+                        LOCAL_TUNNEL_URL="$LOG_URL"
+                        log_success "Local tunnel:"
+                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (fallback subdomain)"
+                    else
+                        log_error "Local tunnel: Found URL not accessible"
+                        log_error "  URL: $LOG_URL"
+                        log_error "  Stopping local tunnel due to accessibility issue"
+                        pkill -f "lt --port"
+                        LOCAL_TUNNEL_PID=""
+                        LOCAL_TUNNEL_URL=""
+                    fi
+                else
+                    # Output log is correct, now curl test it
+                    if curl -s -H "bypass-tunnel-reminder:true" "$CUSTOM_URL" > /dev/null 2>&1; then
+                        LOCAL_TUNNEL_URL="$CUSTOM_URL"
+                        log_success "Local tunnel:"
+                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000 (custom subdomain)"
+                    else
+                        log_error "Local tunnel: Custom subdomain not accessible"
+                        log_error "  URL: $CUSTOM_URL"
+                        log_error "  Stopping local tunnel due to accessibility issue"
+                        pkill -f "lt --port"
+                        LOCAL_TUNNEL_PID=""
+                        LOCAL_TUNNEL_URL=""
+                    fi
+                fi
+            else
+                log_error "Local tunnel: No output log found"
+                log_error "  Stopping local tunnel due to missing log"
+                pkill -f "lt --port"
+                LOCAL_TUNNEL_PID=""
+                LOCAL_TUNNEL_URL=""
             fi
+        else
+            # No custom subdomain, use log file
+            if [ -f "web_tunnel_output.log" ]; then
+                LOCAL_TUNNEL_URL=$(grep -o 'https://[^[:space:]]*\.loca\.lt' web_tunnel_output.log | head -1)
+                if [ -n "$LOCAL_TUNNEL_URL" ]; then
+                    # Test the URL from log
+                    if curl -s -H "bypass-tunnel-reminder:true" "$LOCAL_TUNNEL_URL" > /dev/null 2>&1; then
+                        log_success "Local tunnel:"
+                        log_info "  - $LOCAL_TUNNEL_URL -> http://localhost:3000"
+                    else
+                        log_error "Local tunnel: URL from log not accessible"
+                        log_error "  URL: $LOCAL_TUNNEL_URL"
+                        log_error "  Stopping local tunnel due to accessibility issue"
+                        pkill -f "lt --port"
+                        LOCAL_TUNNEL_PID=""
+                        LOCAL_TUNNEL_URL=""
+                    fi
+                                 else
+                     log_warning "Local tunnel: No URL found in output log"
+                     log_warning "  Tunnel may still be starting up"
+                     LOCAL_TUNNEL_URL=""
+                 fi
+             else
+                 log_warning "Local tunnel: No output log found"
+                 log_warning "  Tunnel may still be starting up"
+                 LOCAL_TUNNEL_URL=""
+             fi
+        fi
+        
+        if [ -n "$LOCAL_TUNNEL_URL" ]; then
+            log_info "  - PID: $LOCAL_TUNNEL_PID"
             # Display stored local tunnel password
             if [ -n "$LOCAL_TUNNEL_PASSWORD" ]; then
                 log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
@@ -814,8 +931,6 @@ show_status() {
                 LOCAL_TUNNEL_PASSWORD=$(get_local_tunnel_password)
                 log_warning "  Password: $LOCAL_TUNNEL_PASSWORD"
             fi
-        else
-            log_error "Local tunnel: Not running"
         fi
     else
         log_error "Local tunnel: Not running"
