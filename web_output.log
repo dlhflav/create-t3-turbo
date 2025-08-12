@@ -34,3 +34,7 @@ Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allow
  ✓ Compiled /api/auth/[...all] in 1560ms
 [2m2025-08-12T01:43:17.615Z[0m [31mERROR[0m [1m[Better Auth]:[0m State not found undefined
  GET /api/auth/callback/discord?code=N6U721mv8pa6b5diUEEJUaR62b0yPN 302 in 2322ms
+[TRPC] post.all took 841ms to execute
+ GET / 200 in 896ms
+[TRPC] post.all took 339ms to execute
+ GET / 200 in 381ms
