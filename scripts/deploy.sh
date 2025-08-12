@@ -329,12 +329,6 @@ get_env_value() {
 install_ngrok() {
     log_step "Installing and configuring ngrok..."
     
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
     # Check if ngrok is installed
     if ! command -v ngrok &> /dev/null; then
         log_info "Ngrok not found, installing..."
@@ -354,10 +348,10 @@ install_ngrok() {
         log_info "Ngrok already installed: $(ngrok version)"
     fi
     
-    # Get NGROK_TOKEN from environment
-    local ngrok_token=$(get_shell_var_value "NGROK_TOKEN")
+    # Get NGROK_TOKEN using composition logic
+    local ngrok_token=$(get_env_value "NGROK_TOKEN")
     if [ -z "$ngrok_token" ]; then
-        log_warning "NGROK_TOKEN not found in environment, skipping ngrok configuration"
+        log_warning "NGROK_TOKEN not found, skipping ngrok configuration"
         return 0
     fi
     
@@ -412,12 +406,6 @@ EOF
 install_vercel() {
     log_step "Installing and configuring Vercel CLI..."
     
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
     # Check if Vercel CLI is installed
     if ! command -v vercel &> /dev/null; then
         log_info "Vercel CLI not found, installing..."
@@ -435,10 +423,10 @@ install_vercel() {
         log_info "Vercel CLI already installed: $(vercel --version)"
     fi
     
-    # Get VERCEL_TOKEN from environment
-    local vercel_token=$(get_shell_var_value "VERCEL_TOKEN")
+    # Get VERCEL_TOKEN using composition logic
+    local vercel_token=$(get_env_value "VERCEL_TOKEN")
     if [ -z "$vercel_token" ]; then
-        log_warning "VERCEL_TOKEN not found in environment, skipping Vercel configuration"
+        log_warning "VERCEL_TOKEN not found, skipping Vercel configuration"
         return 0
     fi
     
@@ -464,12 +452,6 @@ install_vercel() {
 install_eas() {
     log_step "Installing and configuring EAS CLI..."
     
-    # Function to get variable value from shell environment
-    get_shell_var_value() {
-        local var_name="$1"
-        eval "echo \$${var_name}"
-    }
-    
     # Check if EAS CLI is installed
     if ! command -v eas &> /dev/null; then
         log_info "EAS CLI not found, installing..."
@@ -487,10 +469,10 @@ install_eas() {
         log_info "EAS CLI already installed: $(eas --version)"
     fi
     
-    # Get EXPO_TOKEN from environment
-    local expo_token=$(get_shell_var_value "EXPO_TOKEN")
+    # Get EXPO_TOKEN using composition logic
+    local expo_token=$(get_env_value "EXPO_TOKEN")
     if [ -z "$expo_token" ]; then
-        log_warning "EXPO_TOKEN not found in environment, EAS builds may require manual authentication"
+        log_warning "EXPO_TOKEN not found, EAS builds may require manual authentication"
         log_info "You can set EXPO_TOKEN for automated authentication"
         return 0
     fi
@@ -668,7 +650,8 @@ check_token() {
 start_ngrok() {
     log_step "Starting ngrok tunnels..."
     
-    if ! check_token "NGROK_TOKEN" "$NGROK_TOKEN"; then
+    local ngrok_token=$(get_env_value "NGROK_TOKEN")
+    if ! check_token "NGROK_TOKEN" "$ngrok_token"; then
         log_warning "Skipping ngrok - NGROK_TOKEN not configured"
         return 1
     fi
@@ -779,16 +762,17 @@ start_mobile_dev() {
 deploy_vercel() {
     log_deploy "Starting Vercel deployment..."
     
-    if ! check_token "VERCEL_TOKEN" "$VERCEL_TOKEN"; then
+        local vercel_token=$(get_env_value "VERCEL_TOKEN")
+    if ! check_token "VERCEL_TOKEN" "$vercel_token"; then
         log_warning "Skipping Vercel deployment - VERCEL_TOKEN not configured"
         return 1
     fi
-    
+
     TIMEOUT=${VERCEL_TIMEOUT:-180}
     log_info "Deployment timeout: ${TIMEOUT} seconds"
     
     start_time=$(date +%s)
-    timeout $TIMEOUT vercel --token "$VERCEL_TOKEN" --yes --prod 2>&1 | tee "web_output.log"
+    timeout $TIMEOUT vercel --token "$vercel_token" --yes --prod 2>&1 | tee "web_output.log"
     
     if [ $? -eq 124 ]; then
         log_error "Deployment timed out"
