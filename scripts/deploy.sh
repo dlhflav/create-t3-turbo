@@ -185,41 +185,6 @@ install_env_file() {
         eval "echo \$${var_name}"
     }
 
-    # Function to get environment value following priority order:
-    # 1. .env if defined and different from example
-    # 2. Shell value if defined
-    # 3. Example value
-    get_env_value() {
-        local var_name="$1"
-        
-        # Get values from all sources
-        local env_value=$(get_env_var_value "$var_name")
-        local shell_value=$(get_shell_var_value "$var_name")
-        local example_value=$(get_example_var_value "$var_name")
-        
-        # Priority 1: .env if defined and different from example
-        if [ -n "$env_value" ] && [ "$env_value" != "$example_value" ]; then
-            echo "$env_value"
-            return 0
-        fi
-        
-        # Priority 2: Shell value if defined
-        if [ -n "$shell_value" ]; then
-            echo "$shell_value"
-            return 0
-        fi
-        
-        # Priority 3: Example value
-        if [ -n "$example_value" ]; then
-            echo "$example_value"
-            return 0
-        fi
-        
-        # No value found
-        echo ""
-        return 1
-    }
-
     # Get all variables from .env.example
     env_vars=$(get_env_vars_from_example)
 
